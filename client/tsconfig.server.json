@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "es2016",
+    "module": "es2015",
+   // "baseUrl": ".",    
+    "moduleResolution": "node",
+    //"emitDecoratorMetadata": true,
+    //"experimentalDecorators": true,
+    "declaration": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "removeComments": true,
+    "strictNullChecks": false,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "outDir": "build/server",
+    "lib": [
+      "es2016",
+      "esnext.asynciterable"
+    ],
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
+    }
+  },    
+  "include": [
+    "src/server"
+  ],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules",
+    "src",
+    "src/app"
+
+  ]
+}

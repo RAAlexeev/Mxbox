@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "es6",
+    "module": "esnext",
+    "baseUrl": ".",    
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+    "declaration": true,
+    //"strict": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "removeComments": true,
+    "strictNullChecks": true,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "noImplicitThis":false,
+    "outDir": "build",
+    "lib": [
+      "dom",
+      "es2016",
+      "esnext.asynciterable"
+    ],
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
+    }
+  },    
+  "include": [
+    "src"  
+     ],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules"
+
+  ]
+}

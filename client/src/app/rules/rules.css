@@ -1,0 +1,25 @@
+
+.iconMenu {
+  float: right;  
+}
+
+.menuItem
+{
+  float: left;
+  width:80%;
+}
+.clearButton{
+  height: var(--menu-item-height);
+  min-width: auto;
+  padding: 0;
+}
+.messageCard{
+  overflow: visible;
+}
+
+.tooltip {
+  z-index: 1000;
+}
+.menuItemHeight{
+  line-height: 48px;
+}

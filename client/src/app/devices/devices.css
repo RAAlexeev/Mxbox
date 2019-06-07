@@ -1,0 +1,36 @@
+.messageCard {
+  margin-bottom: 0.1rem;
+  overflow: visible;
+  padding: 0.5rem;
+}
+.activeCard{
+border:red solid!important; 
+}
+.cardTitle{
+  --card-padding-lg:0;
+  --card-padding:0;
+}
+.iconMenu{
+  text-align: none!important;
+  float: left;
+
+}
+.name{
+  float:right;
+  --input-padding:0;
+  width: 80%;
+}
+
+.addr{
+  float: left;
+  width:19%;
+  box-sizing: border-box;
+}
+.ip{
+  float: right;
+  box-sizing: border-box;
+  width:75%;
+}
+.active:active{
+  color:red;
+}
