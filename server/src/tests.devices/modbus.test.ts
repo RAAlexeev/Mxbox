@@ -1,5 +1,5 @@
 import ModbusRTU from '../../node_modules/modbus-serial'
-import { db, pubsub, LINK_STATE_CHENG, Device } from '../schema' 
+import { db, pubsub, LINK_STATE_CHENG, Device, isMutated } from '../schema' 
 import { sendMail } from './result/send.email'
 import { sendSMS } from './result/send.sms';
 import { debug } from 'util';
@@ -7,19 +7,18 @@ import { debug } from 'util';
 
 
 export const modbusTestRun = ()=>{
-    //clearInterval( intervalReload )
-   // intervalReload = setInterval( 
-        ()=> 
+ 
         db.find( { 'rules.trigs.type':0 }
-            ,( err, devices:Device[] )=>{
-   
-                            if(!err){  
+            ,async( err,  devices:Device[] )=>{
+                     try{
+                        if(!err){  
                                   const client = new ModbusRTU();
                             // open connection to a serial port
-                            client.connectRTUBuffered("/dev/ttyMT0", { baudRate: 19200, parity:'even' });
+                          
+                            await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: 19200, parity:"even",stopBits:1 });
                             // set timeout, if slave did not reply back
-                            client.setTimeout(500);
-                        
+                            client.setTimeout(1000);
+                           
                              
                             const queryDevices = async (devices) => {
                                 try{
@@ -28,16 +27,23 @@ export const modbusTestRun = ()=>{
                                         // output value to console
                                         await queryDevice(device)
                                         // wait 100ms before get another device
-                                        await sleep(100);
+                                        await sleep(5000);
                                 }
                                 } catch(e){
                                     // if error, handle them here (it should not)
                                     console.log(e)
                                 } finally {
-                                    // after get all data from salve repeate it again
-                                    setImmediate(() => {
-                                        queryDevices(devices);
+                                    if(isMutated())
+                                    db.find( { 'rules.trigs.type':0 }
+                                        ,( err, devices:Device[] )=>{  
+                                        // after get all data from salve repeate it again
+                                        if(!err)
+                                            setImmediate(() => {
+                                                queryDevices(devices);
+                                            })
+                                        else console.error(err)
                                     })
+                                    else  queryDevices(devices)
                                 }
                             }
                              
@@ -60,11 +66,12 @@ export const modbusTestRun = ()=>{
                              
                             // start get value
                             queryDevices(devices)
-                        }
-                            else console.error(err.toString())
-                        
+                        } else console.error(err.toString())
+                    }catch(e){
+                        console.error(e)
+                     }
                         })
-//,1000*60*60)
+
 }
 
 interface Sms{
@@ -77,6 +84,7 @@ interface Sms{
     body?:string
   }
   interface Trig{
+    jsCode?: string;
     type:number
     condition?:string
     sms?:Sms
@@ -115,9 +123,10 @@ class TestDevicesModbus {
     }
     private static parse ( s:string) :Reg[]{   
         const regs:Reg[] = []  
-
-        const match = s.match(/\[(\d+)\s?(\d?)\.?(\d?[\d,f,u]?)\]]/)
-
+        const regExp:RegExp= new RegExp(/\[(\d+)\s?(\d?)\.?(\d?[\d,f,u]?)\]/)
+        let match = regExp.exec(s)
+        while(match){
+           
         if( match ){    
 
                 regs.push({
@@ -128,7 +137,11 @@ class TestDevicesModbus {
                 })
                 
             }
-            debug(regs.toString())
+
+            match = regExp.exec(s=s.replace(match[0],''))
+        }
+   
+           
             return regs
     }
 
@@ -149,15 +162,27 @@ class TestDevicesModbus {
             //send SMSs Emails
     }
     private static testTrig ( trig:Trig ):boolean{
-            let jsCode
+            
+            if( trig.condition  )
+            if(trig.jsCode===undefined){
+
+                trig.jsCode = trig.condition.replace(/\=+/g,' === ')
+                                            .replace(/or/ig,'|')
+                                            .replace(/and/ig,'&')
+                                            .replace(/not/g,'!')
+                                            .replace(/<>/g,'!=')
+                
+            }
+            let jsCode = trig.jsCode
             if( trig && trig.regs ){
              trig.regs.forEach(reg => {
-                if( trig.condition && reg && reg.val )
+                if( jsCode && reg && reg.val )
                     
-                    jsCode = trig.condition.replace(reg.pattern,'('+ reg.val.toString() + ')') 
-                });
+                    jsCode = jsCode.replace(reg.pattern,'('+ reg.val + ')') 
+                })
             try{
-                return new Function('return('+jsCode+')')()    
+                debug('jsCode:'+ jsCode)
+                return new Function('','return ('+jsCode+')')()    
             }catch(err){
                 console.error(err)
             }
@@ -174,7 +199,7 @@ class TestDevicesModbus {
     }    
     private static processResponse(reg:Reg){
         if ( !reg.qualifier ) {
-           reg.val =new Int16Array( reg.val.data[0] )[0] 
+           reg.val =new Int16Array( reg.val.data )[0] 
         } else 
             if(reg.qualifier.search(/u/)){
                  reg.val = reg.val.data[0]
@@ -187,13 +212,13 @@ class TestDevicesModbus {
                     else console.error('запрашивал 2 регистра получено не 2...  ')
                 }else{          
                const bit = parseInt(reg.qualifier)
-               reg.val = ((reg.val.register[0] & (1<<bit)) >> bit )         
+               reg.val = ((reg.val.data[0] & (1<<bit)) >> bit )         
             }
         
     }    
     static async testTrigs ( device:Device, client:ModbusRTU ){
-            for( const rule of  device.rules) {
-                if(rule.trigs)
+            for( const rule of device.rules) {
+                if(rule && rule.trigs)
                   for(const trig of  rule.trigs){
                         if(trig){
                             if ( trig.condition ){
@@ -215,9 +240,12 @@ class TestDevicesModbus {
                                         default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')                                            
                                     }
                                 }
+                               // debug('#trig.active:' + trig.active)
                                 if( this.testTrig( trig ) ){ 
-                                   if(trig.active < 24)++trig.active
-                                   if( trig.active == 12 ) 
+                                   debug('#trig.active:' + trig.active)
+                                   if(!trig.active)trig.active=0
+                                   if(trig.active < 12)++trig.active
+                                   if( trig.active === 6 ) 
                                         this.onTrig( device, rule )
                                 }else  if(trig.active)--trig.active
                             }

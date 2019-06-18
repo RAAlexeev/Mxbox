@@ -20,7 +20,7 @@ export class SettingsStore {
 
  loadSmtp =async()=>{
   try{ const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-          query: gql`query getSmtpConfig{getSmtpConfig{address port name password}}`,
+          query: gql`query getSmtpConfig{getSmtpConfig{address, port, name }}`,
       variables:{},
       fetchPolicy: 'network-only'
       }) 

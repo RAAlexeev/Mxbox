@@ -13,12 +13,14 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
 //const reactToolboxVariables = require('./reactToolbox.css');
 
 
-
  const clientConf = {
   mode:'development',//"production",
   context: sourcePath,
   entry: {
     main: './index.ts',
+   // vendors: [
+   // "webpack-material-design-icons"
+   // ]
   },
   output: {
     path: outPath,
@@ -39,8 +41,11 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
         exclude: /[\\/]node_modules[\\/]/,
         use: 'awesome-typescript-loader',
       },
+
+
       // css
       {
+
         test: /\.css$/,    
         //exclude:/style\.css/,    
         use: [
@@ -55,9 +60,8 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
                 autoprefixer: false,
               }
             },
-            'resolve-url-loader',
             'postcss-loader',
-            
+            'resolve-url-loader',
             
      /*        {
               loader: 'postcss-loader',
@@ -92,8 +96,9 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
       },
       // static assets
       { test: /\.html$/, use: 'html-loader' },
-      { test: /\.png$/, use: 'url-loader?limit=10000' },
+     // { test: /\.png$/, use: 'url-loader?limit=10000' },
       { test: /\.jpg$/, use: 'file-loader' },
+      { test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|svg|woff2)$/, use: "url-loader?name=[name].[ext]" }
     ],
   },
   plugins: [
@@ -111,7 +116,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
   devServer: {
     contentBase: sourcePath,
     hot: true,
-    host:"0.0.0.0",
+    host:"::",
     port:3000,
     stats: {
       warnings: true

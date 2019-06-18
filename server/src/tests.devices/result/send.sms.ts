@@ -55,9 +55,9 @@ modem.open('/dev/radio/atci1', options,(err,res)=>{
 export function sendSMS(sms:Sms,device?:Device){
    
     const interval = setInterval((sms:Sms,device:Device)=>{
-        if(device) sms.text=device.name+':'+sms.text
+         const text=device.name +':'+sms.text
         for(const mumber of sms.numbers)
-         modem.sendSMS( mumber, sms.text, false, 
+         modem.sendSMS( mumber, text, false, 
             (result)=>{
                 function* x(){
                     if(result.status==='success')
@@ -68,7 +68,7 @@ export function sendSMS(sms:Sms,device?:Device){
                 }
             x().next()
         }) 
-    },30000,sms,device)
+    },10000,sms,device)
 
             
 }

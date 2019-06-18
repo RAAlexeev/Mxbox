@@ -58,7 +58,7 @@ export class DevicesStore {
       this.deviceSubscription = this.appStore.apolloClient.subscribe({
       query: gql`subscription onDeviceLinkState{
         deviceLinkState{
-          _id
+          _id,
           state
         }
       }`,
@@ -70,7 +70,7 @@ export class DevicesStore {
        const index = DevicesStore.getInstance().devices.findIndex( (device,index,devices)=>device&&data.data.deviceLinkState?device._id === data.data.deviceLinkState._id:false )
        if(index >= 0) DevicesStore.getInstance().devices[index] = {...DevicesStore.getInstance().devices[index], error:data.data.deviceLinkState.state}
       },
-      error(err) { console.error('err', err) },
+      error(err) { console.log(err.message)},
     }) 
   } 
 

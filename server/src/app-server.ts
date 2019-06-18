@@ -6,9 +6,10 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { schema } from './schema';
 import { AddressInfo } from 'net';
-import { sendSMS } from './tests.devices/result/send.sms';
+import { sendMail } from './tests.devices/result/send.email';
 
-
+const cmd = require('node-cmd')
+cmd.run('service call wifi  29  i32 0 i32 1')//service call wifi  29  i32 0 i32 1
 
 apollo.applyMiddleware({app});
 app.use('/', express.static('./'));
@@ -43,5 +44,6 @@ app.use('/', express.static('./'));
 })  
 
 //sendSMS({numbers:["+79136094380"],text:"Привед!"})
+//sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
 //export {server};

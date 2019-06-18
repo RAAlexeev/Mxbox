@@ -147,7 +147,7 @@ export interface Email{
   body?:string
 }
 export interface Trig{
-    active: any;
+   active: number 
    notice: number
   type:number
   condition?:string
@@ -198,6 +198,9 @@ class Device implements DeviceInput{
 import  { PubSub, makeExecutableSchema } from 'apollo-server-express'
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG' 
 export const pubsub = new PubSub();
+export var isMutated = (_mutated?:boolean)=>{
+  var mutated = false 
+    return mutated = _mutated?_mutated:false}
 export const resolvers = {
   Subscription:{
     deviceLinkState:{
@@ -206,7 +209,7 @@ export const resolvers = {
   } ,
   Query: {
     devices: (parent) => {
-      var callback = function(err,dev){ if( err ){ console.log(err); this.reject(err.toString())} else this.resolve(dev) }         
+      var callback = function(err, dev){ if( err ){ console.log(err); this.reject(err.toString())} else{ this.resolve(dev)} }         
       const p = new Promise((resolve,reject)=>{db.find( {}, callback.bind({resolve,reject}))})    
       return p.then().catch()   
     },
@@ -267,12 +270,12 @@ export const resolvers = {
             return p.then().catch()     
        },
       updDevice(parent,args,context,info){
-          var callback = function(err, numAffected, affectedDocuments, upsert){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject(err)} else{  this.resolve("OK")} }         
+          var callback = function(err, numAffected, affectedDocuments, upsert){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject(err)} else{ isMutated(true); this.resolve("OK")} }         
           const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.deviceInput._id}, {$set:args.deviceInput}, {}, callback.bind({resolve,reject}))})    
           return p.then().catch()    
       },
       delDevice(parent,args,context,info){
-        var callback = function(err, cnt ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{  this.resolve({status:"OK"})} }         
+        var callback = function(err, cnt ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{isMutated(true);  this.resolve({status:"OK"})} }         
         const p = new Promise((resolve,reject)=>{db.remove({_id:args._id}, callback.bind({resolve,reject}))})    
         return p.then().catch()    
       },
@@ -284,12 +287,12 @@ export const resolvers = {
       },
 
       updRule(parent,args,context,info){
-        var callback = function(err, device ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{  this.resolve({status:device?'OK':'not found'}) }}      
+        var callback = function(err, device ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{ isMutated(true); this.resolve({status:device?'OK':'not found'}) }}      
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, args.ruleInput, {}, callback.bind({resolve,reject}))})    
         return p.then().catch()    
       },
       delRule(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{  this.resolve({status:"OK:"+numberUpdated}) }}        
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{ isMutated(true); this.resolve({status:"OK:"+numberUpdated}) }}        
         const p = new Promise((resolve,reject)=>{db.update({_id:args.device},{$unset:{['rules.'+args.ruleNum]:undefined}},{}, callback.bind({resolve,reject}))})    
         return p.then().catch()    
       },     
@@ -299,12 +302,12 @@ export const resolvers = {
         return p.then((v)=>v).catch((v)=>v)    
       },
       updTrig(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{  this.resolve({status:'OK:'+numberUpdated}) }}            
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{isMutated(true); this.resolve({status:'OK:'+numberUpdated}) }}            
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$set:{['rules.'+args.ruleNum+'.trigs.'+ args.trigNum]:args.trigInput}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
       delTrig(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{  this.resolve({status:'OK:'+numberUpdated}) }}            
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{isMutated(true);  this.resolve({status:'OK:'+numberUpdated}) }}            
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.trigs.'+ args.trigNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
@@ -315,12 +318,12 @@ export const resolvers = {
         return p.then((v)=>v).catch((v)=>v)    
       },
       updAct(parent,args,context,info){
-        var callback = function(err, numberUpdated, affectedDocuments ){ console.log("callback(",affectedDocuments.rules[args.ruleNum].acts,")");  if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else if(numberUpdated){  this.resolve(affectedDocuments.rules[args.ruleNum].acts[args.actNum]); }else this.resolve(null) }            
+        var callback = function(err, numberUpdated, affectedDocuments ){ console.log("callback(",affectedDocuments.rules[args.ruleNum].acts,")");  if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else if(numberUpdated){ isMutated(true);  this.resolve(affectedDocuments.rules[args.ruleNum].acts[args.actNum]); }else this.resolve(null) }            
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$set:{['rules.'+args.ruleNum+'.acts.'+ args.actNum]:args.actInput}}, {returnUpdatedDocs:true}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
       delAct(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{ this.resolve({status:'OK:'+numberUpdated}) }}
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{isMutated(true); this.resolve({status:'OK:'+numberUpdated}) }}
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.acts.'+ args.actNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
@@ -338,6 +341,7 @@ export const resolvers = {
                 console.error(err); this.reject({status:err.toString()})
               } else {
                 console.log("OK:",numberUpdates)
+                isMutated(true);
                              this.resolve(device)
               }
             }.bind(this))
