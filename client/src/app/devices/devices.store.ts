@@ -16,7 +16,7 @@ const DevicesQuery = gql`
   }
 `
 const addDevice = gql`
-mutation addDevice($mb_addr:Int){
+mutation addDevice( $mb_addr:Int ){
   addDevice(device:{name:"Новое", ip_addr:"127.0.0.1:501", mb_addr:$mb_addr}){
     _id, name,  ip_addr, mb_addr
   }
@@ -65,12 +65,16 @@ export class DevicesStore {
       // This way realtime updates will work only when both posting and reading users have the same name. Proof of concept.
       variables: { }
     }).subscribe({
-      next(data) {
+      next:(data)=> {
     ///   console.log(this.data)
-       const index = DevicesStore.getInstance().devices.findIndex( (device,index,devices)=>device&&data.data.deviceLinkState?device._id === data.data.deviceLinkState._id:false )
-       if(index >= 0) DevicesStore.getInstance().devices[index] = {...DevicesStore.getInstance().devices[index], error:data.data.deviceLinkState.state}
+        if(!data.data) return;
+       const index = DevicesStore.getInstance().devices.findIndex( (device,index,devices)=>{
+         return device && data.data.deviceLinkState ? device._id === data.data.deviceLinkState._id : false;
+       } )
+       if(index >= 0) DevicesStore.getInstance().devices[index].error=data.data.deviceLinkState.state
       },
-      error(err) { console.log(err.message)},
+      error:(err)=> { console.error(err)
+      },
     }) 
   } 
 

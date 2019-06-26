@@ -1,5 +1,5 @@
 import ModbusRTU from '../../node_modules/modbus-serial'
-import { db, pubsub, LINK_STATE_CHENG, Device, isMutated } from '../schema' 
+import { db, pubsub, LINK_STATE_CHENG, Device, isMutated, portReinit, db_settings } from '../schema' 
 import { sendMail } from './result/send.email'
 import { sendSMS } from './result/send.sms';
 import { debug } from 'util';
@@ -12,65 +12,91 @@ export const modbusTestRun = ()=>{
             ,async( err,  devices:Device[] )=>{
                      try{
                         if(!err){  
-                                  const client = new ModbusRTU();
-                            // open connection to a serial port
+                            const client = new ModbusRTU();
                           
-                            await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: 19200, parity:"even",stopBits:1 });
-                            // set timeout, if slave did not reply back
-                            client.setTimeout(1000);
-                           
-                             
-                            const queryDevices = async (devices) => {
-                                try{
-                                    // get value of all meters
-                                    for(let device of devices) {
-                                        // output value to console
-                                        await queryDevice(device)
-                                        // wait 100ms before get another device
-                                        await sleep(5000);
+                            db_settings.loadDatabase();
+                            db_settings.findOne( { '_id':'port1' }
+                                  ,async( err,  settings:{speed:number;param:string} )=>{
+
+                                if(err) {
+                                    console.error(err)
+                                    settings={speed:19200, param:'8e1'}
                                 }
-                                } catch(e){
-                                    // if error, handle them here (it should not)
-                                    console.log(e)
-                                } finally {
-                                    if(isMutated())
-                                    db.find( { 'rules.trigs.type':0 }
-                                        ,( err, devices:Device[] )=>{  
-                                        // after get all data from salve repeate it again
-                                        if(!err)
-                                            setImmediate(() => {
-                                                queryDevices(devices);
-                                            })
-                                        else console.error(err)
-                                    })
-                                    else  queryDevices(devices)
+                               const parity=()=>{switch(settings.param[1]){
+                                    case 'e': return 'even' //'none' | 'even' | 'mark' | 'odd' | 'space'
+                                    case 'o': return 'odd'
+                                    case 'n': return 'none'
+                                    case 's': return 'space'
+                                    }
                                 }
-                            }
-                             
-                            const queryDevice = async (device:Device) => {
-                                try {
-                                    // set ID of slave
-                                    await client.setID(device.mb_addr);
-                                    // read the 1 registers starting at address 0 (first register)
-                                    await TestDevicesModbus.testTrigs(device, client) 
-                                    // return the value
+                                  // open connection to a serial port
+                                        
+                                        await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings.speed, parity:parity(),stopBits: parseInt(settings.param[2]) });
+                                        // set timeout, if slave did not reply back
+                                        client.setTimeout(1000);
                                     
-                                } catch(e){
-                                    // if error return -1
-                                    console.error(e)
-                                }
-                            }
-                             
-                            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-                             
-                             
-                            // start get value
-                            queryDevices(devices)
+                                
+                                        const queryDevices = async (devices) => {
+                                            try{
+                                                // get value of all meters
+                                                for(let device of devices) {
+                                                    // output value to console
+                                                    await queryDevice(device)
+                                                    // wait 100ms before get another device
+                                                    await sleep(5000);
+                                            }
+                                            } catch(e){
+                                                // if error, handle them here (it should not)
+                                                console.log(e)
+                                            } finally {
+                                                if(portReinit()) 
+                                                    client.close(
+                                                        ()=>{
+                                                            modbusTestRun()
+                                                            return
+                                                        }
+                                                    )
+                                                else
+                                                if(isMutated())
+                                                db.find( { 'rules.trigs.type':0 }
+                                                    ,( err, devices:Device[] )=>{  
+                                                    // after get all data from salve repeate it again
+                                                    if(!err)
+                                                        setImmediate(() => {
+                                                            queryDevices(devices);
+                                                        })
+                                                    else console.error(err)
+                                                })
+                                                else  queryDevices(devices)
+                                            }
+                                        }
+                                        
+                                        const queryDevice = async (device:Device) => {
+                                            try {
+                                                // set ID of slave
+                                                await client.setID(device.mb_addr);
+                                                // read the 1 registers starting at address 0 (first register)
+                                                await TestDevicesModbus.testTrigs(device, client) 
+                                                // return the value
+                                                
+                                            } catch(e){
+                                                // if error return -1
+                                                console.error(e)
+                                            }
+                                        }
+                                        
+                                        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+                                        
+                                        
+                                        // start get value
+                                        queryDevices(devices)
+                            })
                         } else console.error(err.toString())
                     }catch(e){
                         console.error(e)
                      }
                         })
+                        
 
 }
 

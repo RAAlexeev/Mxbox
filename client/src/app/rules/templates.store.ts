@@ -6,7 +6,7 @@ import {Device, DevicesStore} from '../devices/devices.store';
 import { Trig } from './trigs/trigs.store';
 import{Act} from './acts/acts.store'
 
-
+import { withClientState } from 'apollo-link-state';
 
 export interface Sms{
   number:string[]

@@ -44,51 +44,41 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 
       // css
-      {
 
-        test: /\.css$/,    
-        //exclude:/style\.css/,    
-        use: [
-            'style-loader',
+      {
+          test: /\.css$/i,
+          //exclude: /node_modules[\\/]/,
+          use: [
             {
+              loader: 'style-loader',
+            },
+             {
               loader: 'css-loader',
               options: {
-                modules: true,
-                sourceMap: !isProduction,
-                importLoaders: 2,
-                localIdentName: '[local]__[hash:base64:5]',
-                autoprefixer: false,
-              }
-            },
-            'postcss-loader',
-            'resolve-url-loader',
-            
-     /*        {
+                  modules: true,
+                  url: true,
+                  import: true,
+                  importLoaders: 2,
+                  localIdentName: '[name]__[local]___[hash:base64:5]', 
+                
+                 modules: true,
+               /*   getLocalIdent: (context, localIdentName, localName, options) => (
+                    getScopedName(localName, context.resourcePath)
+                ) */
+                
+                
+                  
+              },
+            }, 
+            {
               loader: 'postcss-loader',
-              options: {
-               // exec: true ,
-               
-                config: {
-                  ctx: {
-                    
-                    'postcss-preset-env': {
-                     // stage:2,
-                     // features: {
-                   //     'nesting-rules': true,
-
-                     // }
-                    },
-                    cssnano: {},
-
-                  }
-                }
-              }
-            } */
-               
-           
+            },
+            {
+              loader:'resolve-url-loader',
+            }
           ]
-      //  }) 
       },
+
       {
         type: 'javascript/auto',
         test: /\.mjs$/,
@@ -97,7 +87,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
       // static assets
       { test: /\.html$/, use: 'html-loader' },
      // { test: /\.png$/, use: 'url-loader?limit=10000' },
-      { test: /\.jpg$/, use: 'file-loader' },
+    //  { test: /\.jpg$/, use: 'file-loader' },
       { test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|svg|woff2)$/, use: "url-loader?name=[name].[ext]" }
     ],
   },

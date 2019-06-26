@@ -5,7 +5,7 @@ import { SubscriptionClient    } from 'subscriptions-transport-ws'
 import ApolloClient from 'apollo-client'
 //import * as apolloLinkError from 'apollo-link-error'
 
-const wsClient = new SubscriptionClient(`ws://${document.URL.replace(/(^\w+:|^)\/\//, '')}/graphql`, {
+const wsClient = new SubscriptionClient(`ws://${document.location.host}/graphql`, {
   reconnect: true,
   connectionParams: {
     // Pass any arguments you want for initialization
@@ -15,13 +15,22 @@ const wsClient = new SubscriptionClient(`ws://${document.URL.replace(/(^\w+:|^)\
 import { getOperationAST } from 'graphql';  
 import { App } from './app.component';
 
+const customFetch = async (uri, options) => {
+   const response = await fetch(uri, options)
+    if (response.status >= 400) {  // or handle 400 errors
+      return Promise.reject(response.status);
+    }
+    return response;
+  };
+
 const link = ApolloLink.split(
   operation => {
   	const operationAST = getOperationAST(operation.query, operation.operationName);
   	return !!operationAST && operationAST.operation === 'subscription';
   },
   new HttpLink({
-    uri: `${document.URL}/graphql`
+    uri: `${document.location.origin}/graphql`,
+    fetch: customFetch,
   }),  
   new WebSocketLink(wsClient),
 ) 
@@ -52,7 +61,7 @@ export class AppStore {
 
   constructor(){
    
-    console.log(document.domain)
+    //console.log(document.domain)
 
 
   }

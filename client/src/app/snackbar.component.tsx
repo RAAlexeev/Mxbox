@@ -3,12 +3,12 @@ import React = require('react');
 import { observable } from 'mobx';
 export class Snackbar extends React.Component {
     handleSnackbarClick = (event, instance) => {
-      console.log('handleSnackbarClick', event, instance);
+     // console.log('handleSnackbarClick', event, instance);
       this.setState({ active: false });
     };
   
     handleSnackbarTimeout = (event, instance) => {
-      console.log('handleSnackbarClick', event, instance);
+      //console.log('handleSnackbarClick', event, instance);
       this.setState({ active: false });
     };
   

@@ -43,7 +43,7 @@ toggleSidebar = () => {
   render() {
     return( 
     <Layout>
-      <NavDrawer active={this.state.drawerActive}
+            <NavDrawer active={this.state.drawerActive}
                 pinned={this.state.drawerPinned} permanentAt='md'
                 onOverlayClick={ this.toggleDrawerActive }>
             

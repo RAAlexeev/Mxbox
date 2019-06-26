@@ -88,6 +88,12 @@ import gql from 'graphql-tag'
       name:String
       password:String
     }
+    input portConfInput{
+      num:Int
+      speed:Int
+      setting:String
+      type:String
+    }
     type SmtpConf{
       address:String
       port:Int
@@ -126,8 +132,10 @@ import gql from 'graphql-tag'
       delAct(device:ID!,ruleNum:Int!,actNum:Int!):Result 
       addFromTemplate(device:ID!,template:ID!):[Rule]
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
+      setPortConfig( portConf:portConfInput! ):Result
     }
 `);
+ 
 import * as Datastore from 'nedb';
 
 export var db = new Datastore({filename : 'db'});
@@ -198,9 +206,13 @@ class Device implements DeviceInput{
 import  { PubSub, makeExecutableSchema } from 'apollo-server-express'
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG' 
 export const pubsub = new PubSub();
+export const portReinit =(_reinit?:boolean )=>{
+  var reinit = false
+  return reinit = _reinit?_reinit:false
+}
 export var isMutated = (_mutated?:boolean)=>{
   var mutated = false 
-    return mutated = _mutated?_mutated:false}
+    return mutated = _mutated?_mutated:false }
 export const resolvers = {
   Subscription:{
     deviceLinkState:{
@@ -393,8 +405,13 @@ export const resolvers = {
         var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else this.resolve({status:'OK:'+numberUpdated}) }            
         const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'smtp'},{...args.smtpConf,_id:'smtp'} , {upsert:true}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)   
+    },
+    setPortConfig(parent,args,context,info){
+      db_settings.loadDatabase()
+      var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ portReinit(true); this.resolve({status:'OK:'+numberUpdated}) }}            
+      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'port'+args.portConf.num},{...args.smtpConf,_id:'port'+args.portConf.num} , {upsert:true}, callback.bind({resolve,reject}))})    
+      return p.then((v)=>v).catch((v)=>v)   
     }
-
   }   
 }
 
