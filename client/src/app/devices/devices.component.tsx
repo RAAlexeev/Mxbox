@@ -66,7 +66,7 @@ export class DevicesComponent extends React.Component<DevicesComponentProps, any
                name='mb_addr'
                label='Адрес:'
                
-              //error={devicesStore.title.error}
+               error={device.error}
                value={device.mb_addr?device.mb_addr:''}
                maxLength={3} 
                onChange={devicesStore.mb_addrOnChange.bind(this, device, devicesStore)}

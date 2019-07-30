@@ -1,8 +1,6 @@
 import { Sms, Device } from '../../schema';
 
 const cmd = require('node-cmd')
-cmd.run('stop ril-daemon')
-
 
 const serialportgsm = require('serialport-gsm')
 
@@ -24,14 +22,45 @@ const options = {
     customInitCommand: '',
     logger: console
 }
+cmd.get("ps|grep ril", (err,data,stderr)=>{
+    if (!err) {          
+      const pid = String(data).substr(10,6)
+      console.log("pid:",pid)
+    //  if(pid){
+              cmd.get("kill -STOP "+ pid,(err,data,stderr)=>{
+                if (!err) {
+                    modem.open('/dev/radio/atci1', options,(err,res)=>{
+                        if(err){
+                            console.error('reboot',err)
+                            cmd('reboot')
+                        }
+                        else
+                        cmd.get('svc wifi disable && service call wifi 29 i32 0 i32 1'/* && stop ril-daemon*/,(err, data, stderr)=>{
+                            if (!err) {
+                               console.log(data)
+                            } else {
+                               console.log('error', err)
+                            }
+                        })//service call wifi  29  i32 0 i32 1
+                        console.log(res)
+                    })
+                } else {
+                    console.log('error', err)
+                }
+              })    
+      //   }    
 
-
+        } else {
+        console.log('error', err)
+     }  
+})
 
 
 
   modem.on('open', () => {
-  
-        
+
+
+            getNetworkSignal()
             modem.setModemMode(  (msg,err)=>{
                 if(err)
                     console.error(err)
@@ -41,16 +70,25 @@ const options = {
   
 })
    
-modem.open('/dev/radio/atci1', options,(err,res)=>{
-    if(err){
-        console.error('reboot',err)
-        cmd('reboot')
-    }
-    else
-    console.log(res)
-})  
+  
+const getNetworkSignal = ()=>{
+    //console.log(getNetworkSignal)
+    modem.getNetworkSignal(async(result, error)=>{
 
+        if(!error){
+            console.dir(result)
+        }else
+            console.log('getNetworkSignal:',error)
 
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        
+        await sleep(10000)
+
+        setImmediate(() => {
+            getNetworkSignal()
+        })
+    })
+}
 
 export function sendSMS(sms:Sms,device?:Device){
    

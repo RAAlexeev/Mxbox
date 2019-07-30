@@ -204,15 +204,23 @@ class Device implements DeviceInput{
 //import * as util from 'util'
 
 import  { PubSub, makeExecutableSchema } from 'apollo-server-express'
+import { debug } from 'util';
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG' 
 export const pubsub = new PubSub();
+var mutated = 0
+export const isMutated = (_mutated?:boolean)=>{
+  if(_mutated)mutated +=2
+  else  if( mutated )mutated--
+     return mutated}
+     var reinit = 0
 export const portReinit =(_reinit?:boolean )=>{
-  var reinit = false
-  return reinit = _reinit?_reinit:false
-}
-export var isMutated = (_mutated?:boolean)=>{
-  var mutated = false 
-    return mutated = _mutated?_mutated:false }
+
+
+      if(_reinit)reinit+=2
+      else  if(reinit )reinit--
+      
+      return reinit
+    }
 export const resolvers = {
   Subscription:{
     deviceLinkState:{

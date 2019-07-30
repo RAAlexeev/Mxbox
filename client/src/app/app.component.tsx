@@ -54,6 +54,7 @@ toggleSidebar = () => {
       <Panel>
         <AppBar leftIcon='menu' onLeftIconClick={ this.toggleDrawerActive } theme={style} >
         <h1 style={{marginLeft: '10px'}}>MxBox&copy;	&ndash; OOO НТФ "Микроникс"</h1>
+        <div>обновлено:</div>
         </AppBar> 
               <div style={{ flex: 1, overflowY: 'visible', padding: '1.8rem' }}>
                 <div className={style.container}>

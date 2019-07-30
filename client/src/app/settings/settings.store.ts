@@ -19,19 +19,22 @@ export class SettingsStore {
     this.smtpSettings[name]=value
     const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation setSmtpConfig($smtpConf:SmtpConfInput!) { setSmtpConfig(smtpConf:$smtpConf){status}}`, 
-      variables:{ smtpConf:this.smtpSettings },
+      variables:{ smtpConf:{addres:this.smtpSettings.address,port:this.smtpSettings.port,name:this.smtpSettings.name,password:this.smtpSettings.password} },
       fetchPolicy: 'no-cache'  
     }) 
   }
 
 onPort1Change =async (num,name,value)=>{
   this.portsSettings[num][name]=value
-  const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+ /* 
+    const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
     mutation: gql`mutation setPortConfig($portConf:portConfInput!) { setPortConfig(portConf:$portConf){status}}`, 
     variables:{ portConf:this.portsSettings[0] },
     fetchPolicy: 'no-cache'  
   })
+  */
 }
+
  loadSmtp =async()=>{
   try{ const result = await AppStore.getInstance().apolloClient.query<any,{}>({
           query: gql`query getSmtpConfig{getSmtpConfig{address, port, name }}`,
@@ -54,6 +57,6 @@ onPort1Change =async (num,name,value)=>{
     this.smtpSettings={
        address:undefined,     port:undefined,  name:undefined,  password:undefined
     }
-    this.portsSettings = [{num:0, speed:0,param:''},{num:1, speed:0, param:''}]
+    this.portsSettings = [{num:0, speed:19200,param:'8e1'},{num:1, speed:0, param:''}]
   this.loadSmtp()}
 }

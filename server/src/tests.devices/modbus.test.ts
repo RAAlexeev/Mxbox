@@ -20,8 +20,9 @@ export const modbusTestRun = ()=>{
 
                                 if(err) {
                                     console.error(err)
-                                    settings={speed:19200, param:'8e1'}
+                                    
                                 }
+                                if(!settings)settings={speed:19200, param:'8e1'}
                                const parity=()=>{switch(settings.param[1]){
                                     case 'e': return 'even' //'none' | 'even' | 'mark' | 'odd' | 'space'
                                     case 'o': return 'odd'
@@ -31,7 +32,7 @@ export const modbusTestRun = ()=>{
                                 }
                                   // open connection to a serial port
                                         
-                                        await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings.speed, parity:parity(),stopBits: parseInt(settings.param[2]) });
+                                        await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings.speed, parity:parity(), stopBits: parseInt(settings.param[2]) });
                                         // set timeout, if slave did not reply back
                                         client.setTimeout(1000);
                                     
@@ -61,6 +62,7 @@ export const modbusTestRun = ()=>{
                                                 db.find( { 'rules.trigs.type':0 }
                                                     ,( err, devices:Device[] )=>{  
                                                     // after get all data from salve repeate it again
+                                                    debug('updated')
                                                     if(!err)
                                                         setImmediate(() => {
                                                             queryDevices(devices);
@@ -173,12 +175,12 @@ class TestDevicesModbus {
 
     private static modbusError( err, device ){
         pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ device:device, state:err.toString() }  });
-            console.error(err.toString())
+            console.error(err)
     }
 
 
     private static onTrig( device:Device, rule:Rule ){
-     
+      
         if( rule && rule.acts ) 
         for(const act of rule.acts)
             {  if( act.email ) sendMail( device, act.email, device.rules.findIndex(_rule=>{return _rule===rule}) ); 
@@ -202,7 +204,7 @@ class TestDevicesModbus {
             let jsCode = trig.jsCode
             if( trig && trig.regs ){
              trig.regs.forEach(reg => {
-                if( jsCode && reg && reg.val )
+                if( jsCode && reg  )
                     
                     jsCode = jsCode.replace(reg.pattern,'('+ reg.val + ')') 
                 })
@@ -224,24 +226,32 @@ class TestDevicesModbus {
         return 1
     }    
     private static processResponse(reg:Reg){
-        if ( !reg.qualifier ) {
-           reg.val =new Int16Array( reg.val.data )[0] 
-        } else 
-            if(reg.qualifier.search(/u/)){
-                 reg.val = reg.val.data[0]
-            }else
-                if(this.getSizeDataReguest(reg) === 2){
+        switch(reg.qualifier){
+            case 'u': reg.val = reg.val.data[0]
+                return
+           
+           case'f':
                     if(reg.val.register.length === 2)
                 
                          reg.val =  new Float32Array(new Uint16Array(reg.val.data).buffer)[0]
 
                     else console.error('запрашивал 2 регистра получено не 2...  ')
-                }else{          
-               const bit = parseInt(reg.qualifier)
-               reg.val = ((reg.val.data[0] & (1<<bit)) >> bit )         
-            }
-        
+                
+            return               
+
+            default: 
+                 const bit = parseInt(reg.qualifier)
+                 reg.val =new Int16Array( reg.val.data )[0] 
+                 if(bit!=undefined){
+                // debug('Bit:'+ bit)   
+                    reg.val = ((reg.val & (1<<bit)) >> bit ) 
+                  
+                 }
+        }
     }    
+    static async getDNK4data(device:Device, client:ModbusRTU ){
+        var pumps
+    }
     static async testTrigs ( device:Device, client:ModbusRTU ){
             for( const rule of device.rules) {
                 if(rule && rule.trigs)

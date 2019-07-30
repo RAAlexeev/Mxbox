@@ -7,7 +7,7 @@ import { DevicesStore } from '../devices/devices.store';
 import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
 import * as theme from './settings.css'
-import { action } from 'mobx';
+
 
 export class Settings extends React.Component<any, any> {    
   settingsStore: SettingsStore
@@ -64,6 +64,7 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
                 <div style={{width:'30%', float:"left"}}>
                 <Dropdown 
                     auto
+                    label={'Скорость'}
                     onChange={settingsStore.onPort1Change.bind(this,0,'speed')}
                     source={[{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]}
                     value={settingsStore.portsSettings[0].speed}
@@ -73,6 +74,7 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
                  <div style={{width:'30%',float:'left'}}>
                   <Dropdown
                     auto
+                    label={'Параметры'}
                     onChange={settingsStore.onPort1Change.bind(this,0,'param')}
                     source={params}
                     value={settingsStore.portsSettings[0].param}

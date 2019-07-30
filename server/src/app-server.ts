@@ -6,10 +6,9 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { schema } from './schema';
 import { AddressInfo } from 'net';
-import { sendMail } from './tests.devices/result/send.email';
 
-const cmd = require('node-cmd')
-cmd.run('service call wifi  29  i32 0 i32 1')//service call wifi  29  i32 0 i32 1
+
+
 
 apollo.applyMiddleware({app});
 app.use('/', express.static('./'));
