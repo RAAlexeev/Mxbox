@@ -17,8 +17,8 @@ import { schema } from './schema';
    
     subscriptions: {
       
-      onConnect: (connectionParams, webSocket) => {
-      
+      onConnect: (connectionParams, webSocket, context) => {
+        
         //if (connectionParams.authToken) {
           return true//validateToken(connectionParams.authToken)
           //  .then(findUser(connectionParams.authToken))

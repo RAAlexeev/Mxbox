@@ -20,6 +20,7 @@ import gql from 'graphql-tag'
      inSms:Sms 
      inEmail:Email
      cron:String 
+     coment:String
    }
    type Act{
      type:Int!
@@ -49,6 +50,7 @@ import gql from 'graphql-tag'
       inSms:SmsInput
       inEmail:EmailInput
       cron:String
+      coment:String
     }
     input ActInput{
       type:Int!
@@ -77,9 +79,14 @@ import gql from 'graphql-tag'
       _id:ID
       state:String
     }
-
+    type UpdDNK4ViewData{
+      _id:ID
+      pumps:[Int]
+      levels:[Int]
+    }
     type Subscription {
       deviceLinkState:DeviceLinkState
+      updDNK4ViewData(id:ID):UpdDNK4ViewData
     }
     
     input SmtpConfInput{
@@ -115,6 +122,7 @@ import gql from 'graphql-tag'
     type Result{
       status:String
     }
+
     type Mutation{
       addAsTemplate(_id:ID!):Result
       delTemplate(_id:ID!):Result
@@ -133,6 +141,7 @@ import gql from 'graphql-tag'
       addFromTemplate(device:ID!,template:ID!):[Rule]
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
       setPortConfig( portConf:portConfInput! ):Result
+      exchangeNum( sNum:String, dNum:String ):Result
     }
 `);
  
@@ -203,9 +212,10 @@ class Device implements DeviceInput{
 } */
 //import * as util from 'util'
 
-import  { PubSub, makeExecutableSchema } from 'apollo-server-express'
+import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { debug } from 'util';
-export const LINK_STATE_CHENG = 'LINK_STATE_CHENG' 
+export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
+export const DNK4_UPD_VIEW = 'UPV'
 export const pubsub = new PubSub();
 var mutated = 0
 export const isMutated = (_mutated?:boolean)=>{
@@ -224,12 +234,16 @@ export const portReinit =(_reinit?:boolean )=>{
 export const resolvers = {
   Subscription:{
     deviceLinkState:{
-      subscribe:()=>pubsub.asyncIterator([LINK_STATE_CHENG])
+      subscribe:(parent, args)=>pubsub.asyncIterator([LINK_STATE_CHENG])
+    },
+    updDNK4ViewData:{
+      subscribe:withFilter((parent, args)=>{ console.dir('subscribe' ,args ); return pubsub.asyncIterator([DNK4_UPD_VIEW])},(payload, variables) => { variables.ID; return true})
     }
+   
   } ,
   Query: {
     devices: (parent) => {
-      var callback = function(err, dev){ if( err ){ console.log(err); this.reject(err.toString())} else{ this.resolve(dev)} }         
+      var callback = function(err, dev){ if( err ){ console.log(err); this.reject(err)} else{ this.resolve(dev)} }         
       const p = new Promise((resolve,reject)=>{db.find( {}, callback.bind({resolve,reject}))})    
       return p.then().catch()   
     },
@@ -347,7 +361,12 @@ export const resolvers = {
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.acts.'+ args.actNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
-
+      exchangeNumAddr(parent,args,context,info){
+        var callback = function(err, numAffected, affectedDocuments, upsert){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject(err)} else{ isMutated(true); this.resolve("OK")} }         
+        if(args.sNumber == args.dNumber)return
+        const p = new Promise((resolve,reject)=>{db.update<void>({'trigs.sms.numbers':{$in:args.sNumber}}, {$addToSet:{'trig.sms.numbers':args.dNumbers}, $pull:{'trig.sms.numbers':args.dNumbers}}, {multi:true}, callback.bind({resolve,reject}) )})
+        return p.then().catch()    
+      },
        addAsTemplate(parent,args,context,info){
            db_template.loadDatabase();
         var callback = function(err, device){ 
@@ -411,7 +430,7 @@ export const resolvers = {
     setSmtpConfig(parent,args,context,info){
         db_settings.loadDatabase()
         var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else this.resolve({status:'OK:'+numberUpdated}) }            
-        const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'smtp'},{...args.smtpConf,_id:'smtp'} , {upsert:true}, callback.bind({resolve,reject}))})    
+        const p = new Promise((resolve, reject)=>{db_settings.update<void>({_id:'smtp'},{...args.smtpConf,_id:'smtp'} , {upsert:true}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)   
     },
     setPortConfig(parent,args,context,info){

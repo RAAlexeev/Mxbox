@@ -27,12 +27,14 @@ cmd.get("ps|grep ril", (err,data,stderr)=>{
       const pid = String(data).substr(10,6)
       console.log("pid:",pid)
     //  if(pid){
-              cmd.get("kill -STOP "+ pid,(err,data,stderr)=>{
+              cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
+                const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+                await sleep(3000)
                 if (!err) {
                     modem.open('/dev/radio/atci1', options,(err,res)=>{
                         if(err){
                             console.error('reboot',err)
-                            cmd('reboot')
+                            cmd.get('reboot')
                         }
                         else
                         cmd.get('svc wifi disable && service call wifi 29 i32 0 i32 1'/* && stop ril-daemon*/,(err, data, stderr)=>{
@@ -43,7 +45,7 @@ cmd.get("ps|grep ril", (err,data,stderr)=>{
                             }
                         })//service call wifi  29  i32 0 i32 1
                         console.log(res)
-                    })
+                    }) 
                 } else {
                     console.log('error', err)
                 }
@@ -95,7 +97,7 @@ export function sendSMS(sms:Sms,device?:Device){
     const interval = setInterval((sms:Sms,device:Device)=>{
          const text=device.name +':'+sms.text
         for(const mumber of sms.numbers)
-         modem.sendSMS( mumber, text, false, 
+         if(mumber)modem.sendSMS( mumber, text, false, 
             (result)=>{
                 function* x(){
                     if(result.status==='success')

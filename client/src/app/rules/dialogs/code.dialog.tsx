@@ -11,6 +11,7 @@ export class CodeDialog extends React.Component<any> {
  @observable state = {
    active: false,
    code:'',
+   coment:'',
    error:''
   }
   curTrig:Trig
@@ -20,8 +21,13 @@ export class CodeDialog extends React.Component<any> {
     this.curTrig = trig
     //console.log('handleToggle:'+trig)
     this.curTrigsStore = trigsStore
-    if(trig && trig.condition) this.setState({...this.state,code:trig.condition})
-    else this.setState({...this.state,code:''})
+    if(trig )
+    {
+      if( trig.condition ) this.setState({...this.state,code:trig.condition})
+      else this.setState({...this.state,code:''})
+      if( trig.coment ) this.setState({...this.state,code:trig.coment})
+      else this.setState({...this.state,coment:''})
+    }
     this.setState({active:!this.state.active});
   }
   self: this;
@@ -30,14 +36,13 @@ export class CodeDialog extends React.Component<any> {
     let code = this.state.code.replace(/\[\d?\s?\d+\.?\d?[f,u]?\]/g,'(-1.1)')
         .replace(/([^>^<])\=+/g,'$1 === ').replace(/or/ig,'|').replace(/and/ig,'&').replace(/not/g,'!').replace(/<>/g,'!=')
     try{console.log('hadleOnSave:',code ,new Function('return ('+ code +')')())
-      if(!isBoolean(new Function('return ('+code+')')()) )throw new Error('выражение не логического типа...')
-      
+      if(!isBoolean(new Function('return ('+code+')')()) )throw new Error('выражение не логического типа...')    
       this.curTrig.condition = this.state.code
-      
+      this.curTrig.coment = this.state.coment 
       this.curTrigsStore.updTrig( this.curTrig )
       this.handleToggle()
     }catch(err){
-      this.setState({...this.state, error:err.toString()}) 
+      this.setState({...this.state, error:err}) 
     }
    
   }
@@ -78,6 +83,9 @@ export class CodeDialog extends React.Component<any> {
           onOverlayClick={this.handleToggle}
           title='Условие'
         >
+           <Input style={{marginTop:'10rem'}} type='text' multiline  error={this.state.error} label='Коментарий'
+           /* ref={inst=>{const el=ReactDOM.findDOMNode(inst);if(el)(el.firstChild as any).focus()} } */ value={this.state.coment} onChange={this.handleChange.bind(this,'coment') }/>
+       
          <Input style={{marginTop:'10rem'}} type='text' multiline  error={this.state.error} label={ 'Здесь, вы можете вводить условия состоящие из: >, <, =, >=, <= , OR, AND, NOT, \
             () и содержащие числовые константы и арифметические операции +, -, *, / , а также адреса регистров modbus в квадратных скобках:\
             nнапример: ([12] + 4 > 10) AND [12.1] \

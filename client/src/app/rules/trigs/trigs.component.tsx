@@ -15,13 +15,13 @@ export const Trigs = ( trigStore:TrigsStore ) =>
       { if(trig)switch(trig.type) {
               case 0:return <Chip key={index} deletable onDeleteClick={trigStore.delTrig.bind(this,index)}>
                                 <Avatar style={{backgroundColor: 'deepskyblue'}} icon='code'  />
-                                <TooltipButton tooltip = 'Изменить' icon={trig.condition?'':'edit menu'} onClick={()=>trigStore.dialogs.codeDialog.handleToggle(trig, trigStore) }>
+                                <TooltipButton tooltip={trig.coment?trig.coment:'Изменить'} icon={trig.condition?'':'edit menu'} onClick={()=>trigStore.dialogs.codeDialog.handleToggle(trig, trigStore) }>
                                     {trig.condition?trig.condition.trim().slice(0,10):''}
                                 </TooltipButton>
                             </Chip>
              case 1:return <Chip key={index} deletable onDeleteClick={trigStore.delTrig.bind(this,index)}>
                                 <Avatar style={{backgroundColor: 'deepskyblue'}} icon='alarm'  />
-                                <TooltipButton tooltip = 'Изменить' icon={trig.cron?null:'edit menu'} onClick={()=>trigStore.dialogs.cronDialog.handleToggle(trig, trigStore.updTrig) }>
+                                <TooltipButton tooltip={trig.coment?trig.coment:'Изменить'} icon={trig.cron?null:'edit menu'} onClick={()=>trigStore.dialogs.cronDialog.handleToggle(trig, trigStore.updTrig) }>
                                     {trig.cron?trig.cron.trim().slice(0,10):null}
                                 </TooltipButton>
                             </Chip>

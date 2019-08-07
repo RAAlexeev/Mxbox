@@ -68,7 +68,7 @@ export class AppStore {
   static getInstance() {
     return AppStore.instance || (AppStore.instance = new AppStore())
   }
-
+  
   @action onUsernameChange = (val) => {
     this.username = val
   }

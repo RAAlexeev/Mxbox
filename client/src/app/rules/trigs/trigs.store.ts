@@ -28,20 +28,21 @@ subscription DeviceSubscription($name: String!){
 `
 export interface Trig{
   __typename: any;
-  type:number
-  condition?:string
+  type:Number
+  condition?:String
   sms?:Sms
   email?:Email
-  cron?:string
+  cron?:String
+  coment?:String
 }
 interface Sms{
-  number:string[]
-  text:string
+  number:String[]
+  text:String
 }
 interface Email{
-  addr:string
-  subj:string
-  body?:string
+  addr:String
+  subj:String
+  body?:String
 }
 
 
@@ -55,7 +56,7 @@ export class TrigsStore {
   devicesStore:DevicesStore = DevicesStore.getInstance()
  // deviceSubscription
   dialogs
-  ruleNum:number
+  ruleNum:Number
   rule:Rule
   @observable trigs: Array<Trig> = []
 
