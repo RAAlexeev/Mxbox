@@ -1,7 +1,6 @@
 import { observable, action } from 'mobx'
 import gql from 'graphql-tag'
 import { AppStore } from '../app.store'
-import { arrayRemove } from '../utils';
 import {Device, DevicesStore} from '../devices/devices.store';
 import { Trig } from './trigs/trigs.store';
 import{Act} from './acts/acts.store'
@@ -94,9 +93,9 @@ export class RulesStore {
 
   async initializeRules(device:Device) {
       try{ const result = await this.appStore.apolloClient.query<RulesQueryResult,{}>({
-            query: gql`query rules($device:ID!){rules(device:$device){acts{type sms{numbers text} 
+            query: gql`query rules($device:ID!){rules(device:$device){acts{type sms{numbers text}
                                                                 email{address subject body}} 
-                                                                trigs{type condition inEmail{subject body}  
+                                                                trigs{type condition coment inEmail{subject body}  
                                                                 inSms{numbers text} cron}}}`,
       variables:{device:device._id},
       fetchPolicy: 'network-only'

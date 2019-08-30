@@ -6,22 +6,24 @@ import { debug } from 'util'
 import SerialPort from 'serialport'
 import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
 
+
+
 //import { findTypesThatChangedKind } from 'graphql/utilities/findBreakingChanges';
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const client = new ModbusRTU();
 export const RTUproxyReguest:any[] = [];
-
-export const modbusTestRun = ()=>{
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-        db.find( { 'rules.trigs.type':0 }
+var  elapsed = false
+export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
             ,async( err,  devices:Device[] )=>{
-                     try{
-                        if(!err){  
+                if(err) console.error(err) 
+                  try{  
+                       
                             db_settings.loadDatabase();
                             
 
                             
-                            db_settings.find( { '_id':'port1' },
+                            db_settings.findOne<any>( { '_id':'portsSettings' },
                                   async( err,  settings )=>{
 
                                 if(err) {
@@ -29,82 +31,202 @@ export const modbusTestRun = ()=>{
                                     
                                 }
                                 
-                                if(!settings)settings={speed:19200, param:'8e1'}
+                                if(!settings[0])settings[0]={speed:19200, param:'8e1'}
+                                else{
+                                    if(!settings[0].speed)settings[0].speed=19200
+                                    if(!settings[0].param)settings[0].param='8e1'
+                                }
                   
-                               const parity=(settings)=>{switch(settings.param[1]){
+                               const parity=(param)=>{switch(param[1]){
                                     case 'e': return 'even' //'none' | 'even' | 'mark' | 'odd' | 'space'
                                     case 'o': return 'odd'
                                     case 'n': return 'none'
                                     case 's': return 'space'
                                     }
                                 }
-                                  // open connection to a serial port
-                                        
-                                       
-                                        // set timeout, if slave did not reply back
+                                  
                                         client.setTimeout(1000);
-                                        const proxyPort = new SerialPort("/dev/ttyMT2",{ baudRate: settings.speed, parity:parity(settings), stopBits: parseInt(settings.param[2]) })
+                                        
+                                                const cancelPromise = (obj)=> new Promise((resolve, reject) => {
+                                                    obj.cancel = resolve.bind(null, { canceled: true })
+                                                    
+                                                }) 
+                                        const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) })
+                                       
                                         proxyPort.on("data",data=>{
-                                            RTUproxyReguest.push({data:data,query:0}) 
+                                            console.log('proxyPort.data:',data)
+                                            if([1,2,3,4,5,6,15,16].includes(data[1])){
+                                              if(data.length === 2 + 4 + 2 + ( [15,16].includes(data[1]) ? data[6]:0) ){
+                                                RTUproxyReguest.push({data:data, query:0})
+                                                if(proxyPort.cancel)proxyPort.cancel()
+                                              }
+                                              else{
+                                                    const index = data.findIndex((item,index,array)=>{
+                                                        return ((index > (2 + 4 + ([15,16].includes(array[1])?array[6]:0) + 2+1)) && [1,2,3,4,5,6,15,16].includes(item) )                                                
+                                                })
+                                                if(index>=0) {
+                                                    proxyPort.buff = data.splice(index,data.length-index)
+                                                    RTUproxyReguest.push({data:data, query:0})
+                                                    if(proxyPort.cancel)proxyPort.cancel()
+                                                }
+                                              }
+                                            } else {
+                                                if(proxyPort.buff){
+                                                    RTUproxyReguest.push({data:proxyPort.buff.push(data), query:0})
+                                                    if(proxyPort.cancel)proxyPort.cancel()
+                                                    delete(proxyPort.buff)
+                                                }
+                                            }
                                         })
-                                        const port = new SerialPort("/dev/ttyMT1",{ baudRate: settings.speed, parity:parity(settings), stopBits: parseInt(settings.param[2]) })
+                                        
+                                        const port = new SerialPort("/dev/ttyMT1",{ baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) })
                                         port.on("data", data=>{
                                            
-                                            if(RTUproxyReguest[0].query) {
+                                            if( RTUproxyReguest[0] )
+                                            if( RTUproxyReguest[0].query ) {
+                                                if([1,2,3,5].includes(data[1]) && (data[2] > data.length-2-1-2)){
+                                                    port.buf =  Buffer.from( data )
+                                                    return 
+                                                }else if(port.buf){
+                                                  
+                                                    if(port.buf[2] > port.buf.length-2-1-2){
+                                                        port.buf=Buffer.concat([port.buf,data],port.buf.length+data.length)    
+                                                        if(port.buf[2] > port.buf.length-2-1-2)return
+                                                    }
+                                                
+                                                }  
                                                 RTUproxyReguest.shift() 
-                                                proxyPort.write(data) 
+                                                if(port.cancel)port.cancel()
+                                                proxyPort.write(port.buf? port.buf : data)
+                                                delete port.buf
+                                               
+                                                
                                             }
+                                            if(TCPproxyReguest[0])
                                             if(TCPproxyReguest[0].query) {
                                                 TCPproxyReguest.shift().sock.write(data)     
-                                            }    
+                                            }
+                                            
                                         })
-                                        const proxyQuery = async(device)=>{
-                                             if(!RTUproxyReguest.length&&!RTUproxyReguest.length)  return await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings.speed, parity:parity(settings), stopBits: parseInt(settings.param[2]) });
-                                             const p = new Promise((resolve,reject)=>
-                                             client.close(()=>{
-                                               port.open( async ()=>{
-                                                    const query = async (reguest)=>{ 
-                                                            if(reguest.length){
-                                                                reguest[0].query++
-                                                                port.write(reguest[0].data)                                                    
-                                                                if(reguest[0].query){
-                                                                    await sleep(300)
-                                                                    if(reguest[0].query>3)reguest.shift()  
+                           
+                                       
+                                        const tOut = { trig:100,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},30000)} 
+                                        
+                                        const proxyQuery = async(device)=>{  
+                                            try{
+                                               // debug(port.isOpen)  
+
+                                                if( (!(RTUproxyReguest.length||TCPproxyReguest.length) && tOut.trig%10) || !tOut.trig)  {
+                                                   
+                                                  // clearTimeout(tOut)
+                                                  // tOut = setTimeout(()=>{elapsed=true},5000)
+                                                  tOut.trig=100
+                                                    debug('proxyQuery2')  
+                                                  
+                                                    try{
+                                                       if(port.isOpen){ 
+                                                        await new Promise((resolve,reject)=>port.close((err)=>{if(err) reject(err); else resolve()} )).catch( (e)=>console.error(e) )
+                                                       
+                                                        await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) });
+                                                       }
+                                                        await queryDevice(device)
+                                                       
+                                                       // await Promise.race([sleep(3000), cancelPromise(proxyPort)])
+                                                       
+                                                    }catch(e){
+                                                     console.error(e)   
+                                                    }
+                                                    
+                                                }else{
+                                                    
+                                                   // debug('proxyQuery3')
+                                                if(!(port.isOpen)){
+                                                    
+                                                    await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
+                                                                                                             if(!port.isOpen)port.open(()=>{
+                                                                                                                    if(port.isOpen)resolve(); else reject({err:'port not open!'})
+                                                                                                                })
+                                                                                                            })
+                                                                                                        }),sleep(300)])
+                                                    
+                                                }
+                                                const query = async (reguest)=>{ 
+                                                        if(reguest.length){
+                                                            debug('proxyQuery4')
+                                                            //console.dir(reguest)
+                                                            reguest[0].query++
+                                                            delete(port.buf)
+                                                            port.write(reguest[0].data)   
+                                                            await Promise.race([sleep(50), cancelPromise(port)]) 
+                                                                if(reguest[0])      
+                                                                if( reguest[0].query >= 2){
+                                                                    console.error(reguest[0],'!timeout!')
+                                                                    reguest.shift()  
                                                                 }
-                                                            }
+                                                            
                                                         }
+                                                    }
+                                                if(port.isOpen){    
                                                     await query(RTUproxyReguest)   
                                                     await query(TCPproxyReguest)      
-                                                    port.close(async()=>{
-                                                        await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings.speed, parity:parity(settings), stopBits: parseInt(settings.param[2]) });
-                                                        await queryDevice(device)
-                                                        resolve()
-                                                    })
-                                                })
-                                            }), )
-                                            return p.then().catch()   
+                                                }
+
+                                              }
+                                             }catch(e){
+                                                    console.error(e)
+                                                    }
+                                    
                                         }                                        
+                                        const queryDevice = async (device:Device) => {
+                                            try {
+                                                // set ID of slave
+                                                await client.setID(device.mb_addr);
+                                               
+                                                await TestDevicesModbus.testTrigs(device, client) 
+                                                // return the value
+                                    
+                                            } catch(e){
+                                                // if error return -1
+                                                console.error(e)
+                                            }
+                                        }
                                         const queryDevices = async (devices) => {
                                             try{                                             
                                                     // get value of all meters
                                                         for(let device of devices) {
                                                     // output value to console
+                                                        
                                                             await proxyQuery(device)
                                                             //await queryDevice(device)
-      
+    
                                                         }      
                                             } catch(e){
                                                 // if error, handle them here (it should not)
                                                 console.log(e)
                                             } finally {
-                                                if(portReinit()) 
-                                                    client.close(
-                                                        ()=>{
-                                                            modbusTestRun()
-                                                            return
-                                                        }
-                                                    )
-                                                else
+
+                                                 if(portReinit()) {
+                                                    setTimeout(() => {
+                                                        modbusTestRun()  
+                                                     },1000)
+                                                     port.close()
+                                                     proxyPort.close()
+                                                     client.close(()=>{})
+                                               
+                                                     return
+                                                 }     
+
+                                   /*                db_settings.findOne<any>( { '_id':'portsSettings' }, ( err, newSettings )=>{ if(!err){settings=newSettings
+                                                    if(!settings[0])settings[0]={speed:19200, param:'8e1'}
+                                                    else{
+                                                        if(!settings[0].speed)settings[0].speed=19200
+                                                        if(!settings[0].param)settings[0].param='8e1'
+                                                    }
+                                      
+                                                }
+                                                 }) */
+
+                                                else 
                                                 if(isMutated())
                                                 db.find( { 'rules.trigs.type':0 }
                                                     ,( err, devices:Device[] )=>{  
@@ -116,41 +238,24 @@ export const modbusTestRun = ()=>{
                                                         })
                                                     else console.error(err)
                                                 })
-                                                else  queryDevices(devices)
+                                                else   setImmediate(() => {
+                                                    queryDevices(devices);
+                                                })
                                             }
                                         }
-                                        
-                                        const queryDevice = async (device:Device) => {
-                                            try {
-                                                // set ID of slave
-                                                await client.setID(device.mb_addr);
-                                                // read the 1 registers starting at address 0 (first register)
-                                                await TestDevicesModbus.testTrigs(device, client) 
-                                                // return the value
-                                     
-                                            } catch(e){
-                                                // if error return -1
-                                                console.error(e)
-                                            }
-                                        }
-                                        
-                                       
-                                        
-                                        
                                         // start get value
-                                        queryDevices(devices)
-                            
-                                
-                    }) 
-                }else console.error(err)
-                            
-                    }catch(e){
-                        console.error(e)
-                     }
-                        })
-                        
-
-}
+                                         queryDevices(devices)               
+            })
+        }catch(e){
+            console.error(e)
+            setImmediate(() => {
+                modbusTestRun();
+            })
+        }   
+    })
+                                  
+                  
+            
 
 interface Sms{
     numbers:Array<string>
@@ -195,6 +300,7 @@ interface DevicesRulesTimeOut{
 }
 
 class TestDevicesModbus {
+   
 
     constructor(){
        
@@ -315,6 +421,7 @@ class TestDevicesModbus {
             pubsub.publish(DNK4_UPD_VIEW, { updDNK4ViewData:{ device:device, pumps:this.pumps }  });
        }
     }
+    static skip: number = 100;
     static async testTrigs ( device:Device, client:ModbusRTU ){
             for( const rule of device.rules) {
                 if(rule && rule.trigs)
@@ -323,6 +430,10 @@ class TestDevicesModbus {
                             if ( trig.condition ){
                                 trig.regs =  this.parse(trig.condition)
                                 for(const reg of trig.regs){
+                                    if((RTUproxyReguest.length||TCPproxyReguest.length)&&this.skip--){
+                                        return
+                                    }
+                                    this.skip = 100  
                                     switch(reg.func){                                    
                                         case 1:  reg.val = await client.readInputRegisters(reg.addr,1)
                                                 this.processResponse(reg)
@@ -343,8 +454,8 @@ class TestDevicesModbus {
                                 if( this.testTrig( trig ) ){ 
                                    debug('#trig.active:' + trig.active)
                                    if(!trig.active)trig.active=0
-                                   if(trig.active < 12)++trig.active
-                                   if( trig.active === 6 ) 
+                                   if(trig.active < 6)++trig.active
+                                   if( trig.active === 3 ) 
                                         this.onTrig( device, rule )
                                 }else  if(trig.active)--trig.active
                             }

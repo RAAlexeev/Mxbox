@@ -30,8 +30,8 @@ ReactDOM.render(
         <Switch >
           <Route exact path='/home' component={Home as any} />
           <Route exact path='/settings' component={Settings as any} />
-          <Route exact  path={"/rules/:name/:id"} component={DevRules as any} />
-          <Route exact  path={"/view/:name/:id"} component={DevView as any} />
+          <Route exact path={"/rules/:name/:id"} component={DevRules as any} />
+          <Route exact path={"/view/:name/:id"} component={DevView as any} />
           <Redirect from='/' to='/home' />
         </Switch>
       </App>

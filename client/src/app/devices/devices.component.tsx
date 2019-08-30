@@ -49,7 +49,7 @@ export class DevicesComponent extends React.Component<DevicesComponentProps, any
     return <div>
 
         <Button icon='add' onClick={devicesStore.addDevice.bind(devicesStore)} floating accent mini className={appStyle.floatRight} />
-        <Button icon='exchange' onClick={devicesStore.addDevice.bind(devicesStore)} floating accent mini className={appStyle.floatRight} />
+
       <h3 style={{margin:'1rem'}}>Hello {appStore.username}</h3>
      <Navigation type='vertical'>
       {devicesStore.devices.map(device =>

@@ -6,8 +6,10 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { schema } from './schema';
 import { AddressInfo } from 'net';
+import { dioTest } from './tests.devices/di.test';
 
-
+//echo 0 > /proc/sys/kernel/printk
+//stop console
 
 
 apollo.applyMiddleware({app});
@@ -26,7 +28,7 @@ app.use('/', express.static('./'));
     requestCert: true,                   #new
     rejectUnauthorized: false            #new
 };  */
-  var server = /*http.createServer(options,*/ app/*)*/.listen(process.env.PORT || 3001,   ()=>{
+  var server = /*http.createServer(options,*/app/*)*/.listen(process.env.PORT || 3001,   ()=>{
   const host = (server.address() as AddressInfo).address;
   const port = (server.address()as AddressInfo).port;
   console.log('App listening at http://%s:%s$', host, port);
@@ -35,7 +37,7 @@ app.use('/', express.static('./'));
     subscribe,
     schema: schema,
   }, {
-
+    
     server: server,
     path: '',
   })
@@ -45,4 +47,5 @@ app.use('/', express.static('./'));
 //sendSMS({numbers:["+79136094380"],text:"Привед!"})
 //sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
+dioTest()
 //export {server};

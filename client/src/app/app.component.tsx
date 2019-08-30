@@ -16,7 +16,7 @@ const TooltipButton = Tooltip(Button)
 
 @inject('devicesStore')
 export class App extends React.Component<any, any> {
-  snackbar: any;
+  snackbar: Snackbar;
   numberExchengDialog:NumberExchengDialog
   componentWillMount() {
   
@@ -55,13 +55,13 @@ toggleSidebar = () => {
             
             <NavLink to='/home' style={{margin:'1rem'}}  activeClassName={style.active}>Главня</NavLink>
             <NavLink to='/settings' style={{margin:'1rem'}} activeClassName={style.active}>Настройки</NavLink>  
-            <TooltipButton tooltip='' icon='find_replace' onClick={()=>this.numberExchengDialog.handleToggle }/>
+
+            <TooltipButton tooltip='заменить номер телефона' icon='find_replace' onClick={()=>this.numberExchengDialog.handleToggle }/>
             <Devices {...this.props} />
       </NavDrawer>
       <Panel>
         <AppBar leftIcon='menu' onLeftIconClick={ this.toggleDrawerActive } theme={style} >
         <h1 style={{marginLeft: '10px'}}>MxBox&copy;	&ndash; OOO НТФ "Микроникс"</h1>
-        <div>обновлено:</div>
         </AppBar> 
               <div style={{ flex: 1, overflowY: 'visible', padding: '1.8rem' }}>
                 <div className={style.container}>

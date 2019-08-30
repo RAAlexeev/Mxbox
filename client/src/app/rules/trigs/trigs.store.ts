@@ -111,14 +111,14 @@ export class TrigsStore {
         device:this.devicesStore.selected._id,
         ruleNum:this.ruleNum,
         trigNum:index,
-        trigInput:{type:trig.type,condition:trig.condition,cron:trig.cron}
+        trigInput:{type:trig.type,condition:trig.condition,cron:trig.cron,coment:trig.coment}
       },
       fetchPolicy: 'no-cache'  
     })
     this.trigs[index] = null
     this.trigs[index] = trig
     }catch(err){
-      console.error(err.toString())
+      console.error(err)
       return false
     }
   }

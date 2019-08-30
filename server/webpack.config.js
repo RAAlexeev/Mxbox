@@ -21,11 +21,11 @@ const serverConf={
   context: path.join(__dirname, './src'),
   entry: {
     main: './app-server.ts',
-/*     vendor : [
+     vendor : [
       'apollo-server-express',
       'graphql',
       'nedb'
-    ] */
+    ] 
   },
   output: {
     path: outPath,
@@ -70,24 +70,29 @@ const serverConf={
 node: { 
   __dirname: true, __filename:true 
 },
- optimization: { 
-  namedChunks: true,
- // runtimeChunk: "single",
-    splitChunks: {
-      
-      chunks: 'async',
-      maxInitialRequests: Infinity,
-      minSize: 0,
-   cacheGroups: {
-     vendor: {
-       test: /[\\/]node_modules[\\/]/,
-       name: 'vendor',
-       enforce: true,
-       //chunks: 'all'
-     },
-   },
- }, 
-},  
+optimization: {
+  splitChunks: {
+    chunks: 'async',
+    minSize: 30000,
+    maxSize: 0,
+    minChunks: 1,
+    maxAsyncRequests: 5,
+    maxInitialRequests: 3,
+    automaticNameDelimiter: '~',
+    name: true,
+    cacheGroups: {
+      vendors: {
+        test: /[\\/]node_modules[\\/]/,
+        priority: -10
+      },
+      default: {
+        minChunks: 2,
+        priority: -20,
+        reuseExistingChunk: true
+      }
+    }
+  }
+}
 //externals: [nodeExternals()]
 }
 

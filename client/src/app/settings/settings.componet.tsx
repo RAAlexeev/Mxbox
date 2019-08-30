@@ -7,6 +7,9 @@ import { DevicesStore } from '../devices/devices.store';
 import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
 import * as theme from './settings.css'
+import { BrowseButton } from 'react-toolbox/lib/button';
+import { Mutation } from 'react-apollo';
+import gql from 'graphql-tag';
 
 
 export class Settings extends React.Component<any, any> {    
@@ -28,7 +31,7 @@ interface SettingsComponentProps {
   appStore?: AppStore,
   settingsStore?: SettingsStore
 }
-const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',label:'8o1'},{value:'8s2',label:'8s2'}]
+const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},{value:'8o1',label:'8 нечет 1'},{value:'8s1',label:'8 пробел 1'}]
 @inject('appStore', 'settingsStore')
 
  @observer  class SettingsComponent extends React.Component<SettingsComponentProps, any> {
@@ -46,17 +49,17 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
    // console.dir(this)
   }
   port1SpeedOnChange = (value)=>{
-    this.setState({speed:value});
+    this.setState({...this.state, speed:value});
   }
   render() {
     
     const { settingsStore, appStore } = this.props
     return (
       <div>
-          <Card >
+          <Card>
             <CardTitle
                 avatar=''
-                title="Порт №1"
+                title="Порты"
                 subtitle="настройки"
               />
               
@@ -65,9 +68,9 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
                 <Dropdown 
                     auto
                     label={'Скорость'}
-                    onChange={settingsStore.onPort1Change.bind(this,0,'speed')}
+                    onChange={settingsStore.onPort1Change.bind(this,'speed')}
                     source={[{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]}
-                    value={settingsStore.portsSettings[0].speed}
+                    value={settingsStore.portsSettings[0].speed?settingsStore.portsSettings[0].speed:''}
                     theme={theme}
                   />
                   </div>
@@ -75,16 +78,16 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
                   <Dropdown
                     auto
                     label={'Параметры'}
-                    onChange={settingsStore.onPort1Change.bind(this,0,'param')}
+                    onChange={settingsStore.onPort1Change.bind(this,'param')}
                     source={params}
-                    value={settingsStore.portsSettings[0].param}
+                    value={settingsStore.portsSettings[0].param?settingsStore.portsSettings[0].param:''}
                     theme={theme}
                   />
                 </div>
 
               </CardText> 
           </Card>
-          <Card >
+          <Card>
             <CardTitle
               avatar=''
               title="Сервер почты"
@@ -98,17 +101,17 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
           name='smtpAddress'
           hint='smtp.yandex.ru'
           error=''
-          value={settingsStore.smtpSettings.address}
+          value={settingsStore.smtpSettings.address?settingsStore.smtpSettings.address:''}
           onChange={settingsStore.onSmtpChange.bind(this,'address')}
         />        
         <Input
-          type='text'
+          type='number'
           label='порт:'
           name='smtpPort'
           hint='465'
           error=''
-          value={settingsStore.smtpSettings.port}
-          onChange={settingsStore.onSmtpChange.bind(this,'port')}
+          value={settingsStore.smtpSettings.port?settingsStore.smtpSettings.port:''}
+          onChange={(value)=>{settingsStore.onSmtpChange('port',parseInt(value))}}
         />
         <Input
           type='text'
@@ -116,7 +119,7 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
           name='smtpName'
           hint='username'
           error=''
-          value={settingsStore.smtpSettings.name}
+          value={settingsStore.smtpSettings.name?settingsStore.smtpSettings.name:''}
           onChange={settingsStore.onSmtpChange.bind(this,'name')}
         />
         <Input
@@ -125,10 +128,30 @@ const params=[{value:'8e1',label:'8e1'},{value:'8n2',label:'8n2'},{value:'8o1',l
           name='smtpPassword'
           hint='password'
           error=''
-          value={settingsStore.smtpSettings.password}
+          value={settingsStore.smtpSettings.password?settingsStore.smtpSettings.password:''}
           onChange={settingsStore.onSmtpChange.bind(this,'password')}
         />
    </CardText> 
+   </Card>
+   <Card>
+            <CardTitle
+              avatar=''
+              title="Обновление"
+              subtitle=""
+            />
+    
+     <CardText> 
+
+
+ 
+     <BrowseButton
+          icon="file_upload"
+          label="Файл"
+          onChange={({ target: { validity, files: [file] } }) =>settingsStore.onUpload(file)}
+        />
+
+      </CardText> 
+      
    </Card>
     </div>)
   }

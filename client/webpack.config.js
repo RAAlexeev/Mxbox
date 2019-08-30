@@ -11,8 +11,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 //const reactToolboxVariables = require('./reactToolbox.css');
-
-
+// const srv = require( '../server-test/dist/main.js')
  const clientConf = {
   mode:'development',//"production",
   context: sourcePath,
@@ -104,6 +103,11 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
     ])
   ],
   devServer: {
+    //before: (app,server)=> srv(app,server),  
+    proxy:{
+      '/graphql':'http://localhost:3001',
+      pathRewrite: {'^/' : ''}
+    },
     contentBase: sourcePath,
     hot: true,
     host:"::",
@@ -139,38 +143,79 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
 };
 
 const serverConf={
-  context: path.join(__dirname, './src/server'),
-  mode:"development",
+  externals:{
+    serialport: "serialport",
+    //node_modbus:"node-modbus"
+    
+  },
+  //mode:"development",
+  mode:"production",
+  context:  path.resolve(__dirname,'../server-test/src'),
   entry: {
-    main: './index.ts',
+    main: path.resolve(__dirname,'../server-test/src/app-server.ts'),
+/*     vendor : [
+      'apollo-server-express',
+      'graphql',
+      'nedb'
+    ] */
   },
   output: {
     path: outPath,
-    filename: 'server.js',
+    filename: '[name].js',
+    chunkFilename: '[name].js',
+    library:'bundle.js',
+    libraryTarget: "commonjs2",
     publicPath: '/'
   },
-  devtool:'eval-source-map',
-  target:'web',
+  target:'async-node',
   resolve: {
-    extensions: ['.js', '.ts', '.tsx'],
+    extensions: ['.js', '.ts'],
     // Fix webpack's default behavior to not load packages with jsnext:main module
     // (jsnext:main directs not usually distributable es6 format, but es6 sources)
-    mainFields: ['module','main']
+    modules: [
+      'node_modules',
+     // 'src',
+    ],
+    //mainFields: ['main' ]
   },
   module: {
     rules: [
       // .ts, .tsx
       {
         test: /\.tsx?$/,
-        use: 'awesome-typescript-loader?configFileName=server.tsconfig.json',
+        exclude: /\/node_modules\//,
+        use: 'awesome-typescript-loader',
       },
       {
         type: 'javascript/auto',
         test: /\.mjs$/,
-        use: [  ]
+        use: []
       }
     ]
-  }
+  },
+  
+node: { 
+  __dirname: true, __filename:true 
+},
+ optimization: { 
+  namedChunks: true,
+ // runtimeChunk: "single",
+    splitChunks: {
+      
+      chunks: 'async',
+      maxInitialRequests: Infinity,
+      minSize: 0,
+   cacheGroups: {
+     vendor: {
+       test: /[\\/]node_modules[\\/]/,
+       name: 'vendor',
+       enforce: true,
+       //chunks: 'all'
+     },
+   },
+ }, 
+},  
+//externals: [nodeExternals()]
 }
 
 module.exports = [clientConf]

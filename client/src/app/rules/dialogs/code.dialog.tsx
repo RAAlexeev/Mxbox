@@ -3,7 +3,6 @@ import React = require('react');
 import Input from 'react-toolbox/lib/input';
 import { observable } from 'mobx';
 import {Trig, TrigsStore} from '../trigs/trigs.store'
-import { ContextMenu } from '../../devices/contextenu.componet';
 import { isBoolean } from 'util';
 import ReactDOM = require('react-dom');
 
@@ -23,18 +22,15 @@ export class CodeDialog extends React.Component<any> {
     this.curTrigsStore = trigsStore
     if(trig )
     {
-      if( trig.condition ) this.setState({...this.state,code:trig.condition})
-      else this.setState({...this.state,code:''})
-      if( trig.coment ) this.setState({...this.state,code:trig.coment})
-      else this.setState({...this.state,coment:''})
-    }
+       this.setState({...this.state, active:!this.state.active, code:trig.condition?trig.condition:'',coment:trig.coment?trig.coment:'' })
+    }else
     this.setState({active:!this.state.active});
   }
   self: this;
 
   handleOnSave(){
-    let code = this.state.code.replace(/\[\d?\s?\d+\.?\d?[f,u]?\]/g,'(-1.1)')
-        .replace(/([^>^<])\=+/g,'$1 === ').replace(/or/ig,'|').replace(/and/ig,'&').replace(/not/g,'!').replace(/<>/g,'!=')
+    let code = this.state.code.replace(/\[\d?\s?\d+\.?\d?[f,u]?\]/g,'(-1.1)').replace(/#D[1,2]/g,'1')
+        .replace(/([^>^<])\=+/g,'$1 === ').replace(/or/ig,'||').replace(/and/ig,'&&').replace(/not/g,'!').replace(/<>/g,'!=')
     try{console.log('hadleOnSave:',code ,new Function('return ('+ code +')')())
       if(!isBoolean(new Function('return ('+code+')')()) )throw new Error('выражение не логического типа...')    
       this.curTrig.condition = this.state.code
@@ -42,7 +38,7 @@ export class CodeDialog extends React.Component<any> {
       this.curTrigsStore.updTrig( this.curTrig )
       this.handleToggle()
     }catch(err){
-      this.setState({...this.state, error:err}) 
+      this.setState({... this.state, error:err.toString()}) 
     }
    
   }
@@ -52,10 +48,11 @@ export class CodeDialog extends React.Component<any> {
   ];
   handleChange(name:string, value:string){
     if(name === 'code'){
-      value = value.replace(/[^\+^\-^\*^\/^\>^\<^\=^\s^\]^\[^\d^\.^O^R^A^N^D^T\(\)]/ig,'')//.replace(/(?<!&)&(?!&)/g, ' && ').replace(/O$/g,'OR ').replace(/N$/g,'NOT ')
+      value = value.replace(/[^\+^\-^\*^\/^\>^\<^\=^\s^\]^\[^\d^\.^O^R^A^N^D^T^#^I\(\)]/ig,'')//.replace(/(?<!&)&(?!&)/g, ' && ').replace(/O$/g,'OR ').replace(/N$/g,'NOT ')
     }
     this.setState({...this.state, [name]: value});
   }
+
   constructor(props) {
     
     super(props)
@@ -63,9 +60,10 @@ export class CodeDialog extends React.Component<any> {
   
     this.self = this
   }
-
+  elFocus:any 
   componentWillMount() {
-   
+  
+    if(this.elFocus)(this.elFocus.firstChild as any).focus()
   
   }
 
@@ -81,11 +79,10 @@ export class CodeDialog extends React.Component<any> {
           active={this.state.active}
           onEscKeyDown={this.handleToggle}
           onOverlayClick={this.handleToggle}
+          
           title='Условие'
         >
-           <Input style={{marginTop:'10rem'}} type='text' multiline  error={this.state.error} label='Коментарий'
-           /* ref={inst=>{const el=ReactDOM.findDOMNode(inst);if(el)(el.firstChild as any).focus()} } */ value={this.state.coment} onChange={this.handleChange.bind(this,'coment') }/>
-       
+      
          <Input style={{marginTop:'10rem'}} type='text' multiline  error={this.state.error} label={ 'Здесь, вы можете вводить условия состоящие из: >, <, =, >=, <= , OR, AND, NOT, \
             () и содержащие числовые константы и арифметические операции +, -, *, / , а также адреса регистров modbus в квадратных скобках:\
             nнапример: ([12] + 4 > 10) AND [12.1] \
@@ -93,7 +90,12 @@ export class CodeDialog extends React.Component<any> {
             Возможно явно указать функцию [4 12] (поддержаны функции 1,2,3 и 4), \
             также возможно использовать квалификаторы типа данных [12u] – для беззнаковых величин uint16, (по умолчанию int16) и [4 12f] – float32. \
             Также возможно извлечь бит из регистра, например [12.9] будет интерпретирован как 0 или 1 в зависимости от состояния бита №9 регистра 12'}
-            ref={inst=>{const el=ReactDOM.findDOMNode(inst);if(el)(el.firstChild as any).focus()} } value={this.state.code} onChange={this.handleChange.bind(this,'code') }/>
+            /*ref={inst=>{this.elFocus=ReactDOM.findDOMNode(inst);} }*/ value={this.state.code} onChange={this.handleChange.bind(this,'code') }/>
+
+          <Input style={{marginTop:'1rem'}} type='text' multiline   label='Коментарий'
+           /* ref={inst=>{const el=ReactDOM.findDOMNode(inst);if(el)(el.firstChild as any).focus()} } */ value={this.state.coment} onChange={ this.handleChange.bind(this,'coment') }/>
+ 
+ 
         </Dialog>
       </div>
     )

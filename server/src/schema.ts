@@ -1,8 +1,12 @@
 import gql from 'graphql-tag'
-
+import * as fs from 'fs'
+import shortid from 'short-id'
+import * as zlib from 'zlib'
+import * as tar from 'tar-fs'
+import * as crypto from 'crypto'
 // The GraphQL schema
  export const typeDefs = gql(`\
-
+    scalar Upload
     type Sms{
       enabled:Boolean
       numbers:[String]
@@ -67,8 +71,7 @@ import gql from 'graphql-tag'
         ip_addr: String
         rules:[Rule]!  
     }
-    input DeviceInput
-    {
+    input DeviceInput{
       _id:ID
       name:String
       mb_addr:Int
@@ -78,28 +81,33 @@ import gql from 'graphql-tag'
     type  DeviceLinkState{
       _id:ID
       state:String
-    }
+    }  
     type UpdDNK4ViewData{
       _id:ID
       pumps:[Int]
       levels:[Int]
     }
+
     type Subscription {
       deviceLinkState:DeviceLinkState
       updDNK4ViewData(id:ID):UpdDNK4ViewData
     }
-    
+
     input SmtpConfInput{
       address:String
       port:Int
       name:String
       password:String
     }
-    input portConfInput{
+    input PortConfInput{
       num:Int
       speed:Int
-      setting:String
-      type:String
+      param:String
+    }
+    type PortConf{
+      num:Int
+      speed:Int
+      param:String
     }
     type SmtpConf{
       address:String
@@ -118,12 +126,20 @@ import gql from 'graphql-tag'
       templates:[Device]
       getDirectory:Directory
       getSmtpConfig:SmtpConf
+      getPortsConfig:[PortConf]
     }
     type Result{
       status:String
     }
-
+    type File {
+      filename: String!
+      mimetype: String!
+      encoding: String!
+    }
     type Mutation{
+      
+      singleUpload(file: Upload!): File!
+  
       addAsTemplate(_id:ID!):Result
       delTemplate(_id:ID!):Result
       addDevice(device:DeviceInput!):Device
@@ -140,7 +156,7 @@ import gql from 'graphql-tag'
       delAct(device:ID!,ruleNum:Int!,actNum:Int!):Result 
       addFromTemplate(device:ID!,template:ID!):[Rule]
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
-      setPortConfig( portConf:portConfInput! ):Result
+      setPortConfig( portConf:PortConfInput! ):Result
       exchangeNum( sNum:String, dNum:String ):Result
     }
 `);
@@ -213,7 +229,6 @@ class Device implements DeviceInput{
 //import * as util from 'util'
 
 import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
-import { debug } from 'util';
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const DNK4_UPD_VIEW = 'UPV'
 export const pubsub = new PubSub();
@@ -290,13 +305,52 @@ export const resolvers = {
     },
     getSmtpConfig:(parent, args)=>{
       db_settings.loadDatabase()
-      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err.toString())} else this.resolve(conf) }         
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else this.resolve(conf) }         
       const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'smtp'}, callback.bind({resolve, reject}))})    
+      return p.then().catch()   
+    },
+    getPortsConfig:(parent, args)=>{
+      db_settings.loadDatabase()
+      var callback = function(err,conf){ if( err||conf===undefined){ console.log(err); this.reject(err)} else this.resolve( [conf["0"]?conf["0"]:null, conf["1"]?conf["1"]:null] ) }         
+      const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'portsSettings'}, callback.bind({resolve, reject} ))})    
       return p.then().catch()   
     }
     
   },
   Mutation:{
+    async singleUpload(parent, args)  {
+      
+      console.dir(args)
+      const f  = await args.file;
+      const { stream , filename, mimetype, encoding } =  f;
+      const key = Buffer.from('DD40F61878B23CFF441652518DB6BF7F11C6AC997CEEBDEFABFEC02A9F532CAF','hex')
+      const iv = Buffer.from('03E5254B8166E4BA1E27B07FE831064F', 'hex')
+      console.log(key,'/',iv)
+      //const ungzip = zlib.createGunzip();
+      const decipher = crypto.createDecipheriv('aes-256-cbc' ,key,  iv);
+      const storeFS = ({ stream, filename }) => {
+        const id = shortid.generate()
+        const path = `./uploads/${id}-${filename}`
+        return new Promise((resolve, reject) =>
+          stream
+            .on('error', error => {
+              if (stream.truncated)
+                // Delete the truncated file.
+                fs.unlinkSync(path)
+              reject(error)
+            })
+           // .pipe(decipher)
+            //.pipe(ungzip)
+            //.pipe(tar.extract(path))
+            .pipe(fs.createWriteStream(path))
+            .on('error', error => reject({error}))
+            .on('finish', () => resolve({ id, filename }))
+        )
+      }
+     
+      return  await storeFS({stream,filename})
+      
+      },
       addDevice(parent,args,context,info){          
             var callback = function( err, dev){ if( err ){ console.log(err); this.reject(err)} else{  this.resolve(dev)} }  
             if(!args.device.rules)  args.device.rules = []       
@@ -361,7 +415,7 @@ export const resolvers = {
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.acts.'+ args.actNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
-      exchangeNumAddr(parent,args,context,info){
+      exchangeNum(parent,args,context,info){
         var callback = function(err, numAffected, affectedDocuments, upsert){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject(err)} else{ isMutated(true); this.resolve("OK")} }         
         if(args.sNumber == args.dNumber)return
         const p = new Promise((resolve,reject)=>{db.update<void>({'trigs.sms.numbers':{$in:args.sNumber}}, {$addToSet:{'trig.sms.numbers':args.dNumbers}, $pull:{'trig.sms.numbers':args.dNumbers}}, {multi:true}, callback.bind({resolve,reject}) )})
@@ -430,13 +484,13 @@ export const resolvers = {
     setSmtpConfig(parent,args,context,info){
         db_settings.loadDatabase()
         var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else this.resolve({status:'OK:'+numberUpdated}) }            
-        const p = new Promise((resolve, reject)=>{db_settings.update<void>({_id:'smtp'},{...args.smtpConf,_id:'smtp'} , {upsert:true}, callback.bind({resolve,reject}))})    
+        const p = new Promise((resolve, reject)=>{db_settings.update<void>({_id:'smtp'},{$set:args.smtpConf} , {upsert:true}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)   
     },
-    setPortConfig(parent,args,context,info){
+    setPortConfig(parent,{portConf},context,info){
       db_settings.loadDatabase()
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ portReinit(true); this.resolve({status:'OK:'+numberUpdated}) }}            
-      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'port'+args.portConf.num},{...args.smtpConf,_id:'port'+args.portConf.num} , {upsert:true}, callback.bind({resolve,reject}))})    
+      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'portsSettings'},{$set:{[portConf.num? portConf.num:"0"]:portConf}} , {upsert:true}, callback.bind({resolve,reject}))})    
       return p.then((v)=>v).catch((v)=>v)   
     }
   }   
