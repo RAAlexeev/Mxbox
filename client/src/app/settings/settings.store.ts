@@ -1,4 +1,4 @@
-import { observable, computed, action } from 'mobx'
+import { observable } from 'mobx'
 import { AppStore } from '../app.store';
 import gql from 'graphql-tag';
 
@@ -13,6 +13,7 @@ export class SettingsStore {
     num:number;
     speed:number;
     param:string;
+    protocol?:number;
   }[]
   
   onSmtpChange = async (name:string, value:string|number)=>{
@@ -25,20 +26,21 @@ export class SettingsStore {
   
   }
 
-  onPort1Change =async (name:string,value:string|number)=>{
-    const save = this.portsSettings[0][name]
-    this.portsSettings[0][name]=value
-    try{
-    const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-    mutation: gql`mutation setPortConfig($portConf:PortConfInput!) { setPortConfig(portConf:$portConf){status}}`, 
-    variables:{ portConf:{num:0, speed:this.portsSettings[0].speed,param:this.portsSettings[0].param} },
-    fetchPolicy: 'no-cache'  
-  })
-}catch(err){
-  this.portsSettings[0][name]=save
-  throw(err)
-}
-}
+  onPortChange =async (num:number,name:string,value:string|number)=>{
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        mutation: gql`mutation setPortConfig($portConf:PortConfInput!) { setPortConfig(portConf:$portConf){status}}`, 
+          variables:{ portConf:{num:num, [name]:value} },
+          fetchPolicy: 'no-cache'  
+        })
+        this.portsSettings[num][name]=value
+  }
+  onPort1Change = (name:string,value:string|number)=>{
+    this.onPortChange(0,name,value)
+  }
+  onPort2Change = (name:string,value:string|number)=>{
+    this.onPortChange(1,name,value)
+  }
+
 async onUpload (value){
     console.dir(value)
     const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
@@ -80,7 +82,7 @@ async onUpload (value){
     this.smtpSettings={
        address:undefined,     port:undefined,  name:undefined,  password:undefined
     }
-    this.portsSettings = [{num:0, speed:19200,param:'8e1'}]
+    this.portsSettings = [{num:0, speed:19200,param:'8e1',},{num:1, speed:19200,param:'8e1',protocol:0}]
     this.loadPorts()
     this.loadSmtp()
 

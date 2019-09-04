@@ -24,12 +24,12 @@ export class CodeDialog extends React.Component<any> {
     {
        this.setState({...this.state, active:!this.state.active, code:trig.condition?trig.condition:'',coment:trig.coment?trig.coment:'' })
     }else
-    this.setState({active:!this.state.active});
+    this.setState({...this.state,active:!this.state.active});
   }
   self: this;
 
   handleOnSave(){
-    let code = this.state.code.replace(/\[\d?\s?\d+\.?\d?[f,u]?\]/g,'(-1.1)').replace(/#D[1,2]/g,'1')
+    let code = this.state.code.replace(/\[\d?\s?\d+\.?\d?[f,u]?\]/g,'(-1.1)').replace(/#DI\d+/g,'(0)')
         .replace(/([^>^<])\=+/g,'$1 === ').replace(/or/ig,'||').replace(/and/ig,'&&').replace(/not/g,'!').replace(/<>/g,'!=')
     try{console.log('hadleOnSave:',code ,new Function('return ('+ code +')')())
       if(!isBoolean(new Function('return ('+code+')')()) )throw new Error('выражение не логического типа...')    

@@ -25,18 +25,22 @@ const customFetch = async (uri, options) => {
     return response;
   };
 
-const link = createUploadLink().concat(ApolloLink.split(
+const link = ApolloLink.split(
   operation => {
   	const operationAST = getOperationAST(operation.query, operation.operationName);
   	return !!operationAST && operationAST.operation === 'subscription';
   },
   new WebSocketLink(wsClient),
-  new HttpLink({
+/*   new HttpLink({
     uri: `${document.location.origin.replace(/:3000/,':3001')}/graphql`,
     fetch: customFetch,
-  }),  
-  
-))
+  }),  */ 
+  createUploadLink({
+    uri:document.location.origin.replace(/:3000/,':3001'),
+    fetch: customFetch,
+  })
+ )
+
 import { onError } from "apollo-link-error";
 import Snackbar from 'react-toolbox/lib/snackbar';
 export class AppStore {
@@ -59,6 +63,7 @@ export class AppStore {
                                                         })
                                               , link]),
                       cache: new InMemoryCache()
+              
                       })
 
 

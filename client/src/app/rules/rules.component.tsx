@@ -21,6 +21,7 @@ import Tooltip from 'react-toolbox/lib/tooltip';
 import { CronDialog } from './dialogs/cron.dialog';
 import './style.css'
 import { RealyDialog } from './dialogs/realy.dialog';
+import { DoDialog } from './dialogs/DO.dialog';
 const TooltipButton = Tooltip( Button )
 @inject('appStore','devicesStore')
 @observer
@@ -60,12 +61,14 @@ interface RulesComponentProps {
 @inject('appStore','rulesStore','devicesStore')
 @observer
 export class RulesComponent extends React.Component<RulesComponentProps, any> {
-  codeDialog:CodeDialog; 
-  emailDialog:EmailDialog;
-  smsDialog:SmsDialog;
-  cronDialog:CronDialog;
-  realyDialog:RealyDialog;
-  
+  dialogs:{
+  codeDialog?:CodeDialog; 
+  emailDialog?:EmailDialog;
+  smsDialog?:SmsDialog;
+  cronDialog?:CronDialog;
+  realyDialog?:RealyDialog;
+  doDialog?:DoDialog;
+  } ={}
   
    render() {
   
@@ -74,11 +77,12 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
     const { name } = this.props.match.params
   
      return !devicesStore.selected?<Redirect to='/home' />:<div>
-        <CodeDialog ref={instance =>  this.codeDialog = instance } />  
-        <EmailDialog ref={instance =>  this.emailDialog = instance } />  
-        <SmsDialog ref={instance =>  this.smsDialog = instance } />   
-        <CronDialog ref={instance => this.cronDialog = instance}  />
-        <RealyDialog ref={instance => this.realyDialog = instance} />
+        <CodeDialog ref={instance =>  this.dialogs.codeDialog = instance } />  
+        <EmailDialog ref={instance => this.dialogs.emailDialog = instance } />  
+        <SmsDialog ref={instance =>  this.dialogs.smsDialog = instance } />   
+        <CronDialog ref={instance => this.dialogs.cronDialog = instance}  />
+        <RealyDialog ref={instance => this.dialogs.realyDialog = instance} />
+        <DoDialog ref={instance => this.dialogs.doDialog = instance} />
         { TemplateMenu( TemplatesStore.getInstance(), devicesStore, rulesStore ) } 
         <TooltipButton tooltip='Добавить' icon='add' onClick={rulesStore.addRule.bind( rulesStore, devicesStore.selected )} floating accent mini className={appStyle.floatRight} />
         <h2>{'Правила для: ' + devicesStore.selected.name}</h2>
@@ -93,13 +97,13 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
                 <h3>{index + '#'} </h3>
               </td>
                 <td> 
-                <div style={{margin:'0px'}}>События: { Trigs(new TrigsStore(rule, index, {codeDialog: this.codeDialog, cronDialog: this.cronDialog})) }</div> 
-                </td><td>
-                <div style={{margin:'0px'}}>Действия: { Acts(new ActsStore(rule, index, {emailDialog: this.emailDialog, smsDialog: this.smsDialog})) } </div> 
+                <div style={{margin:'0px'}}>События: { Trigs(new TrigsStore(rule, index, this.dialogs)) }</div> 
+                </td><td style={{paddingLeft:'3em'}}>
+                <div style={{margin:'0px'}}>Действия: { Acts(new ActsStore(rule, index, this.dialogs)) } </div> 
                 </td>
               </tr>
               </tbody>
-            </table> <Button icon='clear' onClick={()=>{this.realyDialog.onDelete=rulesStore.delRule.bind(rulesStore, devicesStore.selected, index); this.realyDialog.handleToggle()}} floating  mini className={appStyle.floatRight} style={{marginTop:'-4%'}}  />
+            </table> <Button icon='clear' onClick={()=>{this.dialogs.realyDialog.onDelete=rulesStore.delRule.bind(rulesStore, devicesStore.selected, index); this.dialogs.realyDialog.handleToggle()}} floating  mini className={appStyle.floatRight} style={{marginTop:'-4%'}}  />
 
             </CardText>
           </Card>      

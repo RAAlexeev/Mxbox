@@ -94,9 +94,11 @@ export class RulesStore {
   async initializeRules(device:Device) {
       try{ const result = await this.appStore.apolloClient.query<RulesQueryResult,{}>({
             query: gql`query rules($device:ID!){rules(device:$device){acts{type sms{numbers text}
-                                                                email{address subject body}} 
-                                                                trigs{type condition coment inEmail{subject body}  
-                                                                inSms{numbers text} cron}}}`,
+                                                                email{address subject body}
+                                                                DO} 
+                                                                trigs{type condition coment inEmail{subject body}
+                                                                inSms{numbers text} 
+                                                                cron}}}`,
       variables:{device:device._id},
       fetchPolicy: 'network-only'
     }) 

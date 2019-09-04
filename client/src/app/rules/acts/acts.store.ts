@@ -1,7 +1,6 @@
 import gql from 'graphql-tag'
 import { AppStore } from '../../app.store'
-import { arrayRemove } from '../../utils';
-import { Device, DevicesStore } from '../../devices/devices.store';
+import { DevicesStore } from '../../devices/devices.store';
 import { Rule } from '../rules.store';
 import { observable, action } from 'mobx';
 
@@ -40,6 +39,7 @@ export interface Act{
   type?:number
   sms?:Sms
   email?:Email
+  DO?:number[]
   index?:number
 }
 
@@ -52,6 +52,7 @@ export class ActsStore {
   appStore:AppStore = AppStore.getInstance()
   devicesStore:DevicesStore = DevicesStore.getInstance()
  // deviceSubscription
+  addDOdisable:boolean
   dialogs
   ruleNum:number
   rule:Rule
@@ -63,6 +64,7 @@ export class ActsStore {
     this.acts = rule.acts?rule.acts:[]
     this.rule = rule
     this.dialogs = dialogs
+    this.addDOdisable=false
 /*      this.deviceSubscription = this.appStore.apolloClient.subscribe({
       query: DevicesSubscription,
       // This way realtime updates will work only when both posting and reading users have the same name. Proof of concept.
@@ -99,7 +101,7 @@ export class ActsStore {
   }
   @action updActEmail = async (act:Act)=>{
   // let index = this.acts.findIndex((val,index)=>(val===act))
-
+/* 
    try{
     
       const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
@@ -119,30 +121,14 @@ export class ActsStore {
     }catch(err){
       console.error(err.toString())
       return false
-    }
+    } */
+    this.updAct({type:act.type, email:act.email},act.index)
+  
   }
   @action updActSms = async (act:Act)=>{
-    // let index = this.acts.findIndex((val,index)=>(val===act))
+
+      this.updAct({type:act.type, sms:act.sms},act.index)
   
-     try{
-        const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
-        mutation: gql`mutation updAct($device:ID!,$ruleNum:Int!,$actNum:Int!,$actInput:ActInput!){updAct(device:$device,ruleNum:$ruleNum,actNum:$actNum,actInput:$actInput){ type email{address subject body} sms{numbers text}}}`,
-        variables:{
-          device:this.devicesStore.selected._id,
-          ruleNum:this.ruleNum,
-          actNum:act.index,
-          actInput:{type:act.type, sms:{numbers:act.sms.numbers,text:act.sms.text}}
-        },
-        fetchPolicy: 'no-cache'  
-      })
-     // console.log(result.data,act.index)
-      this.acts[act.index] = result.data.updAct
-    
-      return true 
-      }catch(err){
-        console.error(err.toString())
-        return false
-      }
     }
   @action  delAct = async (actNum:number)=>{
     try{
@@ -160,7 +146,28 @@ export class ActsStore {
       console.error(err.toString())
     }
   }    
+   updAct = async (act:Act, index:number)=>{
+        const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
+        mutation: gql`mutation updAct($device:ID!,$ruleNum:Int!,$actNum:Int!,$actInput:ActInput!){updAct(device:$device,ruleNum:$ruleNum,actNum:$actNum,actInput:$actInput){ type email{address subject body} sms{numbers text} DO}}`,
+        variables:{
+          device:this.devicesStore.selected._id,
+          ruleNum:this.ruleNum,
+          actNum:index,
+          actInput:act
+        },
+        fetchPolicy: 'no-cache'  
+      })
+     // console.log(result.data,act.index)
+      this.acts[index] = result.data.updAct
+    
+      
 
+    }
+
+  @action updActDO = (act:Act)=>{
+      
+      this.updAct({type:act.type, DO:act.DO},act.index)
+  }
 /*   async delRule(rule) {
     const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
       mutation: gql`mutation delDevice($_id:ID) { delDevice(_id:$){status}}`,

@@ -8,8 +8,7 @@ import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
 import * as theme from './settings.css'
 import { BrowseButton } from 'react-toolbox/lib/button';
-import { Mutation } from 'react-apollo';
-import gql from 'graphql-tag';
+import { RadioGroup, RadioButton } from 'react-toolbox/lib/radio';
 
 
 export class Settings extends React.Component<any, any> {    
@@ -42,25 +41,24 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
     param:'8e1',
     text:'',
     error:'',
-    
-   }
-  
-   onChange=()=>{
-   // console.dir(this)
-  }
-  port1SpeedOnChange = (value)=>{
-    this.setState({...this.state, speed:value});
-  }
+
+    portocol: 'vvendetta'
+  };
+
+  handleChange = (portocol) => {
+    this.setState({... this.state, portocol});
+  };
+
   render() {
-    
+    const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]
     const { settingsStore, appStore } = this.props
     return (
       <div>
           <Card>
             <CardTitle
                 avatar=''
-                title="Порты"
-                subtitle="настройки"
+                title="Порт1 (RS485-1)"
+                subtitle="Параметры"
               />
               
              <CardText> 
@@ -68,8 +66,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                 <Dropdown 
                     auto
                     label={'Скорость'}
-                    onChange={settingsStore.onPort1Change.bind(this,'speed')}
-                    source={[{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]}
+                    onChange={settingsStore.onPort1Change.bind(null,'speed')}
+                    source={speedList}
                     value={settingsStore.portsSettings[0].speed?settingsStore.portsSettings[0].speed:''}
                     theme={theme}
                   />
@@ -78,12 +76,54 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                   <Dropdown
                     auto
                     label={'Параметры'}
-                    onChange={settingsStore.onPort1Change.bind(this,'param')}
+                    onChange={settingsStore.onPort1Change.bind(null,'param')}
                     source={params}
                     value={settingsStore.portsSettings[0].param?settingsStore.portsSettings[0].param:''}
                     theme={theme}
                   />
                 </div>
+
+              </CardText> 
+          </Card>
+          <Card>
+            <CardTitle style={{width:'30%', float:"left"}}
+                avatar=''
+                title="Порт2 (RS485-2)"
+                subtitle="Параметры"
+              />
+
+             <CardText> 
+
+                <div style={{width:'30%', float:"left"}}>
+                <Dropdown 
+                    auto
+                    label={'Скорость'}
+                    onChange={settingsStore.onPort2Change.bind(null,'speed')}
+                    source={speedList}
+                    value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].speed:''}
+                    theme={theme}
+                  />
+                  </div>
+                 <div style={{width:'30%',float:'left'}}>
+                  <Dropdown
+                    auto
+                    label={'Параметры'}
+                    onChange={settingsStore.onPort2Change.bind(null,'param')}
+                    source={params}
+                    value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].param:''}
+                    theme={theme}
+                  />
+                  </div>
+                  <div style={{width:'30%',float:'left'}}>
+                    <Dropdown 
+                    auto
+                    label={'Протокол'}
+                    onChange={settingsStore.onPort1Change.bind(null,'speed')}
+                    source={[{value:0,label:'транслировать'},{value:1,label:'joson по modbus'},{value:2,label:'joson'},{value:3,label:'AT команды'},{value:0,label:'AT команды по modbus'}]}
+                    value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].speed:''}
+                    theme={theme}
+                    />
+                  </div>
 
               </CardText> 
           </Card>

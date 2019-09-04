@@ -30,6 +30,7 @@ import * as crypto from 'crypto'
      type:Int!
      sms:Sms
      email:Email
+     DO:[Int]
    }
     type Rule{
       enabled:Boolean
@@ -60,6 +61,7 @@ import * as crypto from 'crypto'
       type:Int!
       sms:SmsInput
       email:EmailInput
+      DO:[Int]
     }
     input RuleInput{
         enabled:Boolean
@@ -108,6 +110,7 @@ import * as crypto from 'crypto'
       num:Int
       speed:Int
       param:String
+      protocol:Int
     }
     type SmtpConf{
       address:String
@@ -326,7 +329,7 @@ export const resolvers = {
       const key = Buffer.from('DD40F61878B23CFF441652518DB6BF7F11C6AC997CEEBDEFABFEC02A9F532CAF','hex')
       const iv = Buffer.from('03E5254B8166E4BA1E27B07FE831064F', 'hex')
       console.log(key,'/',iv)
-      //const ungzip = zlib.createGunzip();
+      const ungzip = zlib.createGunzip();
       const decipher = crypto.createDecipheriv('aes-256-cbc' ,key,  iv);
       const storeFS = ({ stream, filename }) => {
         const id = shortid.generate()
@@ -339,10 +342,10 @@ export const resolvers = {
                 fs.unlinkSync(path)
               reject(error)
             })
-           // .pipe(decipher)
-            //.pipe(ungzip)
-            //.pipe(tar.extract(path))
-            .pipe(fs.createWriteStream(path))
+            .pipe(decipher)
+            .pipe(ungzip)
+            .pipe(tar.extract('./upload/mxBox'))
+            //.pipe(fs.createWriteStream(path))
             .on('error', error => reject({error}))
             .on('finish', () => resolve({ id, filename }))
         )

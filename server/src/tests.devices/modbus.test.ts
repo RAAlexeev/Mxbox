@@ -5,8 +5,7 @@ import { sendSMS } from './result/send.sms'
 import { debug } from 'util'
 import SerialPort from 'serialport'
 import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
-
-
+import cmd  from 'node-cmd'
 
 //import { findTypesThatChangedKind } from 'graphql/utilities/findBreakingChanges';
 
@@ -31,12 +30,16 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                     
                                 }
                                 
-                                if(!settings[0])settings[0]={speed:19200, param:'8e1'}
+                                if(!settings['0'])settings['0']={speed:19200, param:'8e1'}
                                 else{
-                                    if(!settings[0].speed)settings[0].speed=19200
-                                    if(!settings[0].param)settings[0].param='8e1'
+                                    if(!settings['0'].speed)settings['0'].speed=19200
+                                    if(!settings['0'].param)settings['0'].param='8e1'
                                 }
-                  
+                                if(!settings['1'])settings['1']={speed:19200, param:'8e1'}
+                                else{
+                                    if(!settings['1'].speed)settings['1'].speed=19200
+                                    if(!settings['1'].param)settings['1'].param='8e1'
+                                }
                                const parity=(param)=>{switch(param[1]){
                                     case 'e': return 'even' //'none' | 'even' | 'mark' | 'odd' | 'space'
                                     case 'o': return 'odd'
@@ -51,7 +54,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     obj.cancel = resolve.bind(null, { canceled: true })
                                                     
                                                 }) 
-                                        const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) })
+                                        const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: parseInt(settings['1'].param[2]) })
                                        
                                         proxyPort.on("data",data=>{
                                             console.log('proxyPort.data:',data)
@@ -278,6 +281,7 @@ interface Sms{
    interface Act{
     sms?:Sms
     email?:Email
+    DO?:number[]
   }
   interface Rule {
     trigs?:Trig[]
@@ -341,29 +345,54 @@ class TestDevicesModbus {
         for(const act of rule.acts)
             {  if( act.email ) sendMail( device, act.email, device.rules.findIndex(_rule=>{return _rule===rule}) ); 
                 if(act.sms) sendSMS(act.sms, device) 
+                if(act.DO) act.DO.forEach((val,index,array)=>{
+                    switch(val){
+                        case 0:
+                        case 1: cmd.run('echo "-w=140:0 0 0 '+ val +'0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') 
+                        break
+                        case 2:   cmd.run('echo "-w=140:0 0 0 1 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') 
+                                 setTimeout( cmd.run('echo "-w=140:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') ,1000)
+                        break        
+                        case 3:   cmd.run('echo "-w=140:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') 
+                                 setTimeout( cmd.run('echo "-w=140:0 0 0 1 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') ,1000)          
+                    }
+                   
+                })
             } 
         
             //send SMSs Emails
     }
-    private static testTrig ( trig:Trig ):boolean{
+    private static  testTrig ( trig:Trig ):boolean{
             
             if( trig.condition  )
             if(trig.jsCode===undefined){
 
                 trig.jsCode = trig.condition.replace(/\=+/g,' === ')
-                                            .replace(/or/ig,'|')
-                                            .replace(/and/ig,'&')
+                                            .replace(/or/ig,'||')
+                                            .replace(/and/ig,'&&')
                                             .replace(/not/g,'!')
                                             .replace(/<>/g,'!=')
                 
             }
-            let jsCode = trig.jsCode
+            let jsCode:string = trig.jsCode?trig.jsCode:'';
             if( trig && trig.regs ){
              trig.regs.forEach(reg => {
                 if( jsCode && reg  )
                     
                     jsCode = jsCode.replace(reg.pattern,'('+ reg.val + ')') 
                 })
+                //const di:{pattern?:string, index?:number}[] = []  
+                const regExp:RegExp= new RegExp(/#DI?(\d+)/)
+                if(regExp.test(jsCode))
+                 new Promise ((resume, reject)=>cmd.get('cat /sys/devices/virtual/misc/mtgpio/pin',(err,data:string,stderr)=>{
+                    const di=(n:number)=>(data[70+n*14]) 
+                    let match = regExp.exec(jsCode)  
+                    while (match){
+                        jsCode = jsCode.replace(match[0],'('+ di(parseInt(match[1]))+')')
+                        match = regExp.exec(jsCode)   
+                    }
+                    resume()
+                })).then()  
             try{
                 debug('jsCode:'+ jsCode)
                 return new Function('','return ('+jsCode+')')()    
@@ -434,6 +463,7 @@ class TestDevicesModbus {
                                         return
                                     }
                                     this.skip = 100  
+                                    try{
                                     switch(reg.func){                                    
                                         case 1:  reg.val = await client.readInputRegisters(reg.addr,1)
                                                 this.processResponse(reg)
@@ -449,6 +479,9 @@ class TestDevicesModbus {
                                         break 
                                         default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')                                            
                                     }
+                                }catch(err){
+                                    this.modbusError(err,device)
+                                } 
                                 }
                                // debug('#trig.active:' + trig.active)
                                 if( this.testTrig( trig ) ){ 

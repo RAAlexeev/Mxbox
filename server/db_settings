@@ -1,2 +1,2 @@
-{"0":{"num":0,"speed":115200,"param":"8e1"},"_id":"portsSettings"}
+{"0":{"num":0,"speed":115200},"_id":"portsSettings"}
 {"_id":"smtp","address":"smtp.yandex.com","port":465,"name":"alekseev@mx-omsk.ru","password":"9723692!"}

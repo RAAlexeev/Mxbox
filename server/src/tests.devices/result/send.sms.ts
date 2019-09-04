@@ -43,7 +43,7 @@ const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
       }
       await sleep(10000)        
       cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
-                await sleep(3000)
+                await sleep(100)
                 if (!err) {
                     modem.open('/dev/radio/atci1', options,(err,res)=>{
                         if(err){

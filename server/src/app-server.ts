@@ -47,5 +47,5 @@ app.use('/', express.static('./'));
 //sendSMS({numbers:["+79136094380"],text:"Привед!"})
 //sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
-dioTest()
+//dioTest()
 //export {server};
