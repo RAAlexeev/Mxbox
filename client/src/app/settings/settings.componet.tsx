@@ -8,7 +8,7 @@ import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
 import * as theme from './settings.css'
 import { BrowseButton } from 'react-toolbox/lib/button';
-import { RadioGroup, RadioButton } from 'react-toolbox/lib/radio';
+
 
 
 export class Settings extends React.Component<any, any> {    
@@ -86,7 +86,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
               </CardText> 
           </Card>
           <Card>
-            <CardTitle style={{width:'30%', float:"left"}}
+            <CardTitle 
                 avatar=''
                 title="Порт2 (RS485-2)"
                 subtitle="Параметры"
@@ -94,7 +94,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
 
              <CardText> 
 
-                <div style={{width:'30%', float:"left"}}>
+                <div style={{width:'auto', float:"left"}}>
                 <Dropdown 
                     auto
                     label={'Скорость'}
@@ -104,7 +104,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                     theme={theme}
                   />
                   </div>
-                 <div style={{width:'30%',float:'left'}}>
+                 <div style={{width:'auto',float:'left'}}>
                   <Dropdown
                     auto
                     label={'Параметры'}
@@ -114,17 +114,27 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                     theme={theme}
                   />
                   </div>
-                  <div style={{width:'30%',float:'left'}}>
+                  <div style={{width:'auto',float:'left'}}>
                     <Dropdown 
                     auto
                     label={'Протокол'}
-                    onChange={settingsStore.onPort1Change.bind(null,'speed')}
-                    source={[{value:0,label:'транслировать'},{value:1,label:'joson по modbus'},{value:2,label:'joson'},{value:3,label:'AT команды'},{value:0,label:'AT команды по modbus'}]}
-                    value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].speed:''}
+                    onChange={settingsStore.onPort2Change.bind(null,'protocol')}
+                    source={[{value:0,label:'транслировать'},{value:1,label:'транслировать + joson по modbus'},{value:2,label:'joson'},{value:3,label:'AT команды'},{value:4,label:'транслировать + AT команды по modbus'}]}
+                    value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].protocol:0}
                     theme={theme}
                     />
                   </div>
-
+                  <div style={{width:'auto',float:'left'}}>
+                  <Input
+                    type='text'
+                    label=' mb адрес:'
+                    name='mbAddress'
+                    hint='200'
+                    error=''
+                    value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].addr:200}
+                    onChange={settingsStore.onPort2Change.bind(null,'addr')}
+                  />
+            </div>
               </CardText> 
           </Card>
           <Card>

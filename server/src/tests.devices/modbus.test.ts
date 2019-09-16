@@ -6,6 +6,7 @@ import { debug } from 'util'
 import SerialPort from 'serialport'
 import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
 import cmd  from 'node-cmd'
+import { parseCommand } from '../commands/joson';
 
 //import { findTypesThatChangedKind } from 'graphql/utilities/findBreakingChanges';
 
@@ -20,7 +21,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                        
                             db_settings.loadDatabase();
                             
-
+                          //  pubsub.subscribe()
                             
                             db_settings.findOne<any>( { '_id':'portsSettings' },
                                   async( err,  settings )=>{
@@ -57,7 +58,18 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                         const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: parseInt(settings['1'].param[2]) })
                                        
                                         proxyPort.on("data",data=>{
-                                            console.log('proxyPort.data:',data)
+                                            
+                                            switch(settings['1'].protocol){
+                                            
+                                             case 3://AT команды   
+                                             break
+                                             case 2: parseCommand(data)//   joson
+                                             break
+                                             case 4://транслировать + AT команды по modbus   
+                                             case 1://транслировать + joson по modbus
+
+                                             default:  // транслировать    
+                                           // console.log('proxyPort.data:',data)
                                             if([1,2,3,4,5,6,15,16].includes(data[1])){
                                               if(data.length === 2 + 4 + 2 + ( [15,16].includes(data[1]) ? data[6]:0) ){
                                                 RTUproxyReguest.push({data:data, query:0})
@@ -80,6 +92,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     delete(proxyPort.buff)
                                                 }
                                             }
+                                        }
                                         })
                                         
                                         const port = new SerialPort("/dev/ttyMT1",{ baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) })
@@ -212,12 +225,16 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     setTimeout(() => {
                                                         modbusTestRun()  
                                                      },1000)
-                                                     port.close()
-                                                     proxyPort.close()
-                                                     client.close(()=>{})
-                                               
-                                                     return
-                                                 }     
+                                               try{
+                                                     if(port.isOpen)port.close()
+                                             
+                                                     if(proxyPort.isOpen)proxyPort.close()
+                                     
+                                                     await Promise.race([new Promise((resolve,reject)=>{ client.close(()=>{}) }),sleep(300)])
+                                               }finally{
+                                                     return}
+                                                     }
+                                                      
 
                                    /*                db_settings.findOne<any>( { '_id':'portsSettings' }, ( err, newSettings )=>{ if(!err){settings=newSettings
                                                     if(!settings[0])settings[0]={speed:19200, param:'8e1'}
@@ -333,17 +350,20 @@ class TestDevicesModbus {
             return regs
     }
 
-    private static modbusError( err, device ){
-        pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ device:device, state:err.toString() }  });
-            console.error(err)
+    private static modbusError( err, device:Device ){
+       //if( device.errno != err.errno )
+        pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:err.message }  });
+        device.errno = err.errno 
+        console.error('modbusError:',err)
     }
+
 
 
     private static onTrig( device:Device, rule:Rule ){
       
         if( rule && rule.acts ) 
         for(const act of rule.acts)
-            {  if( act.email ) sendMail( device, act.email, device.rules.findIndex(_rule=>{return _rule===rule}) ); 
+            {  if( act.email ) sendMail( act.email,device, device.rules.findIndex(_rule=>{return _rule===rule}) ); 
                 if(act.sms) sendSMS(act.sms, device) 
                 if(act.DO) act.DO.forEach((val,index,array)=>{
                     switch(val){
@@ -363,7 +383,7 @@ class TestDevicesModbus {
             //send SMSs Emails
     }
     private static  testTrig ( trig:Trig ):boolean{
-            
+            let result = false
             if( trig.condition  )
             if(trig.jsCode===undefined){
 
@@ -380,11 +400,12 @@ class TestDevicesModbus {
                 if( jsCode && reg  )
                     
                     jsCode = jsCode.replace(reg.pattern,'('+ reg.val + ')') 
-                })
+                })}
                 //const di:{pattern?:string, index?:number}[] = []  
                 const regExp:RegExp= new RegExp(/#DI?(\d+)/)
                 if(regExp.test(jsCode))
                  new Promise ((resume, reject)=>cmd.get('cat /sys/devices/virtual/misc/mtgpio/pin',(err,data:string,stderr)=>{
+                    if(err)reject(err)
                     const di=(n:number)=>(data[70+n*14]) 
                     let match = regExp.exec(jsCode)  
                     while (match){
@@ -392,16 +413,15 @@ class TestDevicesModbus {
                         match = regExp.exec(jsCode)   
                     }
                     resume()
-                })).then()  
-            try{
-                debug('jsCode:'+ jsCode)
-                return new Function('','return ('+jsCode+')')()    
-            }catch(err){
-                console.error(err)
-            }
-
-            }    
-            return false
+                })).then(()=>{
+                    try{
+                        debug('jsCode:'+ jsCode)
+                        result = new Function('','return ('+jsCode+')')()    
+                    }catch(err){
+                        console.error(err)
+                    }
+            }).catch((err)=>console.error(err))   
+            return result
     }
         
     private static getSizeDataReguest(reg:Reg):number{
@@ -478,10 +498,13 @@ class TestDevicesModbus {
                                                 this.processResponse(reg) 
                                         break 
                                         default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')                                            
+                                        
                                     }
+                                    if(device.errno)pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:'' }  });
                                 }catch(err){
                                     this.modbusError(err,device)
                                 } 
+
                                 }
                                // debug('#trig.active:' + trig.active)
                                 if( this.testTrig( trig ) ){ 

@@ -92,7 +92,7 @@ export class CodeDialog extends React.Component<any> {
             Также возможно извлечь бит из регистра, например [12.9] будет интерпретирован как 0 или 1 в зависимости от состояния бита №9 регистра 12'}
             /*ref={inst=>{this.elFocus=ReactDOM.findDOMNode(inst);} }*/ value={this.state.code} onChange={this.handleChange.bind(this,'code') }/>
 
-          <Input style={{marginTop:'1rem'}} type='text' multiline   label='Коментарий'
+          <Input style={{marginTop:'1rem'}} type='text'    label='Коментарий'
            /* ref={inst=>{const el=ReactDOM.findDOMNode(inst);if(el)(el.firstChild as any).focus()} } */ value={this.state.coment} onChange={ this.handleChange.bind(this,'coment') }/>
  
  

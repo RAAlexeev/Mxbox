@@ -71,10 +71,12 @@ node: {
   __dirname: true, __filename:true 
 },
 optimization: {
+  
+    minimize: false,
   splitChunks: {
     chunks: 'async',
-    minSize: 30000,
-    maxSize: 0,
+   // minSize: 30000,
+   // maxSize: 0,
     minChunks: 1,
     maxAsyncRequests: 5,
     maxInitialRequests: 3,
@@ -83,12 +85,13 @@ optimization: {
     cacheGroups: {
       vendors: {
         test: /[\\/]node_modules[\\/]/,
-        priority: -10
+        priority: -10,
+        reuseExistingChunk: true
       },
       default: {
-        minChunks: 2,
-        priority: -20,
-        reuseExistingChunk: true
+        minChunks: 1,
+        priority: -20
+        
       }
     }
   }

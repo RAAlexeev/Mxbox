@@ -14,6 +14,7 @@ export class SettingsStore {
     speed:number;
     param:string;
     protocol?:number;
+    addr?:number;
   }[]
   
   onSmtpChange = async (name:string, value:string|number)=>{
@@ -27,17 +28,28 @@ export class SettingsStore {
   }
 
   onPortChange =async (num:number,name:string,value:string|number)=>{
+        const save =  this.portsSettings[num][name]
+        this.portsSettings[num][name]= value
+        let portConf
+         portConf = {speed:this.portsSettings[num].speed, param:this.portsSettings[num].param, num:num}
+        if(this.portsSettings[num].protocol) portConf.protocol = this.portsSettings[num].protocol// = {...portConf,protocol: this.portsSettings[num].protocol}
+        if(this.portsSettings[num].addr) portConf.addr = this.portsSettings[num].addr
+        try{
         const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
         mutation: gql`mutation setPortConfig($portConf:PortConfInput!) { setPortConfig(portConf:$portConf){status}}`, 
-          variables:{ portConf:{num:num, [name]:value} },
+          variables:{ portConf:portConf },
           fetchPolicy: 'no-cache'  
         })
-        this.portsSettings[num][name]=value
+      }catch(err){
+        this.portsSettings[num][name]=save
+        throw err
+      }
   }
   onPort1Change = (name:string,value:string|number)=>{
     this.onPortChange(0,name,value)
   }
   onPort2Change = (name:string,value:string|number)=>{
+    if(name==='addr')value = parseInt(value as string)
     this.onPortChange(1,name,value)
   }
 
@@ -56,7 +68,7 @@ async onUpload (value){
   } 
  loadSmtp =async()=>{
    const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-          query: gql`query getSmtpConfig{getSmtpConfig{address, port, name }}`,
+          query: gql`query getSmtpConfig{getSmtpConfig{address port name }}`,
       variables:{},
       fetchPolicy: 'no-cache'
       }) 
@@ -68,12 +80,12 @@ async onUpload (value){
 
   loadPorts =async()=>{
      const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-            query: gql`query getPortsConfig{getPortsConfig{num, speed, param }}`,
+            query: gql`query getPortsConfig{getPortsConfig{num speed param protocol addr}}`,
         variables:{},
         fetchPolicy: 'no-cache'
         }) 
         console.log( result.data )
-        if( result.data.getPortsConfig[0] )
+       
           this.portsSettings = result.data.getPortsConfig
 
   

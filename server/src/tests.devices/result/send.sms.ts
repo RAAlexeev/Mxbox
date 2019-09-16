@@ -7,7 +7,7 @@ import { TCPproxyReguest } from '../modbusProxy/TCP.proxy';
 //echo "-w=26:0 0 0 1 0 1 0" >/sys/devices/virtual/misc/mtgpio/pin
 const serialportgsm = require('serialport-gsm')
 
-const modem = serialportgsm.Modem()
+export const modem = serialportgsm.Modem()
 const options = {
     baudRate: 115200,
     dataBits: 8,
@@ -131,8 +131,8 @@ const getNetworkSignal = ()=>{
 
 export function sendSMS(sms:Sms,device?:Device){
    
-    const interval = setInterval((sms:Sms,device:Device)=>{
-         const text=device.name +':'+sms.text
+    const interval = setInterval((sms:Sms,device?:Device)=>{
+         const text=device?device.name +':'+sms.text:sms.text
         for(const mumber of sms.numbers)
          if( mumber )modem.sendSMS( mumber, text, false, 
             (result)=>{

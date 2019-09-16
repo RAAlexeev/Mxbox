@@ -12,6 +12,7 @@ import { DevRules } from './rules/rules.component';
 import { DevView } from './devView/devView.component';
 import { DevicesStore } from './devices/devices.store';
 import { Settings } from './settings/settings.componet';
+import { NumberExchengDialog } from './dialogs/numberExchange.dialog';
 //import 'material-design-icons/iconfont/material-icons.css'
 
 const appStore = AppStore.getInstance()
@@ -24,9 +25,10 @@ const rootStores = {
 }
 
 ReactDOM.render(
-   <Provider {...rootStores} >
-      <Router history={routerStore.history} >
+   <Provider { ...rootStores } >
+      <Router history={ routerStore.history } >
       <App>
+        <NumberExchengDialog rootStores={rootStores}  ref={ instance =>  appStore.numberExchengDialog = instance } />  
         <Switch >
           <Route exact path='/home' component={Home as any} />
           <Route exact path='/settings' component={Settings as any} />

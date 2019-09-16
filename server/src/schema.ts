@@ -4,6 +4,7 @@ import shortid from 'short-id'
 import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as crypto from 'crypto'
+import replaceFileText from './utils/replaceFileText'
 // The GraphQL schema
  export const typeDefs = gql(`\
     scalar Upload
@@ -105,12 +106,15 @@ import * as crypto from 'crypto'
       num:Int
       speed:Int
       param:String
+      protocol:Int
+      addr:Int
     }
     type PortConf{
       num:Int
       speed:Int
       param:String
       protocol:Int
+      addr:Int
     }
     type SmtpConf{
       address:String
@@ -133,6 +137,7 @@ import * as crypto from 'crypto'
     }
     type Result{
       status:String
+
     }
     type File {
       filename: String!
@@ -160,16 +165,15 @@ import * as crypto from 'crypto'
       addFromTemplate(device:ID!,template:ID!):[Rule]
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
       setPortConfig( portConf:PortConfInput! ):Result
-      exchangeNum( sNum:String, dNum:String ):Result
+      exchangeNum( sNum:String!, dNum:String! ):Result
     }
 `);
  
 import * as Datastore from 'nedb';
 
-export var db = new Datastore({filename : 'db'});
-
- var db_template = new Datastore({filename : 'db_template'});
-export var db_settings = new Datastore({filename : 'db_settings'});
+export var db = new Datastore({filename : 'DB/db'});
+ var db_template = new Datastore({filename : 'DB/db_template'});
+export var db_settings = new Datastore({filename : 'DB/db_settings'});
 
 db.loadDatabase();
 
@@ -196,6 +200,7 @@ export interface Act{
   type:number
   sms?:Sms
   email?:Email
+  DO?:number[]
 }
 export interface Rule {
   trigs?:Array<Trig>
@@ -207,6 +212,7 @@ export interface Device{
   mb_addr:number
   ip_addr:string
   rules:Rule[]
+  errno?:string
 }
 // A map of functions which return data for the schema.
 /* interface DeviceInput{
@@ -232,6 +238,7 @@ class Device implements DeviceInput{
 //import * as util from 'util'
 
 import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
+import { reloadCronTask } from './tests.devices/cron.test';
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const DNK4_UPD_VIEW = 'UPV'
 export const pubsub = new PubSub();
@@ -262,7 +269,7 @@ export const resolvers = {
   Query: {
     devices: (parent) => {
       var callback = function(err, dev){ if( err ){ console.log(err); this.reject(err)} else{ this.resolve(dev)} }         
-      const p = new Promise((resolve,reject)=>{db.find( {}, callback.bind({resolve,reject}))})    
+      const p = new Promise((resolve, reject)=>{db.find( {}, callback.bind({resolve,reject}) )})    
       return p.then().catch()   
     },
     rules: (parent, args) => {
@@ -393,7 +400,8 @@ export const resolvers = {
         return p.then((v)=>v).catch((v)=>v)    
       },
       updTrig(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{isMutated(true); this.resolve({status:'OK:'+numberUpdated}) }}            
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{
+                                                                  switch(args.trigInput.type){case 1:reloadCronTask(); break; default:isMutated(true); } this.resolve({status:'OK:'+numberUpdated}) }}            
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$set:{['rules.'+args.ruleNum+'.trigs.'+ args.trigNum]:args.trigInput}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
@@ -418,11 +426,39 @@ export const resolvers = {
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.acts.'+ args.actNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
-      exchangeNum(parent,args,context,info){
-        var callback = function(err, numAffected, affectedDocuments, upsert){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject(err)} else{ isMutated(true); this.resolve("OK")} }         
-        if(args.sNumber == args.dNumber)return
-        const p = new Promise((resolve,reject)=>{db.update<void>({'trigs.sms.numbers':{$in:args.sNumber}}, {$addToSet:{'trig.sms.numbers':args.dNumbers}, $pull:{'trig.sms.numbers':args.dNumbers}}, {multi:true}, callback.bind({resolve,reject}) )})
-        return p.then().catch()    
+      exchangeNum(parent,{sNum, dNum},context,info){
+     //replaceFileText(sNum,dNum,'DB/db')
+         var callback = function( err, devices:Device[]){
+          let cnt = 0
+          if(err){ console.error(err); this.reject({status:err.message})} 
+          else
+          { 
+            let update = false
+            for(const dev of devices){
+              for(const rule of dev.rules){
+                if(rule.acts)
+                  for(const act of rule.acts){
+                    if(act.sms)
+                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; return dNum}}) as string[]    
+                  }
+                  if(rule.trigs)
+                  for(const trig of rule.trigs){
+                    if(trig.sms)
+                      trig.sms.numbers = trig.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; return dNum}}) as string[]
+                  }
+              }
+              if(update){
+                ++cnt
+                db.update({_id:dev._id},{$set:{rules:dev.rules}},{},(err)=>{if(err)console.error(err);})
+                update = false
+              }
+            }
+
+            isMutated(true); this.resolve({status:`Заменено: ${cnt}`})} }         
+
+      //  if(args.sNumber === args.dNumber)return {status:`Заменено: 0 номеров`}
+         const p = new Promise((resolve,reject)=>{db.find<void>({},  callback.bind({resolve,reject}) )})
+         return p.then().catch()    
       },
        addAsTemplate(parent,args,context,info){
            db_template.loadDatabase();
@@ -453,8 +489,9 @@ export const resolvers = {
       }, 
       delTemplate(parent,args,context,info){
         db_template.loadDatabase();
-        var callback = function(err, numberRemoved ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else this.resolve({status:"OK:"+numberRemoved}) }         
-        const p = new Promise((resolve,reject)=>{db_template.remove({_id:args._id},callback.bind({resolve,reject}))})    
+        var callback = function(err, numberRemoved ){/* console.log("callback(",arguments,")"); */ 
+        if(err){ console.log(err); this.reject({status:err})} else this.resolve({status:"OK:"+numberRemoved}) }         
+        const p = new Promise((resolve, reject)=>{db_template.remove({_id:args._id},callback.bind({resolve,reject}))})    
         return p.then().catch()    
       },
       addFromTemplate(parent,args,context,info){
@@ -465,7 +502,7 @@ export const resolvers = {
           console.log(err); this.reject({status:err.toString()})
         }else
         if(template){
-            db.update({_id:args.device},{$push:{rules:{$each:template.rules}}}, function(err,numberUpdates, devices){
+            db.update({_id:args.device},{$push:{rules:{$each:template.rules}}}, function(err, numberUpdates, devices){
             if(err){
               console.error(err); this.reject({status:err.toString()})
             } else {
@@ -493,7 +530,7 @@ export const resolvers = {
     setPortConfig(parent,{portConf},context,info){
       db_settings.loadDatabase()
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ portReinit(true); this.resolve({status:'OK:'+numberUpdated}) }}            
-      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'portsSettings'},{$set:{[portConf.num? portConf.num:"0"]:portConf}} , {upsert:true}, callback.bind({resolve,reject}))})    
+      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'portsSettings'},{$set:{[portConf.num]:portConf}} , {upsert:true}, callback.bind({resolve,reject}))})    
       return p.then((v)=>v).catch((v)=>v)   
     }
   }   

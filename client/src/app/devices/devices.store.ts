@@ -62,16 +62,18 @@ export class DevicesStore {
           state
         }
       }`,
-      // This way realtime updates will work only when both posting and reading users have the same name. Proof of concept.
+    
       variables: { }
     }).subscribe({
-      next:(data)=> {
-    ///   console.log(this.data)
-        if(!data.data) return;
+      next:({data})=> {
+       const {deviceLinkState} = data 
+       console.log('subscribe:',deviceLinkState)
+        if( !(deviceLinkState) ) return;
        const index = DevicesStore.getInstance().devices.findIndex( (device,index,devices)=>{
-         return device && data.data.deviceLinkState ? device._id === data.data.deviceLinkState._id : false;
+         return device ? (device._id === deviceLinkState._id) : false;
        } )
-       if(index >= 0) DevicesStore.getInstance().devices[index].error=data.data.deviceLinkState.state
+       if(index >= 0 &&DevicesStore.getInstance().devices[index].error!= deviceLinkState.state) DevicesStore.getInstance().devices[index] = {... DevicesStore.getInstance().devices[index], error:deviceLinkState.state}
+       
       },
       error:(err)=> { console.error(err)
       },

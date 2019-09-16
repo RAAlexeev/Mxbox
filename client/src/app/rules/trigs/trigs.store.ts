@@ -111,7 +111,7 @@ export class TrigsStore {
         device:this.devicesStore.selected._id,
         ruleNum:this.ruleNum,
         trigNum:index,
-        trigInput:{type:trig.type,condition:trig.condition,cron:trig.cron,coment:trig.coment}
+        trigInput:{type:trig.type,condition:trig.condition,cron:trig.cron,sms:trig.sms,coment:trig.coment}
       },
       fetchPolicy: 'no-cache'  
     })

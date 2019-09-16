@@ -26,7 +26,12 @@ export const Trigs = ( trigStore:TrigsStore ) =>
                                 </TooltipButton>
                             </Chip>
 
-                           
+             case 2:return <Chip key={index} deletable onDeleteClick={trigStore.delTrig.bind(this,index)}>
+                   <Avatar style={{backgroundColor: 'deepskyblue'}} icon='sms'  />
+                    <TooltipButton tooltip={trig.coment?trig.coment:'Изменить'} icon={trig.cron?null:'edit menu'} onClick={()=>trigStore.dialogs.smsDialog.handleToggle(trig, trigStore.updTrig) }>
+                    {trig.cron?trig.cron.trim().slice(0,10):null}
+                    </TooltipButton>
+                </Chip>            
               default:
                   break;
           }
@@ -36,8 +41,8 @@ export const Trigs = ( trigStore:TrigsStore ) =>
     <IconMenu icon='add' position='topLeft' menuRipple>
         <MenuItem value='condition' icon='code' caption='Условие'  onClick={trigStore.addTrig.bind(trigStore,{type:0})} />
         <MenuItem value='cron' icon='alarm' caption='Расписание'  onClick={trigStore.addTrig.bind(trigStore,{type:1})} />
-        <MenuItem value='in_sms' icon='sms' caption='sms' />
-        <MenuItem value='in_email' icon='email' caption='Email' />
+        <MenuItem value='in_sms' icon='sms' caption='sms' onClick={trigStore.addTrig.bind(trigStore,{type:2})} />
+      
     </IconMenu>
 
 

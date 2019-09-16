@@ -1,5 +1,5 @@
 import { observable, action } from 'mobx'
-import { ApolloLink, HttpLink, InMemoryCache } from "apollo-boost"
+import { ApolloLink, HttpLink, InMemoryCache, gql } from "apollo-boost"
 import {WebSocketLink} from 'apollo-link-ws'
 import { SubscriptionClient    } from 'subscriptions-transport-ws'
 import ApolloClient from 'apollo-client'
@@ -36,14 +36,16 @@ const link = ApolloLink.split(
     fetch: customFetch,
   }),  */ 
   createUploadLink({
-    uri:document.location.origin.replace(/:3000/,':3001'),
+    uri:document.location.origin.replace(/:3000/,':3001')+'/graphql',
     fetch: customFetch,
   })
  )
 
 import { onError } from "apollo-link-error";
 import Snackbar from 'react-toolbox/lib/snackbar';
+import { isNumber } from 'util';
 export class AppStore {
+  numberExchengDialog: import("../../../../mxBox/client/src/app/dialogs/numberExchange.dialog").NumberExchengDialog
   static instance: AppStore
   appComponent:App
   @observable username = 'Mr. User'
@@ -80,7 +82,23 @@ export class AppStore {
   static getInstance() {
     return AppStore.instance || (AppStore.instance = new AppStore())
   }
+  onLoad = (file)=>{
+    
+  }
   
+  onNumberExchenge = async (sNumber:string,dNumber:string)=>{
+    
+    const result = await this.apolloClient.mutate<any,{}>({
+      mutation: gql`mutation exchangeNum($sNum:String!,$dNum:String!){exchangeNum(sNum:$sNum,dNum:$dNum){status}}`, 
+      variables:{ sNum:sNumber,
+                  dNum:dNumber
+                },
+      fetchPolicy: 'no-cache'  
+    }) 
+    
+     this.appComponent.snackbar.setState({active:true, label:`${result.data.exchangeNum.status}`})
+  }
+
   @action onUsernameChange = (val) => {
     this.username = val
   }
