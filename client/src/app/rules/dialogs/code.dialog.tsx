@@ -4,7 +4,7 @@ import Input from 'react-toolbox/lib/input';
 import { observable } from 'mobx';
 import {Trig, TrigsStore} from '../trigs/trigs.store'
 import { isBoolean } from 'util';
-import ReactDOM = require('react-dom');
+
 
 export class CodeDialog extends React.Component<any> {
  @observable state = {
@@ -16,15 +16,17 @@ export class CodeDialog extends React.Component<any> {
   curTrig:Trig
   curTrigsStore:TrigsStore
 
-  handleToggle = (trig?:Trig, trigsStore?:TrigsStore) => {
+  handleToggle (trig?:Trig, trigsStore?:TrigsStore) {
     this.curTrig = trig
     //console.log('handleToggle:'+trig)
     this.curTrigsStore = trigsStore
     if(trig )
     {
-       this.setState({...this.state, active:!this.state.active, code:trig.condition?trig.condition:'',coment:trig.coment?trig.coment:'' })
-    }else
-    this.setState({...this.state,active:!this.state.active});
+       this.setState({...this.state, error:'', active:!this.state.active, code:trig.condition?trig.condition:'',coment:trig.coment?trig.coment:'' })
+
+    } else
+    this.setState({...this.state, active:!this.state.active, error:'',code:'',coment:'' })
+
   }
   self: this;
 

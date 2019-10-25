@@ -96,8 +96,8 @@ export class RulesStore {
             query: gql`query rules($device:ID!){rules(device:$device){acts{type sms{numbers text}
                                                                 email{address subject body}
                                                                 DO} 
-                                                                trigs{type condition coment inEmail{subject body}
-                                                                inSms{numbers text} 
+                                                                trigs{type condition coment 
+                                                                sms{numbers text} 
                                                                 cron}}}`,
       variables:{device:device._id},
       fetchPolicy: 'network-only'

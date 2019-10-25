@@ -53,12 +53,12 @@ toggleSidebar = () => {
                 pinned={this.state.drawerPinned} permanentAt='md'
                 onOverlayClick={ this.toggleDrawerActive }>
             
-            <NavLink to='/home' style={{margin:'1rem'}}  activeClassName={style.active}>Главня</NavLink>
+            <NavLink to='/home' style={{margin:'1rem'}}  activeClassName={style.active}>Главная</NavLink>
             <NavLink to='/settings' style={{margin:'1rem'}} activeClassName={style.active}>Настройки</NavLink>  
            
-            <TooltipButton tooltip='заменить номер телефона' icon='find_replace' onClick={()=>AppStore.getInstance().numberExchengDialog.handleToggle(AppStore.getInstance().onNumberExchenge) }/>
-            <TooltipButton tooltip='сохранить настройки' icon='save_alt' href={document.location.origin.replace(/:3000/,':3001')+'/download'}/>
-            <TooltipBrowseButton  tooltip='загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>AppStore.getInstance().onLoad(file)}
+            <TooltipButton tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>AppStore.getInstance().numberExchengDialog.handleToggle(AppStore.getInstance().onNumberExchenge) }/>
+            <TooltipButton tooltip='Сохранить настройки' icon='save_alt' href={document.location.origin/* .replace(/:3000/,':3001') */+'/download'}/>
+            <TooltipBrowseButton  tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>AppStore.getInstance().onLoad(file)}
         />
             <Devices {...this.props} />
       </NavDrawer>

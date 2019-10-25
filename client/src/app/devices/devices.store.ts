@@ -62,7 +62,6 @@ export class DevicesStore {
           state
         }
       }`,
-    
       variables: { }
     }).subscribe({
       next:({data})=> {

@@ -5,7 +5,7 @@ import { SubscriptionClient    } from 'subscriptions-transport-ws'
 import ApolloClient from 'apollo-client'
 //import * as apolloLinkError from 'apollo-link-error'
 
-const wsClient = new SubscriptionClient(`ws://${document.location.host.replace(/:3000/,':3001')}/graphql`, {
+const wsClient = new SubscriptionClient(`ws://${document.location.host/* .replace(/:3000/,':3001') */}/graphql`, {
   reconnect: true,
   connectionParams: {
     // Pass any arguments you want for initialization
@@ -36,15 +36,15 @@ const link = ApolloLink.split(
     fetch: customFetch,
   }),  */ 
   createUploadLink({
-    uri:document.location.origin.replace(/:3000/,':3001')+'/graphql',
+    uri:document.location.origin/* .replace(/:3000/,':3001') */+'/graphql',
     fetch: customFetch,
   })
  )
 
 import { onError } from "apollo-link-error";
 import Snackbar from 'react-toolbox/lib/snackbar';
-import { isNumber } from 'util';
 export class AppStore {
+  
   numberExchengDialog: import("../../../../mxBox/client/src/app/dialogs/numberExchange.dialog").NumberExchengDialog
   static instance: AppStore
   appComponent:App
@@ -68,12 +68,31 @@ export class AppStore {
               
                       })
 
-
+  errorSubscription = {}
   constructor(){
-  
+    this.errorSubscription = this.apolloClient.subscribe({
+      query: gql`subscription errorMessages{
+        errorMessages{
+          message
+        }
+      }`,
+      variables: { }
+    }).subscribe({
+      next:({data})=> {
+       const {errorMessages} = data 
+       //console.log('subscribe:',errorMessages)
+        if( !(errorMessages) ) return;
+        if(this.appComponent)this.appComponent.snackbar.setState({active:true, label:errorMessages})
+       
+      },
+      error:(err)=> { console.error(err)
+      },
+    }) 
+   
     wsClient.onError((err)=>{
       //console.dir(t)
       if(this.appComponent)this.appComponent.snackbar.setState({active:true, label:`[Ошибка сети(ws)]: Соеденение разорвано`})
+
     })
     //console.log(document.domain)
 
@@ -82,7 +101,17 @@ export class AppStore {
   static getInstance() {
     return AppStore.instance || (AppStore.instance = new AppStore())
   }
-  onLoad = (file)=>{
+  onLoad = async(file)=>{ 
+    const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+      mutation: gql`mutation settingsUpload($file: Upload!) {
+        settingsUpload(file: $file){
+          filename
+        }
+      }`, 
+      variables:{ file:file },
+      fetchPolicy: 'no-cache'  
+    }) 
+    return result
     
   }
   

@@ -24,7 +24,13 @@ const serverConf={
      vendor : [
       'apollo-server-express',
       'graphql',
-      'nedb'
+      'nedb',
+      'node-cron',
+      'fs',
+      'crypto',
+      'zlib',
+      'graphql-tag',
+      'tar-fs'
     ] 
   },
   output: {
@@ -72,8 +78,9 @@ node: {
 },
 optimization: {
   
-    minimize: false,
+  // minimize: false,
   splitChunks: {
+
     chunks: 'async',
    // minSize: 30000,
    // maxSize: 0,
@@ -86,10 +93,9 @@ optimization: {
       vendors: {
         test: /[\\/]node_modules[\\/]/,
         priority: -10,
-        reuseExistingChunk: true
+       reuseExistingChunk: true
       },
       default: {
-        minChunks: 1,
         priority: -20
         
       }

@@ -11,7 +11,7 @@ import { Home } from './home/home.component'
 import { DevRules } from './rules/rules.component';
 import { DevView } from './devView/devView.component';
 import { DevicesStore } from './devices/devices.store';
-import { Settings } from './settings/settings.componet';
+import { Settings } from './settings/settings.component';
 import { NumberExchengDialog } from './dialogs/numberExchange.dialog';
 //import 'material-design-icons/iconfont/material-icons.css'
 

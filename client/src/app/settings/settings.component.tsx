@@ -12,16 +12,16 @@ import { BrowseButton } from 'react-toolbox/lib/button';
 
 
 export class Settings extends React.Component<any, any> {    
-  settingsStore: SettingsStore
+ 
 
   componentWillMount() {
-   this.settingsStore = new SettingsStore()
+
    DevicesStore.getInstance().select(null)
   }
 
   render() {
-    return <Provider settingsStore={this.settingsStore}>
-      <SettingsComponent />
+    return <Provider settingsStore={new SettingsStore()}>
+      <SettingsComponent/>
     </Provider>
   }
 }
@@ -54,6 +54,27 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
     const { settingsStore, appStore } = this.props
     return (
       <div>
+        <Card>
+            <CardTitle
+                avatar=''
+                title="APN"
+                subtitle="Параметры"
+              />
+              
+             <CardText> 
+                <div style={{width:'30%', float:"left"}}>
+                <Input
+                    type='text'
+                    label='APN'
+                    name='APN'
+                    hint='200'
+                    error=''
+                    value={settingsStore.APN.APN}
+                    onChange={settingsStore.onAPNChange.bind(null,'APN')}
+                  />
+                  </div>
+              </CardText> 
+          </Card>
           <Card>
             <CardTitle
                 avatar=''
@@ -97,7 +118,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                 <div style={{width:'auto', float:"left"}}>
                 <Dropdown 
                     auto
-                    label={'Скорость'}
+                    label={'Скорость:'}
                     onChange={settingsStore.onPort2Change.bind(null,'speed')}
                     source={speedList}
                     value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].speed:''}
@@ -107,7 +128,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                  <div style={{width:'auto',float:'left'}}>
                   <Dropdown
                     auto
-                    label={'Параметры'}
+                    label={'Параметры:'}
                     onChange={settingsStore.onPort2Change.bind(null,'param')}
                     source={params}
                     value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].param:''}
@@ -117,7 +138,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                   <div style={{width:'auto',float:'left'}}>
                     <Dropdown 
                     auto
-                    label={'Протокол'}
+                    label={'Протокол:'}
                     onChange={settingsStore.onPort2Change.bind(null,'protocol')}
                     source={[{value:0,label:'транслировать'},{value:1,label:'транслировать + joson по modbus'},{value:2,label:'joson'},{value:3,label:'AT команды'},{value:4,label:'транслировать + AT команды по modbus'}]}
                     value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].protocol:0}
@@ -197,9 +218,9 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
      <BrowseButton
           icon="file_upload"
           label="Файл"
-          onChange={({ target: { validity, files: [file] } }) =>settingsStore.onUpload(file)}
+          onChange={({ target: { validity, files: [file] } }) =>settingsStore.onUpload(file) }
         />
-
+      
       </CardText> 
       
    </Card>

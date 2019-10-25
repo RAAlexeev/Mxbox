@@ -4,7 +4,7 @@ import shortid from 'short-id'
 import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as crypto from 'crypto'
-import replaceFileText from './utils/replaceFileText'
+
 // The GraphQL schema
  export const typeDefs = gql(`\
     scalar Upload
@@ -22,8 +22,7 @@ import replaceFileText from './utils/replaceFileText'
    type Trig{
      type:Int!
      condition:String 
-     inSms:Sms 
-     inEmail:Email
+     sms:Sms 
      cron:String 
      coment:String
    }
@@ -53,8 +52,7 @@ import replaceFileText from './utils/replaceFileText'
       enabled:Boolean
       type:Int!
       condition:String
-      inSms:SmsInput
-      inEmail:EmailInput
+      sms:SmsInput
       cron:String
       coment:String
     }
@@ -84,15 +82,18 @@ import replaceFileText from './utils/replaceFileText'
     type  DeviceLinkState{
       _id:ID
       state:String
-    }  
+    } 
+    type  ErrorMessages{
+        message:String
+    }   
     type UpdDNK4ViewData{
       _id:ID
-      pumps:[Int]
-      levels:[Int]
+      buffer:[Int]
     }
 
     type Subscription {
       deviceLinkState:DeviceLinkState
+      errorMessages:ErrorMessages
       updDNK4ViewData(id:ID):UpdDNK4ViewData
     }
 
@@ -146,8 +147,8 @@ import replaceFileText from './utils/replaceFileText'
     }
     type Mutation{
       
-      singleUpload(file: Upload!): File!
-  
+      procUpload(file: Upload!): File!
+      settingsUpload(file:Upload!):File!
       addAsTemplate(_id:ID!):Result
       delTemplate(_id:ID!):Result
       addDevice(device:DeviceInput!):Device
@@ -171,9 +172,9 @@ import replaceFileText from './utils/replaceFileText'
  
 import * as Datastore from 'nedb';
 
-export var db = new Datastore({filename : 'DB/db'});
- var db_template = new Datastore({filename : 'DB/db_template'});
-export var db_settings = new Datastore({filename : 'DB/db_settings'});
+export var db = new Datastore({filename : '/data/mxBox/DB/db'});
+ var db_template = new Datastore({filename : '/data/mxBox/DB/db_template'});
+export var db_settings = new Datastore({filename : '/data/mxBox/DB/db_settings'});
 
 db.loadDatabase();
 
@@ -207,6 +208,7 @@ export interface Rule {
   acts?:Array<Act>
 }
 export interface Device{
+  
   _id:string
   name:string 
   mb_addr:number
@@ -239,7 +241,10 @@ class Device implements DeviceInput{
 
 import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test';
+import { findAddedNonNullDirectiveArgs } from 'graphql/utilities/findBreakingChanges'
+
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
+export const ERROR_MESSAGES = 'ERROR_MESSAGES'
 export const DNK4_UPD_VIEW = 'UPV'
 export const pubsub = new PubSub();
 var mutated = 0
@@ -256,13 +261,17 @@ export const portReinit =(_reinit?:boolean )=>{
       
       return reinit
     }
+export const devicesSubscribed=[0]
 export const resolvers = {
   Subscription:{
+    errorMessages:{
+      subscribe:(parent, args)=>pubsub.asyncIterator([ERROR_MESSAGES])
+    },
     deviceLinkState:{
       subscribe:(parent, args)=>pubsub.asyncIterator([LINK_STATE_CHENG])
     },
     updDNK4ViewData:{
-      subscribe:withFilter((parent, args)=>{ console.dir('subscribe' ,args ); return pubsub.asyncIterator([DNK4_UPD_VIEW])},(payload, variables) => { variables.ID; return true})
+      subscribe:  withFilter((parent, args)=>{ console.dir('subscribe' ,args ); devicesSubscribed.push(args._id); return pubsub.asyncIterator([DNK4_UPD_VIEW])},(payload, variables) => {console.log(payload, variables);return payload.ID == variables.ID;  })
     }
    
   } ,
@@ -298,10 +307,12 @@ export const resolvers = {
                                           let numbers:Array<string> = []
                                            devs.forEach(dev =>{ 
                                              dev.rules.forEach(rule => {
-                                                if( rule.acts )rule.acts.forEach(act => {                                                   
+                                                if(rule&&rule.acts){
+                                                  for(const act of rule.acts ) {                                                   
                                                       if( act.sms ) act.sms.numbers.forEach(number=>{ if(number)numbers.push( number )})
                                                       if( act.email ) act.email.address.split(';').forEach(addr=> {if(addr)emails.push( addr )})
-                                                  })
+                                                  }
+                                                }
                                              }) 
                                           })
                                           numbers =  [ ... new Set(numbers)]
@@ -321,15 +332,14 @@ export const resolvers = {
     },
     getPortsConfig:(parent, args)=>{
       db_settings.loadDatabase()
-      var callback = function(err,conf){ if( err||conf===undefined){ console.log(err); this.reject(err)} else this.resolve( [conf["0"]?conf["0"]:null, conf["1"]?conf["1"]:null] ) }         
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve( [conf["0"]?conf["0"]:null, conf["1"]?conf["1"]:null] ); else this.reject({message:'no data'}) }         
       const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'portsSettings'}, callback.bind({resolve, reject} ))})    
       return p.then().catch()   
     }
     
   },
   Mutation:{
-    async singleUpload(parent, args)  {
-      
+    async procUpload(parent, args)  {
       console.dir(args)
       const f  = await args.file;
       const { stream , filename, mimetype, encoding } =  f;
@@ -338,29 +348,66 @@ export const resolvers = {
       console.log(key,'/',iv)
       const ungzip = zlib.createGunzip();
       const decipher = crypto.createDecipheriv('aes-256-cbc' ,key,  iv);
+
       const storeFS = ({ stream, filename }) => {
         const id = shortid.generate()
-        const path = `./uploads/${id}-${filename}`
-        return new Promise((resolve, reject) =>
-          stream
-            .on('error', error => {
+       // const path = `./uploads/${id}-${filename}`
+        
+        return new Promise((resolve, reject) =>{
+        
+
+           stream
+             .on('error', error => {
               if (stream.truncated)
-                // Delete the truncated file.
-                fs.unlinkSync(path)
-              reject(error)
+                 // Delete the truncated file.
+                 fs.unlinkSync('/data/mxBox')
+               reject(error)
             })
-            .pipe(decipher)
-            .pipe(ungzip)
-            .pipe(tar.extract('./upload/mxBox'))
+            .pipe(decipher).on('error', error => reject(error))
+            .pipe(ungzip).on('error', error => reject(error))
+            .pipe(tar.extract('/data/mxBox'))
             //.pipe(fs.createWriteStream(path))
-            .on('error', error => reject({error}))
+            .on('error', error => reject(error))
             .on('finish', () => resolve({ id, filename }))
-        )
+        })
       }
      
       return  await storeFS({stream,filename})
       
       },
+      async settingsUpload(parent, args)  {
+        console.dir(args)
+        const f  = await args.file;
+        const { stream , filename, mimetype, encoding } =  f;
+        const ungzip = zlib.createGunzip();
+
+        const storeFS = ({ stream, filename }) => {
+          const id = shortid.generate()
+         
+          
+          return new Promise((resolve, reject) =>{
+          
+  
+             stream
+               .on('error', error => {
+                if (stream.truncated)
+                   // Delete the truncated file.
+                   fs.unlinkSync('/data/mxBox/DB')
+                 reject(error)
+              })
+              .pipe(ungzip).on('error', error => reject(error))
+              .pipe(tar.extract('/data/mxBox/DB'))
+              //.pipe(fs.createWriteStream(path))
+              .on('error', error => reject(error))
+              .on('finish', () =>{
+                  process.exit(0)
+                 resolve({ id, filename })})
+          })
+        }
+       
+        return  await storeFS({stream,filename})
+        
+        },
       addDevice(parent,args,context,info){          
             var callback = function( err, dev){ if( err ){ console.log(err); this.reject(err)} else{  this.resolve(dev)} }  
             if(!args.device.rules)  args.device.rules = []       
@@ -390,7 +437,7 @@ export const resolvers = {
         return p.then().catch()    
       },
       delRule(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{ isMutated(true); this.resolve({status:"OK:"+numberUpdated}) }}        
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err); this.reject({status:err})} else{ isMutated(true); reloadCronTask(); this.resolve({status:"OK:"+numberUpdated}) }}        
         const p = new Promise((resolve,reject)=>{db.update({_id:args.device},{$unset:{['rules.'+args.ruleNum]:undefined}},{}, callback.bind({resolve,reject}))})    
         return p.then().catch()    
       },     
@@ -406,7 +453,7 @@ export const resolvers = {
         return p.then((v)=>v).catch((v)=>v)    
       },
       delTrig(parent,args,context,info){
-        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{isMutated(true);  this.resolve({status:'OK:'+numberUpdated}) }}            
+        var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.log(err.toString()); this.reject({status:err.toString()})} else{isMutated(true);reloadCronTask();  this.resolve({status:'OK:'+numberUpdated}) }}            
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.trigs.'+ args.trigNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },

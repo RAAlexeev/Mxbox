@@ -8,6 +8,8 @@ import { Input } from 'react-toolbox/lib/input'
 
 export const ContextMenu = (devicesStore,device) => <div>
   <IconMenu  icon='more_vert' position='topLeft' menuRipple>
+      
+ 
    <MenuDivider />
   
     <MenuItem  onClick={devicesStore.delDevice.bind(devicesStore, device)} value='delete' icon='delete' caption='Удалить'  />

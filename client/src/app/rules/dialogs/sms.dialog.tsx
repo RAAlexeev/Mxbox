@@ -24,14 +24,14 @@ export class SmsDialog extends React.Component<any> {
     this.upd = upd
   
     this.obj = obj
-   
+   console.debug(obj)
     if(obj){
       if(!obj.sms) obj.sms = {numbers:[''],text:''}
-      if(!obj.sms.numbers) obj.sms = {numbers:[''],text:''}
-      this.setState({...this.state,numbers:obj.sms.numbers,text:obj.sms.text})
-    }else  this.setState({...this.state, numbers:[], text:'', error:''})
+      if(!obj.sms.numbers) obj.sms = {...obj.sms,numbers:['']}
+      this.setState({...this.state, active:!this.state.active,numbers:obj.sms.numbers,text:obj.sms.text})
+    }else  this.setState({...this.state,  active:!this.state.active, numbers:[''], text:'', error:''})
     //console.log(this.obj)
-    this.setState({active:!this.state.active});
+    
   }
 
   handleOnSave(){ 
@@ -55,8 +55,9 @@ export class SmsDialog extends React.Component<any> {
  }
 
  handleAddNumber(){
-   
-  this.setState({...this.state, numbers: [...this.state.numbers, '']})
+  const numbers = this.state.numbers
+  numbers.push('')
+  this.setState({...this.state, numbers:numbers})
  
  }
   constructor(props) {
@@ -108,7 +109,7 @@ export class SmsDialog extends React.Component<any> {
           {this.state.numbers[this.state.numbers.length-1]!=''?<Button icon='add' onClick={this.handleAddNumber.bind(this)} floating  mini  />:''}
          
          <Input type='text' multiline rows={5} error={this.state.error} hint='Здесь вы  также можете вставлять ссылки на modbus адреса в квадратных скобках [03 12], [12f] или [1]'
-           icon='message' value={this.state.text} onChange={this.handleChange.bind(this,'text') } maxLength={70}/>
+           icon='message' value={this.state.text} onChange={this.handleChange.bind(this,'text') }/>
         </Dialog>
       </div>
     )

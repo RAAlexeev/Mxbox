@@ -74,7 +74,7 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
   
     const { rulesStore, appStore, devicesStore } = this.props 
    
-    const { name } = this.props.match.params
+    
   
      return !devicesStore.selected?<Redirect to='/home' />:<div>
         <CodeDialog ref={instance =>  this.dialogs.codeDialog = instance } />  
@@ -88,8 +88,6 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
         <h2>{'Правила для: ' + devicesStore.selected.name}</h2>
         { rulesStore.rules.map((rule, index) =>rule?
           <Card key={index} className={style.messageCard}>
-        
-                    
             <CardText style={{padding:0}}> 
             <table> 
             <tbody>
@@ -104,7 +102,6 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
               </tr>
               </tbody>
             </table> <Button icon='clear' onClick={()=>{this.dialogs.realyDialog.onDelete=rulesStore.delRule.bind(rulesStore, devicesStore.selected, index); this.dialogs.realyDialog.handleToggle()}} floating  mini className={appStyle.floatRight} style={{marginTop:'-4%'}}  />
-
             </CardText>
           </Card>      
         :null)}

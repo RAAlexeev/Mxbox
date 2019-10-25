@@ -6,25 +6,36 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { schema } from './schema';
 import { AddressInfo } from 'net';
-import { dioTest } from './tests.devices/di.test';
 import { loadCronTask } from './tests.devices/cron.test';
 import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as fs from 'fs'
 //echo 0 > /proc/sys/kernel/printk
 //stop console
-
+apollo.applyMiddleware({app});
 app.get('/download', function(req, res){
-  const file = `db.tar.gz`;
+  const file = `/data/mxBox/DB/setings.tar.gz`;
   const gzip = zlib.createGzip() 
-  const p = new Promise((resolve,reject)=>tar.pack('./DB').pipe(gzip).pipe(fs.createWriteStream('db.tar.gz'))
+  const p = new Promise((resolve,reject)=>tar.pack('/data/mxBox/DB').pipe(gzip).pipe(fs.createWriteStream(file))
               .on('error', error => reject({error}))
   .on('finish', () => resolve({file})))
   console.log(file)
   p.then(()=>res.download(file)); // Set disposition and send it.
 });
-app.use('/public', express.static('./public'));
-apollo.applyMiddleware({app});
+app.use('/.*', (req, res, next)=>{
+/*   if(req.headers.host){
+    const WWW_RE = /^www\./i;
+    const host = req.headers.host.replace(WWW_RE, '');
+   if( host.search(/^views\./)===0 )
+  return express.static('./views')
+  }else */ return express.static('./client')
+});
+
+/* app.get(/^\/..*$/, function(req, res) {
+
+  
+  res.redirect('/');
+}); */
 
 /* app.get('/*', function(req, res){
     res.sendFile('./upload');
