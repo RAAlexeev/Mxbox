@@ -3,16 +3,16 @@ import { AppStore } from '../app.store';
 import gql from 'graphql-tag';
 
 export class SettingsStore {
-  @observable APN: {
-    APN:string;
-    type:string;
-  }={APN:'',type:'default'};
+  
+
+  
   @observable  smtpSettings: {
     address:string;
     port:number;
     name:string;
     password:string;
-  }={address:'smtp.yandex.ru',port:465,name:'',password:''}
+  }={address:'smtp.yandex.ru',port:465,name:'',password:'password'}
+
   @observable portsSettings:{
     num:number;
     speed:number;
@@ -22,14 +22,19 @@ export class SettingsStore {
   }[]=[{num:0, speed:19200,param:'8e1'}, {num:1, speed:19200, param:'8e1', protocol:0, addr:200}]
   
   onSmtpChange = async (name:string, value:string|number)=>{
-    const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-      mutation: gql`mutation setSmtpConfig($smtpConf:SmtpConfInput!) { setSmtpConfig(smtpConf:$smtpConf){status}}`, 
-      variables:{ smtpConf:{[name]:value} },
-      fetchPolicy: 'no-cache'  
-    }) 
+    const save = this.smtpSettings[name]
     this.smtpSettings[name]=value
-  
+    try{
+      const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        mutation: gql`mutation setSmtpConfig($smtpConf:SmtpConfInput!) { setSmtpConfig(smtpConf:$smtpConf){status}}`, 
+        variables:{ smtpConf:{[name]:value} },
+        fetchPolicy: 'no-cache'  
+      })
+    }catch(err){
+      this.smtpSettings[name]=save
+    } 
   }
+   
 
   onPortChange =async (num:number,name:string,value:string|number)=>{
         const save =  this.portsSettings[num][name]
@@ -70,7 +75,7 @@ async onUpload (value){
     }) 
     return result
   } 
- loadSmtp =async()=>{
+  async loadSmtp(){
    const result = await AppStore.getInstance().apolloClient.query<any,{}>({
           query: gql`query getSmtpConfig{getSmtpConfig{address port name }}`,
       variables:{},
@@ -82,7 +87,7 @@ async onUpload (value){
   }
 
 
-  loadPorts =async()=>{
+  async loadPorts(){
      const result = await AppStore.getInstance().apolloClient.query<any,{}>({
             query: gql`query getPortsConfig{getPortsConfig{num speed param protocol addr}}`,
         variables:{},
@@ -95,8 +100,25 @@ async onUpload (value){
 
   
     }
-    onAPNChange(name:string,value:string){
-      
+    async loadAPN (){
+      const result = await AppStore.getInstance().apolloClient.query<any,{}>({
+             query: gql`query getAPNConfig{getAPNConfig{apn mmc mnc user}}`,
+         variables:{},
+         fetchPolicy: 'no-cache'
+         }) 
+         if(result.data.getAPNConfig)
+         return  result.data.getAPNConfig
+         else throw new Error('Пустое значение АПН')
+        }
+    async onAPNChange(name:string, value:string){
+            const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        mutation: gql`mutation setAPNconfig($APNconf:APNconfInput!) { setAPNconfig(APNconf:$APNconf){status}}`, 
+          variables:{ APNconf: {[name]:value} },
+          fetchPolicy: 'no-cache'  
+        })
+
+       
+  
     }
   constructor(){  
     // this.smtpSettings={
@@ -105,6 +127,6 @@ async onUpload (value){
    // this.portsSettings = [{num:0, speed:19200,param:'8e1'}, {num:1, speed:19200, param:'8e1', protocol:0, addr:200}]
     this.loadPorts()
     this.loadSmtp()
-
+    this.loadAPN()
   }
 }

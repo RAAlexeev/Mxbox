@@ -3,6 +3,7 @@ import { inject, observer, Provider } from 'mobx-react'
 import { HomeStore } from './home.store'
 import { AppStore } from '../app.store'
 import { DevicesStore } from '../devices/devices.store';
+import { UserProvider } from '../userContext';
 
 @observer
 export class Home extends React.Component<any, any> {
@@ -14,8 +15,11 @@ export class Home extends React.Component<any, any> {
   }
 
   render() {
+    const user = { name: 'Tania', loggedIn: true }
     return <Provider homeStore={this.homeStore}>
+      <UserProvider value={user}>
       <HomeComponent />
+      </UserProvider>
     </Provider>
   }
 }

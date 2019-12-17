@@ -39,7 +39,7 @@ interface DevicesComponentProps {
   routerStore?:RouterStore
 }
 
-@inject('appStore','devicesStore', 'routerStore') @observer
+ @inject('appStore','devicesStore', 'routerStore') @observer
 export class DevicesComponent extends React.Component<DevicesComponentProps, any> {
   render() {
     
@@ -47,12 +47,12 @@ export class DevicesComponent extends React.Component<DevicesComponentProps, any
     //console.log(this.props)
     return <div>
 
-        <Button icon='add' onClick={devicesStore.addDevice.bind(devicesStore)} floating accent mini className={appStyle.floatRight} />
-
+{ window.location.pathname.search('views')<0?<Button icon='add' onClick={devicesStore.addDevice.bind(devicesStore)} floating accent mini className={appStyle.floatRight}/>:''}
+       
       
      <Navigation type='vertical'>
       {devicesStore.devices.map(device =>
-        <NavLink key={device._id} to={`/rules/${device.name}/${device._id}`} activeClassName={style.active} isActive={(_, { pathname }) =>{ return pathname === `/rules/${device.name}/:${device._id}`}}>
+        <NavLink key={device._id} to={ window.location.pathname.search('views')<0?`/rules/${device.name}/${device._id}`:`/views/${device.name}/${device._id}` }  activeClassName={style.active} isActive={(_, { pathname }) =>{ return pathname === `/rules/${device.name}/:${device._id}`}}>
           <Card    onClick={devicesStore.select.bind(devicesStore ,device)} className={style.messageCard +  ((devicesStore.selected === device)?(' '+ style.activeCard):'')} >
             <CardTitle className ={style.cardTitle}
             title={ ContextMenu( devicesStore,  device ) }
@@ -74,7 +74,7 @@ export class DevicesComponent extends React.Component<DevicesComponentProps, any
               disabled = {true/*!(devicesStore.isEdit && routerStore.location.pathname == `/rules/${device.name}/${device._id}`)*/}
               className={style.ip}
                type='text'
-               name='mb_addr'
+               name='ip_addr'
                label='IP:'
               
               //error={devicesStore.title.error}

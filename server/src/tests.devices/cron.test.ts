@@ -1,8 +1,5 @@
 import { db, Device} from '../schema'
 import cron from 'node-cron'
-import { sendMail } from './result/send.email'
-import { sendSMS } from './result/send.sms'
-import { setDO } from './result/set.do'
 import { TestDevicesModbus } from './modbus.test'
 const tasks:any[] = []
 export const loadCronTask = ()=>{

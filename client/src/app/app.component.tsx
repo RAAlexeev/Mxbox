@@ -18,6 +18,7 @@ const TooltipBrowseButton = Tooltip(BrowseButton)
 export class App extends React.Component<any, any> {
   snackbar: Snackbar;
   numberExchengDialog:NumberExchengDialog
+  timestamp: Date;
 
   componentWillMount() {
   
@@ -53,18 +54,24 @@ toggleSidebar = () => {
                 pinned={this.state.drawerPinned} permanentAt='md'
                 onOverlayClick={ this.toggleDrawerActive }>
             
-            <NavLink to='/home' style={{margin:'1rem'}}  activeClassName={style.active}>Главная</NavLink>
+        { window.location.pathname.search('views')<0?<div>
+    
+           <NavLink to='/home' style={{margin:'1rem'}}  activeClassName={style.active}>Главная</NavLink>
+           
             <NavLink to='/settings' style={{margin:'1rem'}} activeClassName={style.active}>Настройки</NavLink>  
            
             <TooltipButton tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>AppStore.getInstance().numberExchengDialog.handleToggle(AppStore.getInstance().onNumberExchenge) }/>
+           
             <TooltipButton tooltip='Сохранить настройки' icon='save_alt' href={document.location.origin/* .replace(/:3000/,':3001') */+'/download'}/>
-            <TooltipBrowseButton  tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>AppStore.getInstance().onLoad(file)}
-        />
+           
+            <TooltipBrowseButton  tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>AppStore.getInstance().onLoad(file)}/>
+            </div>:null}
             <Devices {...this.props} />
       </NavDrawer>
       <Panel>
         <AppBar leftIcon='menu' onLeftIconClick={ this.toggleDrawerActive } theme={style} >
         <h1 style={{marginLeft: '10px'}}>MxBox&copy;	&ndash; OOO НТФ "Микроникс"</h1>
+        {this.timestamp?<div style={{textAlign:"right",float:"right",width:"50%"}}>{`Обновлено:${this.timestamp.toLocaleDateString()+' '+this.timestamp.toLocaleTimeString()}`}</div>:null}
         </AppBar> 
               <div style={{ flex: 1, overflowY: 'visible', padding: '1.8rem' }}>
                 <div className={style.container}>

@@ -1,34 +1,30 @@
 import * as React from 'react'
-import { inject, observer, Provider } from 'mobx-react'
-import { Card, CardMedia, CardTitle, CardText, CardActions } from 'react-toolbox/lib/card'
-import { NavLink, Switch, Route, Router, BrowserRouter } from 'react-router-dom'
-import { Button } from 'react-toolbox/lib/button'
+import { inject, observer } from 'mobx-react'
 import { DevicesStore } from '../devices/devices.store'
 import { AppStore } from '../app.store'
 
-import { Input } from 'react-toolbox/lib/input'
-import RouterStore from '../router.store';
-import Navigation from 'react-toolbox/lib/navigation';
-import { Subscription } from "react-apollo"
-import gql from 'graphql-tag';
+import RouterStore from '../router.store'
+import { DevViewStore } from './devView.store'
+
 
 @observer
 export class DevView extends React.Component<any, any> {
 
-  devicesStore: DevicesStore
+  
   componentWillMount() {
     
-    this.devicesStore = DevicesStore.getInstance()
+    
   }
 
   componentWillUnmount() {
-   this.devicesStore.destructor()
+    
   }
 
   render() {
-    return <Provider devicesStore={this.devicesStore}>
-      <DevViewComponent />
-    </Provider>
+    return <DevViewComponent />
+    // <Provider devViewStore={this.devViewStore}>
+    //return <DevViewComponent />
+  //  </Provider>
   }
 }
 
@@ -41,22 +37,34 @@ interface DevicesComponentProps {
 @inject('appStore','devicesStore', 'routerStore')
 @observer
 export class DevViewComponent extends React.Component<DevicesComponentProps, any> {
+  devViewStore: DevViewStore
+  componentWillUnmount() {
+    this.devViewStore.destructor();
+  }
   render() {
     
-    const { devicesStore, appStore, routerStore } = this.props
+    const { devicesStore } = this.props
     //console.log(this.props)
-    return <div>
-          <Subscription
-    subscription={gql`subscription  updDNK4ViewData()`}
-    variables={{  }}
-  >
-    {({ data: { N1 }, loading }) => (
-      <h4>New data: {!loading && N1.on}</h4>
-      
-    )}
-  </Subscription>
-        
-    </div>
+    if(!devicesStore.selected){
+      return <div>
+        Выбирете устройство!
+        </div>
+    }
+    
+      if(this.devViewStore)this.devViewStore.destructor();
+      this.devViewStore = new DevViewStore()
+    
+    switch(devicesStore.selected.type){
+      case 0:
+        return <div style={{backgroundImage:''}}>
 
+                    Здесь будет мнемосхема ... когда нибудь....
+              </div>
+   
+    default:
+      return <div>
+        Неизвестный тип устройства!
+      </div>
+    }
   }
 }

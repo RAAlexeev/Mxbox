@@ -8,6 +8,7 @@ import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
 import cmd  from 'node-cmd'
 import { parseCommand } from '../commands/joson';
 import  crc16 from 'modbus-serial/utils/crc16'
+import * as io from '../io'
 //import { findTypesThatChangedKind } from 'graphql/utilities/findBreakingChanges';
 const MBAPheaderLenght = 7
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -401,13 +402,13 @@ export class TestDevicesModbus {
                 if(act.DO) act.DO.forEach((val,index,array)=>{
                     switch(val){
                         case 0:
-                        case 1: cmd.run('echo "-w=140:0 0 0 '+ val +'0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') 
+                        case 1:io.setDO(io._do[index], val)
                         break
-                        case 2:   cmd.run('echo "-w=140:0 0 0 1 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') 
-                                 setTimeout( cmd.run('echo "-w=140:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') ,1000)
+                        case 2:  io.setDO(io._do[index], 1)
+                                 setTimeout( ()=>io.setDO(io._do[index], 0) ,1000)
                         break        
-                        case 3:   cmd.run('echo "-w=140:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') 
-                                 setTimeout( cmd.run('echo "-w=140:0 0 0 1 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') ,1000)          
+                        case 3:   io.setDO(io._do[index], 0)
+                                 setTimeout( ()=>io.setDO(io._do[index], 1) ,1000)         
                     }
                    
                 })
@@ -435,7 +436,7 @@ export class TestDevicesModbus {
                     jsCode = jsCode.replace(reg.pattern,'('+ reg.val + ')') 
                 })}
                 //const di:{pattern?:string, index?:number}[] = []  
-               const result = ()=>{   try{
+               const result = (jsCode)=>{   try{
                     debug('jsCode:'+ jsCode)
                     return new Function('','return ('+jsCode+')')()    
                 }catch(err){
@@ -443,26 +444,21 @@ export class TestDevicesModbus {
                     return false
                 } 
             }
-                const regExp:RegExp= new RegExp(/#DI?(\d+)/)
-                if(regExp.test(jsCode)){
-                const p = new Promise<boolean> ((resume, reject)=>cmd.get('cat /sys/devices/virtual/misc/mtgpio/pin',(err,data:string,stderr)=>{
-                    if(err){
-                        console.error(err)
-                        reject(false)
-                    }
-                    const di=(n:number)=>(data[70+n*14]) 
-                    let match = regExp.exec(jsCode)  
-                    while (match){
-                        jsCode = jsCode.replace(match[0],'('+ di(parseInt(match[1]))+')')
-                        match = regExp.exec(jsCode)   
-                    }
-                    resume(result())
-                }))           
-                return  p.then().catch() 
-            }
                
-          return result() 
-    }
+                const regExp:RegExp= new RegExp(/#DI?(\d+)/)
+                if(regExp.test(jsCode)){               
+                    let match = regExp.exec(jsCode)  
+                    if(match) return io.di(io._di[parseInt(match[1])]).then((value)=>{
+                            while (match){
+                                jsCode = jsCode.replace(match[0],'('+ value +')')
+                                match = regExp.exec(jsCode) 
+                            }
+                           return result(jsCode) 
+                        }).catch((reason)=>console.error(reason)) 
+                } 
+                      
+                 
+}
         
     private static getSizeDataReguest(reg:Reg):number{
         if( reg.qualifier )

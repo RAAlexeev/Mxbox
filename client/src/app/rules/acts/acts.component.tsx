@@ -29,7 +29,7 @@ export const Acts = ( actsStore:ActsStore ) =>
                   return <Chip key={index} deletable onDeleteClick={()=>{ actsStore.addDOdisable=false; actsStore.delAct(index)}}>
                                  <Avatar style={ {backgroundColor: 'deepskyblue'} } icon='DO'  />
                                 <Button icon={act.DO?'':'edit menu'} onClick={()=>{ act.index = index; actsStore.dialogs.doDialog.handleToggle(act, actsStore.updActDO) }}>
-                                    {act.DO.toString()}
+                                    {act.DO?act.DO.toString():''}
                                 </Button>
                             </Chip>   
 
@@ -39,7 +39,7 @@ export const Acts = ( actsStore:ActsStore ) =>
         }
     )} 
    
-    <IconMenu icon='add' position='topLeft' menuRipple>
+    <IconMenu icon='add' position='topLeft' menuRipple> 
         <MenuItem value='sms' icon='sms' caption='SMS'  onClick={actsStore.addAct.bind(this,{type:0})} />
         <MenuItem value='email' icon='email' caption='Email' onClick={actsStore.addAct.bind(this,{type:1})}/>
         <MenuItem disabled={actsStore.addDOdisable} value='DO' icon='DO' caption='Выходы' onClick={actsStore.addAct.bind(this,{type:2})}/>

@@ -48,7 +48,7 @@ export class AppStore {
   numberExchengDialog: import("../../../../mxBox/client/src/app/dialogs/numberExchange.dialog").NumberExchengDialog
   static instance: AppStore
   appComponent:App
-  @observable username = 'Mr. User'
+  //@observable username = 'Mr. User'
   snackbar: Snackbar 
   apolloClient = new ApolloClient({
                       link: ApolloLink.from([ onError(({ graphQLErrors, networkError }) => {
@@ -69,6 +69,7 @@ export class AppStore {
                       })
 
   errorSubscription = {}
+
   constructor(){
     this.errorSubscription = this.apolloClient.subscribe({
       query: gql`subscription errorMessages{
@@ -115,7 +116,7 @@ export class AppStore {
     
   }
   
-  onNumberExchenge = async (sNumber:string,dNumber:string)=>{
+  async onNumberExchenge(sNumber:string,dNumber:string){
     
     const result = await this.apolloClient.mutate<any,{}>({
       mutation: gql`mutation exchangeNum($sNum:String!,$dNum:String!){exchangeNum(sNum:$sNum,dNum:$dNum){status}}`, 
@@ -128,8 +129,8 @@ export class AppStore {
      this.appComponent.snackbar.setState({active:true, label:`${result.data.exchangeNum.status}`})
   }
 
-  @action onUsernameChange = (val) => {
-    this.username = val
-  }
+ // @action onUsernameChange = (val) => {
+ //   this.username = val
+ // }
 
 }

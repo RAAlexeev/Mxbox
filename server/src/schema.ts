@@ -4,7 +4,7 @@ import shortid from 'short-id'
 import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as crypto from 'crypto'
-
+import * as _APN from './APN'
 // The GraphQL schema
  export const typeDefs = gql(`\
     scalar Upload
@@ -70,7 +70,8 @@ import * as crypto from 'crypto'
         mb_addr: Int
         _id: ID!
         ip_addr: String
-        rules:[Rule]!  
+        rules:[Rule]! 
+        type:Int
     }
     input DeviceInput{
       _id:ID
@@ -78,6 +79,7 @@ import * as crypto from 'crypto'
       mb_addr:Int
       ip_addr:String
       rules:[RuleInput]
+      type:Int
     }
     type  DeviceLinkState{
       _id:ID
@@ -94,7 +96,7 @@ import * as crypto from 'crypto'
     type Subscription {
       deviceLinkState:DeviceLinkState
       errorMessages:ErrorMessages
-      updDNK4ViewData(id:ID):UpdDNK4ViewData
+      updDNK4ViewData(id:ID!):UpdDNK4ViewData
     }
 
     input SmtpConfInput{
@@ -110,6 +112,13 @@ import * as crypto from 'crypto'
       protocol:Int
       addr:Int
     }
+    input APNconfInput{
+      apn:String
+      mmc:String
+      mnc:String
+      user:String
+      password:String
+    }
     type PortConf{
       num:Int
       speed:Int
@@ -121,6 +130,13 @@ import * as crypto from 'crypto'
       address:String
       port:Int
       name:String
+      password:String
+    }
+    type ApnConf{
+      apn:String
+      mmc:String
+      mnc:String
+      user:String
       password:String
     }
     type Directory {
@@ -135,6 +151,7 @@ import * as crypto from 'crypto'
       getDirectory:Directory
       getSmtpConfig:SmtpConf
       getPortsConfig:[PortConf]
+      getAPNConfig:ApnConf
     }
     type Result{
       status:String
@@ -166,10 +183,11 @@ import * as crypto from 'crypto'
       addFromTemplate(device:ID!,template:ID!):[Rule]
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
       setPortConfig( portConf:PortConfInput! ):Result
+      setAPNconfig(APNconf:APNconfInput! ):Result
       exchangeNum( sNum:String!, dNum:String! ):Result
     }
 `);
- 
+var APN_ = _APN.getAPN() as unknown as object
 import * as Datastore from 'nedb';
 
 export var db = new Datastore({filename : '/data/mxBox/DB/db'});
@@ -240,8 +258,8 @@ class Device implements DeviceInput{
 //import * as util from 'util'
 
 import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
-import { reloadCronTask } from './tests.devices/cron.test';
-import { findAddedNonNullDirectiveArgs } from 'graphql/utilities/findBreakingChanges'
+import { reloadCronTask } from './tests.devices/cron.test'
+
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const ERROR_MESSAGES = 'ERROR_MESSAGES'
@@ -335,8 +353,12 @@ export const resolvers = {
       var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve( [conf["0"]?conf["0"]:null, conf["1"]?conf["1"]:null] ); else this.reject({message:'no data'}) }         
       const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'portsSettings'}, callback.bind({resolve, reject} ))})    
       return p.then().catch()   
+    },
+    getAPNConfig:(paren,args)=>{
+     
+      return APN_
+
     }
-    
   },
   Mutation:{
     async procUpload(parent, args)  {
@@ -579,6 +601,11 @@ export const resolvers = {
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ portReinit(true); this.resolve({status:'OK:'+numberUpdated}) }}            
       const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'portsSettings'},{$set:{[portConf.num]:portConf}} , {upsert:true}, callback.bind({resolve,reject}))})    
       return p.then((v)=>v).catch((v)=>v)   
+    },
+    setAPNconfig(parent,APN,context,info){
+      APN_={...APN_,APN} 
+      console.log(APN, APN_)
+    // _APN.setAPN(APN)
     }
   }   
 }

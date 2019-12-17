@@ -10,6 +10,9 @@ import { loadCronTask } from './tests.devices/cron.test';
 import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as fs from 'fs'
+import * as path from 'path'
+import { dioTest } from './tests.devices/di.test';
+import { ioInit } from './io';
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});
@@ -19,23 +22,19 @@ app.get('/download', function(req, res){
   const p = new Promise((resolve,reject)=>tar.pack('/data/mxBox/DB').pipe(gzip).pipe(fs.createWriteStream(file))
               .on('error', error => reject({error}))
   .on('finish', () => resolve({file})))
-  console.log(file)
+  //console.log(file)
   p.then(()=>res.download(file)); // Set disposition and send it.
-});
-app.use('/.*', (req, res, next)=>{
-/*   if(req.headers.host){
-    const WWW_RE = /^www\./i;
-    const host = req.headers.host.replace(WWW_RE, '');
-   if( host.search(/^views\./)===0 )
-  return express.static('./views')
-  }else */ return express.static('./client')
-});
+})
+//app.get('/dio_test',(req,res) =>{dioTest()})
+app.use('/', express.static('./client'));
 
-/* app.get(/^\/..*$/, function(req, res) {
-
-  
+/*  app.get(/^\/..*$/, function(req, res) { 
   res.redirect('/');
-}); */
+});  */
+//app.get('/dio_test',(req,res) =>{dioTest()})
+app.get('*', (req,res) =>{
+  res.sendFile(path.join('/sdcard/push/mxBox/index.html'));
+})
 
 /* app.get('/*', function(req, res){
     res.sendFile('./upload');
@@ -71,6 +70,6 @@ app.use('/.*', (req, res, next)=>{
 //sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
 loadCronTask()
-//dioTest()
+ioInit()
 //export {server};
 

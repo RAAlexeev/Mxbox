@@ -11,7 +11,8 @@ const DevicesQuery = gql`
       _id,
       name,
       mb_addr,
-      ip_addr
+      ip_addr,
+      type
     }
   }
 `
@@ -31,6 +32,7 @@ export interface Device {
   ip_addr?: string
   rules?: Array<Rule> 
   error?:string
+  type?:number
 }
 
 interface DevicesQueryResult {
@@ -91,6 +93,9 @@ export class DevicesStore {
       query: DevicesQuery,
       fetchPolicy: 'network-only'
     })    
+  // console.log(result.data.devices)
+  
+    result.data.devices.forEach(item =>item.error='###' )
     this.devices = result.data.devices
   
   }catch(err){
@@ -132,7 +137,11 @@ export class DevicesStore {
     })
     
   }
-  
+
+  @action typeOnChenge(device, type:number){
+    this.updDevice({_id:device._id, type:type})
+    device.type=type
+  }
   nameOnChange=(device:Device, deviceStore:DevicesStore, value)=>{
 
     device.name = value.replace(/[\/\:]/g,'')
@@ -187,13 +196,14 @@ ip_addrOnChange(device:Device,deviceStore:DevicesStore,value){
 
   if(this.selected != device){
     //console.log(this.rulesStore)
+    if(window.location.pathname.search('views') < 0){
    this.isEdit = true;
   if(this.rulesStore && device)
-  //  try{
       this.rulesStore.initializeRules(device)
-    
-   // }catch(err){}
- 
+      else{
+        
+      }    
+    }
   }
   if(device)if(!device.name) device.name = 'Новое'
   this.selected = device

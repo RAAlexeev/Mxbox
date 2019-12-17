@@ -34,3 +34,6 @@ border:red solid!important;
 .active:active{
   color:red;
 }
+.selected{
+  background-color:red!important;
+}

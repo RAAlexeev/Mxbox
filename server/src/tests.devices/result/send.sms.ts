@@ -7,6 +7,7 @@ import { TCPproxyReguest } from '../modbusProxy/TCP.proxy';
 //echo "-w=26:0 0 0 1 0 1 0" >/sys/devices/virtual/misc/mtgpio/pin
 import serialportgsm from 'serialport-gsm'
 import {inputSMS} from '../input.sms.test'
+import { setDO } from '../../io';
 
 export const modem = serialportgsm.Modem()
 const options = {
@@ -57,7 +58,7 @@ const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
                             if (!err) {
                                console.log(data)
 
-                               setTimeout(()=>cmd.run('stop zygote'),60000)
+                               setTimeout(()=>cmd.run('stop zygote'),50000)
                             } else {
                                console.log('error', err)
                             }
@@ -102,7 +103,7 @@ init()
 })
    
 const lamp = { intervalId:undefined, state:false }
-process.on('exit',(code)=>cmd.run('echo "-w=26:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin')) // погасить
+process.on('exit',(code)=>setDO(26,0)) // погасить
 const getNetworkSignal = ()=>{
     if(!(RTUproxyReguest.length||TCPproxyReguest.length))
     modem.getNetworkSignal(async(result, error)=>{
@@ -115,20 +116,20 @@ const getNetworkSignal = ()=>{
             if( q > 6 && q <= 30 ){     
                 clearInterval( lamp.intervalId ) 
                 lamp.intervalId = undefined
-                cmd.run('echo "-w=26:0 0 0 1 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') // зажеч   
+                setDO(26,1) // зажеч   
                }else{
               if( q <= 6  && isUndefined( lamp.intervalId ))
                 lamp.intervalId = setInterval(()=>{
                     lamp.state =  !lamp.state
                     if( lamp.state ) 
-                    cmd.run('echo "-w=26:0 0 0 1 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') // зажеч   
+                     setDO(26,1) // зажеч      
                     else
-                    cmd.run('echo "-w=26:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') // погасить
+                    setDO(26,0)  // погасить
                     
                     },200) as any
                else{
                 clearInterval(lamp.intervalId)
-                cmd.run('echo "-w=26:0 0 0 0 0 1 0" > /sys/devices/virtual/misc/mtgpio/pin') // погасить
+                setDO(26,0)  // погасить
                }
             }
 

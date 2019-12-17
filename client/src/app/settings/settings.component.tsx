@@ -8,6 +8,7 @@ import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
 import * as theme from './settings.css'
 import { BrowseButton } from 'react-toolbox/lib/button';
+import {Tab, Tabs} from 'react-toolbox/lib/tabs';
 
 
 
@@ -20,7 +21,7 @@ export class Settings extends React.Component<any, any> {
   }
 
   render() {
-    return <Provider settingsStore={new SettingsStore()}>
+    return <Provider  settingsStore={ new SettingsStore() }>
       <SettingsComponent/>
     </Provider>
   }
@@ -39,49 +40,47 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
 
     speed:undefined,
     param:'8e1',
-    text:'',
-    error:'',
-
-    portocol: 'vvendetta'
+    portocol: '',
+    index: 0,
+    APN:{
+      apn:'',
+      mmc:'',
+      mnc:'',
+      user:'',
+      password:''
+    }
   };
 
   handleChange = (portocol) => {
     this.setState({... this.state, portocol});
   };
+  handleTabChange = (index) => {
+    this.setState({index});
+  };
+
+  componentWillMount() {
+    this.setState({... this.state, APN:this.props.settingsStore.loadAPN()});
+  }
 
   render() {
+    
+
     const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]
+    
     const { settingsStore, appStore } = this.props
+    
     return (
-      <div>
-        <Card>
-            <CardTitle
-                avatar=''
-                title="APN"
-                subtitle="Параметры"
-              />
-              
-             <CardText> 
-                <div style={{width:'30%', float:"left"}}>
-                <Input
-                    type='text'
-                    label='APN'
-                    name='APN'
-                    hint='200'
-                    error=''
-                    value={settingsStore.APN.APN}
-                    onChange={settingsStore.onAPNChange.bind(null,'APN')}
-                  />
-                  </div>
-              </CardText> 
-          </Card>
+       <section>
+          <Tabs index={this.state.index} onChange={this.handleTabChange}>
+
+          <Tab label='Общие'>
           <Card>
             <CardTitle
                 avatar=''
                 title="Порт1 (RS485-1)"
                 subtitle="Параметры"
               />
-              
+             
              <CardText> 
                 <div style={{width:'30%', float:"left"}}>
                 <Dropdown 
@@ -173,7 +172,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           hint='smtp.yandex.ru'
           error=''
           value={settingsStore.smtpSettings.address?settingsStore.smtpSettings.address:''}
-          onChange={settingsStore.onSmtpChange.bind(this,'address')}
+          onChange={settingsStore.onSmtpChange.bind(null,'address')}
         />        
         <Input
           type='number'
@@ -196,10 +195,10 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
         <Input
           type='password'
           label='Пароль:'
-          name='smtpPassword'
+          name='password'
           hint='password'
           error=''
-          value={settingsStore.smtpSettings.password?settingsStore.smtpSettings.password:''}
+          value='password'//{settingsStore.smtpSettings.password?settingsStore.smtpSettings.password:''}
           onChange={settingsStore.onSmtpChange.bind(this,'password')}
         />
    </CardText> 
@@ -224,6 +223,79 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
       </CardText> 
       
    </Card>
-    </div>)
+   </Tab>
+   <Tab label='APN'>
+        <Card>
+            <CardTitle
+                avatar=''
+                title="APN"
+                subtitle="Параметры"
+              />
+              
+             <CardText> 
+                <div style={{width:'20%', float:"left"}}>
+                <Input
+                    type='text'
+                    label='APN'
+                    name='apn'
+                    hint=''
+                    error=''
+                    value={this.state.APN.apn}
+                    onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'apn'); this.setState({...this.state, APN:{...this.state.APN, apn:value}})}}
+
+                  />
+
+                  </div>
+                  <div style={{width:'20%', float:"left"}}>
+                <Input
+                    type='text'
+                    label='MMC'
+                    name='mmc'
+                    hint=''
+                    error=''
+                    value={this.state.APN.mmc}
+                    onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'mmc'); this.setState({...this.state, APN:{...this.state.APN, mmc:value}})}}
+        
+                  />
+                  
+                  </div>
+                  <div style={{width:'20%', float:"left"}}>
+                  <Input
+                    type='text'
+                    label='MNC'
+                    name='mnc'
+                    hint=''
+                    error=''
+                    value={this.state.APN.mnc}
+                    onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'mnc'); this.setState({...this.state, APN:{...this.state.APN, mnc:value}})}}
+                  />
+                  
+                  </div>
+                  <div style={{width:'20%', float:"left"}}>
+                    <Input
+                      type='text'
+                      label='Имя пользявателя'
+                      name='user'
+                      hint=''
+                      error=''
+                      value={this.state.APN.user}
+                      onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'user'); this.setState({...this.state, APN:{...this.state.APN, user:value}})}}                    />
+                  </div>
+                  <div style={{width:'20%', float:"left"}}>
+                    <Input
+                      type='password'
+                      label='Пароль'
+                      name='password'
+                      hint=''
+                      error=''
+                      value={this.state.APN.password}
+                      onChange={(value)=>{settingsStore.onAPNChange.call(settingsStore,'password'); this.setState({...this.state,APN:{...this.state.APN,password:value}})}}
+                    />                  
+                  </div>
+              </CardText> 
+          </Card>
+          </Tab>
+   </Tabs>
+    </section>)
   }
 }
