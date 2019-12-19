@@ -257,7 +257,7 @@ class Device implements DeviceInput{
 } */
 //import * as util from 'util'
 
-import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
+import { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test'
 
 
@@ -355,9 +355,7 @@ export const resolvers = {
       return p.then().catch()   
     },
     getAPNConfig:(paren,args)=>{
-     
       return APN_
-
     }
   },
   Mutation:{
@@ -369,7 +367,7 @@ export const resolvers = {
       const iv = Buffer.from('03E5254B8166E4BA1E27B07FE831064F', 'hex')
       console.log(key,'/',iv)
       const ungzip = zlib.createGunzip();
-      const decipher = crypto.createDecipheriv('aes-256-cbc' ,key,  iv);
+      const decipher = crypto.createDecipheriv('aes-256-cbc' ,key, iv);
 
       const storeFS = ({ stream, filename }) => {
         const id = shortid.generate()
@@ -397,6 +395,8 @@ export const resolvers = {
       return  await storeFS({stream,filename})
       
       },
+
+      
       async settingsUpload(parent, args)  {
         console.dir(args)
         const f  = await args.file;
@@ -422,8 +422,8 @@ export const resolvers = {
               //.pipe(fs.createWriteStream(path))
               .on('error', error => reject(error))
               .on('finish', () =>{
-                  process.exit(0)
-                 resolve({ id, filename })})
+                process.exit(0)
+                resolve({ id, filename })})
           })
         }
        
@@ -497,6 +497,7 @@ export const resolvers = {
       },
       exchangeNum(parent,{sNum, dNum},context,info){
      //replaceFileText(sNum,dNum,'DB/db')
+     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',sNum,dNum)
          var callback = function( err, devices:Device[]){
           let cnt = 0
           if(err){ console.error(err); this.reject({status:err.message})} 
@@ -507,23 +508,23 @@ export const resolvers = {
               for(const rule of dev.rules){
                 if(rule.acts)
                   for(const act of rule.acts){
-                    if(act.sms)
-                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; return dNum}}) as string[]    
+                    if(act && act.sms)
+                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]    
                   }
                   if(rule.trigs)
                   for(const trig of rule.trigs){
-                    if(trig.sms)
-                      trig.sms.numbers = trig.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; return dNum}}) as string[]
+                    if(trig && trig.sms)
+                      trig.sms.numbers = trig.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]
                   }
               }
-              if(update){
-                ++cnt
+              if(update){     
                 db.update({_id:dev._id},{$set:{rules:dev.rules}},{},(err)=>{if(err)console.error(err);})
                 update = false
               }
             }
-
-            isMutated(true); this.resolve({status:`Заменено: ${cnt}`})} }         
+     
+            isMutated(true); this.resolve({status:`Заменено: ${cnt}`})} 
+          }         
 
       //  if(args.sNumber === args.dNumber)return {status:`Заменено: 0 номеров`}
          const p = new Promise((resolve,reject)=>{db.find<void>({},  callback.bind({resolve,reject}) )})
@@ -605,7 +606,7 @@ export const resolvers = {
     setAPNconfig(parent,APN,context,info){
       APN_={...APN_,APN} 
       console.log(APN, APN_)
-    // _APN.setAPN(APN)
+     _APN.setAPN(APN)
     }
   }   
 }

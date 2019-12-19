@@ -18,14 +18,15 @@ export class NumberExchengDialog extends React.Component<any> {
   upd:Function
     handleToggle = ( upd?:Function ) => {
     if( upd )
-    this.upd = upd.bind( null, this.state.sNumber, this.state.dNumber )
+    this.upd = upd
     this.setState( { ...this.state, active:!this.state.active, sNumber:'', dNumber:'' } );
     //console.log(this.obj)
   }
   handleOnSave(){ 
   //  this.obj.sms = {numbers:this.state.numbers.map((number, index)=>number!=''||!index?number:undefined), text:this.state.text}
+  console.log('qweqwe',this.upd)
   if( this.upd ){  
-    this.upd()
+    this.upd( this.state.sNumber, this.state.dNumber )
     this.props.rootStores.routerStore.history.push(`/home`)
   }
     this.handleToggle()

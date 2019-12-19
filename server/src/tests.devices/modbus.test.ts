@@ -369,7 +369,7 @@ export class TestDevicesModbus {
 
 
      static async onTrig( device:Device, rule:Rule ){
-        console.log(rule)
+       // console.log(rule)
         if( rule && rule.acts ) 
         for(const act of rule.acts)
             {  
