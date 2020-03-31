@@ -114,7 +114,7 @@ import * as _APN from './APN'
     }
     input APNconfInput{
       apn:String
-      mmc:String
+      mcc:String
       mnc:String
       user:String
       password:String
@@ -134,10 +134,9 @@ import * as _APN from './APN'
     }
     type ApnConf{
       apn:String
-      mmc:String
+      mcc:String
       mnc:String
       user:String
-      password:String
     }
     type Directory {
       address:[String]
@@ -187,7 +186,7 @@ import * as _APN from './APN'
       exchangeNum( sNum:String!, dNum:String! ):Result
     }
 `);
-var APN_ = _APN.getAPN() as unknown as object
+
 import * as Datastore from 'nedb';
 
 export var db = new Datastore({filename : '/data/mxBox/DB/db'});
@@ -355,7 +354,7 @@ export const resolvers = {
       return p.then().catch()   
     },
     getAPNConfig:(paren,args)=>{
-      return APN_
+           return _APN.getAPN()
     }
   },
   Mutation:{
@@ -604,9 +603,7 @@ export const resolvers = {
       return p.then((v)=>v).catch((v)=>v)   
     },
     setAPNconfig(parent,APN,context,info){
-      APN_={...APN_,APN} 
-      console.log(APN, APN_)
-     _APN.setAPN(APN)
+     _APN.setAPN(APN.APNconf)
     }
   }   
 }

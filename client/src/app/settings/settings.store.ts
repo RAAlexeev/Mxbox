@@ -20,7 +20,14 @@ export class SettingsStore {
     protocol?:number;
     addr?:number;
   }[]=[{num:0, speed:19200,param:'8e1'}, {num:1, speed:19200, param:'8e1', protocol:0, addr:200}]
-  
+
+  @observable  APN:{
+    apn:string,
+    mcc:string,
+    mnc:string,
+    user:string,
+    password:string
+  }={  apn:'', mcc:'',  mnc:'',    user:'',    password:'' }
   onSmtpChange = async (name:string, value:string|number)=>{
     const save = this.smtpSettings[name]
     this.smtpSettings[name]=value
@@ -64,6 +71,7 @@ export class SettingsStore {
 
 async onUpload (value){
     console.dir(value)
+    
     const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation procUpload($file: Upload!) {
         procUpload(file: $file){
@@ -73,7 +81,10 @@ async onUpload (value){
       variables:{ file:value },
       fetchPolicy: 'no-cache'  
     }) 
-    return result
+    //console.log(result)
+    if(result.data.procUpload.filename){
+      AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`${result.data.procUpload.filename} успешно загружен...`})
+    }
   } 
   async loadSmtp(){
    const result = await AppStore.getInstance().apolloClient.query<any,{}>({
@@ -100,23 +111,30 @@ async onUpload (value){
 
   
     }
-    async loadAPN (){
+    async loadAPN(){
       const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-             query: gql`query getAPNConfig{getAPNConfig{apn mmc mnc user}}`,
+             query: gql`query getAPNConfig{getAPNConfig{apn mcc mnc user}}`,
          variables:{},
          fetchPolicy: 'no-cache'
          }) 
+         console.log(result.data.getAPNConfig)
          if(result.data.getAPNConfig)
-         return  result.data.getAPNConfig
+         this.APN = result.data.getAPNConfig
          else throw new Error('Пустое значение АПН')
         }
     async onAPNChange(name:string, value:string){
+      let save=value
+      this.APN[name]=value
+      try{
             const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
         mutation: gql`mutation setAPNconfig($APNconf:APNconfInput!) { setAPNconfig(APNconf:$APNconf){status}}`, 
           variables:{ APNconf: {[name]:value} },
           fetchPolicy: 'no-cache'  
         })
-
+      }catch(err){
+        this.APN[name]=save
+        throw  err
+      }
        
   
     }

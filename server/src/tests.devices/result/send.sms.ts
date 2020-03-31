@@ -29,7 +29,7 @@ const options = {
 }
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
+export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
      
 
     if (!err) {          
@@ -43,7 +43,7 @@ const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
         })
         return
       }
-      await sleep(10000)        
+      await sleep(1000)        
       cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
                 await sleep(100)
                 if (!err) {
@@ -58,9 +58,9 @@ const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
                             if (!err) {
                                console.log(data)
 
-                               setTimeout(()=>cmd.run('stop zygote'),50000)
+                             //  setTimeout(()=>cmd.run('stop zygote'),50000)
                             } else {
-                               console.log('error', err)
+                               console.error('init:', err)
                             }
                         })//service call wifi  29  i32 0 i32 1
                         console.log(res)
@@ -68,18 +68,18 @@ const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
                 })}
         
                  else {
-                    console.log('error', err)
+                    console.error('init:', err)
                 }
               })    
       //   }    
 
         } else {
-        console.log('error', err)
+        console.error('init:', err)
      }  
 })
 
 
-init()
+
 
   modem.on('open', () => {
            setInterval(getNetworkSignal,40000)

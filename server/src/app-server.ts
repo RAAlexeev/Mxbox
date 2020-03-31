@@ -13,6 +13,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { dioTest } from './tests.devices/di.test';
 import { ioInit } from './io';
+import { init } from './tests.devices/result/send.sms';
+import { getAPN } from './APN';
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});
@@ -33,7 +35,7 @@ app.use('/', express.static('./client'));
 });  */
 //app.get('/dio_test',(req,res) =>{dioTest()})
 app.get('*', (req,res) =>{
-  res.sendFile(path.join('/sdcard/push/mxBox/index.html'));
+  res.sendFile(path.join('/sdcard/push/mxBox/client/index.html'));
 })
 
 /* app.get('/*', function(req, res){
@@ -50,6 +52,9 @@ app.get('*', (req,res) =>{
     requestCert: true,                   #new
     rejectUnauthorized: false            #new
 };  */
+ioInit()
+init()
+getAPN()
   var server = /*http.createServer(options,*/app/*)*/.listen(process.env.PORT || 3001,   ()=>{
   const host = (server.address() as AddressInfo).address;
   const port = (server.address()as AddressInfo).port;
@@ -70,6 +75,6 @@ app.get('*', (req,res) =>{
 //sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
 loadCronTask()
-ioInit()
+
 //export {server};
 

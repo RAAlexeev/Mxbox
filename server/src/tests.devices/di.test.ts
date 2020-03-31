@@ -14,7 +14,7 @@ db.find( { 'rules.trigs.type':2 },(err,devices:Device[])=>{
     }
 
 }),1000) */
-import  * as fs  from 'fs'
+
 import * as io from '../io'
 
 export const dioTest =  ()=>{
