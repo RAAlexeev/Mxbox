@@ -14,7 +14,7 @@ db.find( { 'rules.trigs.type':2 },(err,devices:Device[])=>{
     }
 
 }),1000) */
-import  * as fs  from 'fs'
+
 import * as io from '../io'
 
 export const dioTest =  ()=>{
@@ -29,6 +29,7 @@ export const dioTest =  ()=>{
         if(di(25)&&!di(58))fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin','-w=58:0 0 0 1 0 1 0',(err)=>{if (err) console.error(err);})
         else fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin','-w=28:0 0 0 0 0 1 0',(err)=>{if (err) console.error(err);})
     }) },1000) */
+    
   for(let n = 0; n < io._do.length;n++)
     io.di(io._di[n]).then((value)=>io.setDO(n,(<number>value))).catch((reason)=>console.error(reason))
 }

@@ -24,7 +24,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
   output: {
     path: outPath,
     devtoolModuleFilenameTemplate: 'webpack://[namespace]/[resource-path]?[loaders]',
-    filename: '[name]-[hash].js',
+    filename: '[name].js',
     publicPath: '/'
   },
   target: 'web',

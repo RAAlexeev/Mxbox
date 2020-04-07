@@ -10,9 +10,9 @@ import { loadCronTask } from './tests.devices/cron.test';
 import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as fs from 'fs'
-import * as path from 'path'
-import { dioTest } from './tests.devices/di.test';
 import { ioInit } from './io';
+import { init } from './tests.devices/result/send.sms';
+import { getAPN } from './APN';
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});
@@ -26,14 +26,15 @@ app.get('/download', function(req, res){
   p.then(()=>res.download(file)); // Set disposition and send it.
 })
 //app.get('/dio_test',(req,res) =>{dioTest()})
-app.use('/', express.static('./client'));
+app.use('/', express.static('./dist/client'));
 
 /*  app.get(/^\/..*$/, function(req, res) { 
   res.redirect('/');
 });  */
 //app.get('/dio_test',(req,res) =>{dioTest()})
 app.get('*', (req,res) =>{
-  res.sendFile(path.join('/sdcard/push/mxBox/index.html'));
+  
+  res.sendFile('index.html',{root:"./dist/client"});
 })
 
 /* app.get('/*', function(req, res){
@@ -50,7 +51,10 @@ app.get('*', (req,res) =>{
     requestCert: true,                   #new
     rejectUnauthorized: false            #new
 };  */
-  var server = /*http.createServer(options,*/app/*)*/.listen(process.env.PORT || 3001,   ()=>{
+//ioInit()
+init()
+getAPN()
+  var server = /*http.createServer(options,*/app/*)*/.listen(  3001,   ()=>{
   const host = (server.address() as AddressInfo).address;
   const port = (server.address()as AddressInfo).port;
   console.log('App listening at http://%s:%s$', host, port);
@@ -70,6 +74,6 @@ app.get('*', (req,res) =>{
 //sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
 loadCronTask()
-ioInit()
+
 //export {server};
 

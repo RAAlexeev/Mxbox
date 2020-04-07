@@ -16,13 +16,12 @@ export class Settings extends React.Component<any, any> {
  
 
   componentWillMount() {
-
    DevicesStore.getInstance().select(null)
   }
 
   render() {
     return <Provider  settingsStore={ new SettingsStore() }>
-      <SettingsComponent/>
+      <SettingsComponent />
     </Provider>
   }
 }
@@ -42,13 +41,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
     param:'8e1',
     portocol: '',
     index: 0,
-    APN:{
-      apn:'',
-      mmc:'',
-      mnc:'',
-      user:'',
-      password:''
-    }
+
   };
 
   handleChange = (portocol) => {
@@ -59,7 +52,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   };
 
   componentWillMount() {
-    this.setState({... this.state, APN:this.props.settingsStore.loadAPN()});
+  
   }
 
   render() {
@@ -198,7 +191,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           name='password'
           hint='password'
           error=''
-          value='password'//{settingsStore.smtpSettings.password?settingsStore.smtpSettings.password:''}
+          value={settingsStore.smtpSettings.password?settingsStore.smtpSettings.password:''}
           onChange={settingsStore.onSmtpChange.bind(this,'password')}
         />
    </CardText> 
@@ -233,28 +226,28 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
               />
               
              <CardText> 
-                <div style={{width:'20%', float:"left"}}>
+             <div style={{width:'20%', float:"left"}}>
                 <Input
                     type='text'
                     label='APN'
                     name='apn'
-                    hint=''
+                    hint='Точка доступа'
                     error=''
-                    value={this.state.APN.apn}
-                    onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'apn'); this.setState({...this.state, APN:{...this.state.APN, apn:value}})}}
-
+                    value={settingsStore.APN.apn}
+                    onChange={settingsStore.onAPNChange.bind(settingsStore,'apn')}
+        
                   />
-
+                  
                   </div>
-                  <div style={{width:'20%', float:"left"}}>
+              <div style={{width:'20%', float:"left"}}>
                 <Input
                     type='text'
-                    label='MMC'
-                    name='mmc'
+                    label='MCC'
+                    name='mcc'
                     hint=''
                     error=''
-                    value={this.state.APN.mmc}
-                    onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'mmc'); this.setState({...this.state, APN:{...this.state.APN, mmc:value}})}}
+                    value={settingsStore.APN.mcc}
+                    onChange={settingsStore.onAPNChange.bind(settingsStore,'mcc')}
         
                   />
                   
@@ -266,8 +259,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                     name='mnc'
                     hint=''
                     error=''
-                    value={this.state.APN.mnc}
-                    onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'mnc'); this.setState({...this.state, APN:{...this.state.APN, mnc:value}})}}
+                    value={settingsStore.APN.mnc}
+                    onChange={settingsStore.onAPNChange.bind(settingsStore,'mnc')}
                   />
                   
                   </div>
@@ -278,8 +271,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                       name='user'
                       hint=''
                       error=''
-                      value={this.state.APN.user}
-                      onChange={( value )=>{ settingsStore.onAPNChange.call(settingsStore,'user'); this.setState({...this.state, APN:{...this.state.APN, user:value}})}}                    />
+                      value={settingsStore.APN.user}
+                      onChange={settingsStore.onAPNChange.bind(settingsStore,'user')} />
                   </div>
                   <div style={{width:'20%', float:"left"}}>
                     <Input
@@ -288,12 +281,47 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                       name='password'
                       hint=''
                       error=''
-                      value={this.state.APN.password}
-                      onChange={(value)=>{settingsStore.onAPNChange.call(settingsStore,'password'); this.setState({...this.state,APN:{...this.state.APN,password:value}})}}
+                      value={settingsStore.APN.password}
+                      onChange={settingsStore.onAPNChange.bind(settingsStore,'password')}
                     />                  
                   </div>
               </CardText> 
           </Card>
+          </Tab>
+          <Tab label="Wifi">
+            <Card>
+              <CardTitle
+                  avatar=''
+                  title="WiFi"
+                  subtitle="Параметры"
+                />  
+              <CardText> 
+              <div style={{width:'20%', float:"left"}}>
+                <Input
+                    type='text'
+                    label='SSID'
+                    name='SSID'
+                    hint=''
+                    error=''
+                    value={settingsStore.WiFi.SSID}
+                    onChange={settingsStore.onWiFiChange.bind(settingsStore,"SSID")}
+        
+                  />
+                  </div>
+                  <div style={{width:'20%', float:"left"}}>
+                    <Input
+                      type='password'
+                      label='Пароль'
+                      name='PSK'
+                      hint='PSK'
+                      error=''
+                      value={settingsStore.WiFi.PSK}
+                      onChange={settingsStore.onWiFiChange.bind(settingsStore,"PSK")}
+                    />                  
+                  </div>
+              </CardText>
+            </Card>
+
           </Tab>
    </Tabs>
     </section>)

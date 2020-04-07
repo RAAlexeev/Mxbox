@@ -21,7 +21,7 @@ export const  inputSMS = ({data})=>{
                     if(trig.type === 2){
                       if(trig.sms){
                         for(const number of trig.sms.numbers ){
-                            const n = number.replace(/[^\d]/,'').replace(/^8/,'7') 
+                            const n = number.replace(/^\+?8/,'7')
                           for(const inSms of data){
                             console.log(n,inSms.sender,trig.sms.text === inSms.message)
                             if(  n  === inSms.sender  ){

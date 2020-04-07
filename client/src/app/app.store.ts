@@ -117,8 +117,8 @@ export class AppStore {
   }
   
   async onNumberExchenge(sNumber:string,dNumber:string){
-    
-    const result = await this.apolloClient.mutate<any,{}>({
+    console.log(sNumber,dNumber)
+    const result = await await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation exchangeNum($sNum:String!,$dNum:String!){exchangeNum(sNum:$sNum,dNum:$dNum){status}}`, 
       variables:{ sNum:sNumber,
                   dNum:dNumber
@@ -126,7 +126,7 @@ export class AppStore {
       fetchPolicy: 'no-cache'  
     }) 
     
-     this.appComponent.snackbar.setState({active:true, label:`${result.data.exchangeNum.status}`})
+    AppStore.getInstance().appComponent.snackbar.setState({active:true, label:`${result.data.exchangeNum.status}`})
   }
 
  // @action onUsernameChange = (val) => {

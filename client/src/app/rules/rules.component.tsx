@@ -83,7 +83,7 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
         <CronDialog ref={instance => this.dialogs.cronDialog = instance}  />
         <RealyDialog ref={instance => this.dialogs.realyDialog = instance} />
         <DoDialog ref={instance => this.dialogs.doDialog = instance} />
-        { TemplateMenu( TemplatesStore.getInstance(), devicesStore, rulesStore ) } 
+        { TemplateMenu(this.dialogs.realyDialog, TemplatesStore.getInstance(), devicesStore, rulesStore ) } 
         <TooltipButton tooltip='Добавить' icon='add' onClick={rulesStore.addRule.bind( rulesStore, devicesStore.selected )} floating accent mini className={appStyle.floatRight} />
         <h2>{'Правила для: ' + devicesStore.selected.name}</h2>
         { rulesStore.rules.map((rule, index) =>rule?

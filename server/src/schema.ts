@@ -88,6 +88,9 @@ import * as _APN from './APN'
     type  ErrorMessages{
         message:String
     }   
+    type  SignalGSM{
+      signalQuality:Int
+  }   
     type UpdDNK4ViewData{
       _id:ID
       buffer:[Int]
@@ -96,6 +99,7 @@ import * as _APN from './APN'
     type Subscription {
       deviceLinkState:DeviceLinkState
       errorMessages:ErrorMessages
+      signalGSM:SignalGSM
       updDNK4ViewData(id:ID!):UpdDNK4ViewData
     }
 
@@ -114,10 +118,15 @@ import * as _APN from './APN'
     }
     input APNconfInput{
       apn:String
-      mmc:String
+      mcc:String
       mnc:String
       user:String
       password:String
+    }
+    input WiFiConfInput{
+      SSID:String
+      PSK:String
+      TYPE:String
     }
     type PortConf{
       num:Int
@@ -134,15 +143,39 @@ import * as _APN from './APN'
     }
     type ApnConf{
       apn:String
-      mmc:String
+      mcc:String
       mnc:String
       user:String
-      password:String
+    }
+    type WiFiConf{
+      SSID:String
+      PSK:String
+      TYPE:String
     }
     type Directory {
       address:[String]
       numbers:[String]
     } 
+    type IfaceInfo{
+      address: String
+      netmask: String
+      family: String
+      mac: String
+      internal: Boolean
+      cidr: String
+    }
+    type Ifaces{
+      ap0:[IfaceInfo]
+      ccmni0:[IfaceInfo]
+      ccmni1:[IfaceInfo]      
+      ccmni2:[IfaceInfo]      
+    }
+    type Info{
+      ifaces:Ifaces
+      uptime:Int
+      hostname:String
+      freemem:String
+    }
     type Query {
       devices:[Device]
       rules(device:ID!):[Rule]
@@ -152,6 +185,8 @@ import * as _APN from './APN'
       getSmtpConfig:SmtpConf
       getPortsConfig:[PortConf]
       getAPNConfig:ApnConf
+      getWiFiConfig:WiFiConf
+      getInfo:Info
     }
     type Result{
       status:String
@@ -184,10 +219,11 @@ import * as _APN from './APN'
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
       setPortConfig( portConf:PortConfInput! ):Result
       setAPNconfig(APNconf:APNconfInput! ):Result
+      setWiFiConfig(WiFiConf:WiFiConfInput! ):Result
       exchangeNum( sNum:String!, dNum:String! ):Result
     }
 `);
-var APN_ = _APN.getAPN() as unknown as object
+
 import * as Datastore from 'nedb';
 
 export var db = new Datastore({filename : '/data/mxBox/DB/db'});
@@ -257,12 +293,13 @@ class Device implements DeviceInput{
 } */
 //import * as util from 'util'
 
-import  { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
+import { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test'
 
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const ERROR_MESSAGES = 'ERROR_MESSAGES'
+export const SIGNAL_GSM = 'SIGNAL_GSM'
 export const DNK4_UPD_VIEW = 'UPV'
 export const pubsub = new PubSub();
 var mutated = 0
@@ -287,6 +324,9 @@ export const resolvers = {
     },
     deviceLinkState:{
       subscribe:(parent, args)=>pubsub.asyncIterator([LINK_STATE_CHENG])
+    },
+    signalGSM:{
+      subscribe:(parent, args)=>pubsub.asyncIterator([SIGNAL_GSM])
     },
     updDNK4ViewData:{
       subscribe:  withFilter((parent, args)=>{ console.dir('subscribe' ,args ); devicesSubscribed.push(args._id); return pubsub.asyncIterator([DNK4_UPD_VIEW])},(payload, variables) => {console.log(payload, variables);return payload.ID == variables.ID;  })
@@ -355,13 +395,26 @@ export const resolvers = {
       return p.then().catch()   
     },
     getAPNConfig:(paren,args)=>{
-     
-      return APN_
-
+           return _APN.getAPN()
+    },
+    getWiFiConfig:(paren,args)=>{
+      db_settings.loadDatabase()
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve(conf); else this.reject({message:'err no WiFiSettings'}) }         
+      const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'WiFiSettings'}, callback.bind({resolve, reject} ))})    
+      return p.then().catch() 
+    },
+    getInfo:()=>{
+      const os = require('os');
+     return{
+          ifaces : os.networkInterfaces(),
+          uptime : os.uptime(),
+          hostname : os.hostname(),
+          freemem : os.freemem()
+     }
     }
   },
   Mutation:{
-    async procUpload(parent, args)  {
+    async procUpload(parent, args){
       console.dir(args)
       const f  = await args.file;
       const { stream , filename, mimetype, encoding } =  f;
@@ -369,7 +422,7 @@ export const resolvers = {
       const iv = Buffer.from('03E5254B8166E4BA1E27B07FE831064F', 'hex')
       console.log(key,'/',iv)
       const ungzip = zlib.createGunzip();
-      const decipher = crypto.createDecipheriv('aes-256-cbc' ,key,  iv);
+      const decipher = crypto.createDecipheriv('aes-256-cbc' ,key, iv);
 
       const storeFS = ({ stream, filename }) => {
         const id = shortid.generate()
@@ -397,6 +450,8 @@ export const resolvers = {
       return  await storeFS({stream,filename})
       
       },
+
+      
       async settingsUpload(parent, args)  {
         console.dir(args)
         const f  = await args.file;
@@ -422,8 +477,8 @@ export const resolvers = {
               //.pipe(fs.createWriteStream(path))
               .on('error', error => reject(error))
               .on('finish', () =>{
-                  process.exit(0)
-                 resolve({ id, filename })})
+                process.exit(0)
+                resolve({ id, filename })})
           })
         }
        
@@ -497,6 +552,7 @@ export const resolvers = {
       },
       exchangeNum(parent,{sNum, dNum},context,info){
      //replaceFileText(sNum,dNum,'DB/db')
+     console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',sNum,dNum)
          var callback = function( err, devices:Device[]){
           let cnt = 0
           if(err){ console.error(err); this.reject({status:err.message})} 
@@ -507,23 +563,23 @@ export const resolvers = {
               for(const rule of dev.rules){
                 if(rule.acts)
                   for(const act of rule.acts){
-                    if(act.sms)
-                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; return dNum}}) as string[]    
+                    if(act && act.sms)
+                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]    
                   }
                   if(rule.trigs)
                   for(const trig of rule.trigs){
-                    if(trig.sms)
-                      trig.sms.numbers = trig.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; return dNum}}) as string[]
+                    if(trig && trig.sms)
+                      trig.sms.numbers = trig.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]
                   }
               }
-              if(update){
-                ++cnt
+              if(update){     
                 db.update({_id:dev._id},{$set:{rules:dev.rules}},{},(err)=>{if(err)console.error(err);})
                 update = false
               }
             }
-
-            isMutated(true); this.resolve({status:`Заменено: ${cnt}`})} }         
+     
+            isMutated(true); this.resolve({status:`Заменено: ${cnt}`})} 
+          }         
 
       //  if(args.sNumber === args.dNumber)return {status:`Заменено: 0 номеров`}
          const p = new Promise((resolve,reject)=>{db.find<void>({},  callback.bind({resolve,reject}) )})
@@ -603,10 +659,14 @@ export const resolvers = {
       return p.then((v)=>v).catch((v)=>v)   
     },
     setAPNconfig(parent,APN,context,info){
-      APN_={...APN_,APN} 
-      console.log(APN, APN_)
-    // _APN.setAPN(APN)
-    }
+     _APN.setAPN(APN.APNconf)
+    },
+    setWiFiConfig(parent,{ WiFiConf },context,info){
+      db_settings.loadDatabase()
+      var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve({status:'OK:'+numberUpdated}) }}            
+      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'WiFiSettings'},{$set:WiFiConf} , {upsert:true}, callback.bind({resolve,reject}))})    
+      return p.then((v)=>v).catch((v)=>v)   
+     }
   }   
 }
 

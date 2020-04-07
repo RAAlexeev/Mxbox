@@ -139,14 +139,15 @@ export class RulesStore {
                                                                           type 
                                                                           sms{numbers text} 
                                                                           email{address subject body}
-                                                                    } 
+                                                                          DO
+                                                                    }, 
                                                                     trigs{
                                                                         type 
-                                                                        condition 
-                                                                        inEmail{subject body}  
-                                                                        inSms{numbers text} cron}
-                                                                    }
-                                                                  }`,
+                                                                        condition
+                                                                        cron
+                                                                        sms{numbers text}
+                                                                        coment
+                                                                      }}}`,
      variables:{ 
         device:device._id,
         template:template._id
