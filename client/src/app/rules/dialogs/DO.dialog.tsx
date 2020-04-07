@@ -10,7 +10,7 @@ export class DoDialog extends React.Component {
   act:Act
    state = {
     active: false,
-    DO:[-1,-1]
+    DO:[-1,-1,-1]
   };
 
   handleToggle = (act?:Act,onSave?:Function) => {
@@ -36,11 +36,11 @@ export class DoDialog extends React.Component {
           active={this.state.active}
           onEscKeyDown={this.handleToggle}
           onOverlayClick={this.handleToggle}
-          title='Дискретные выходы(DO)'
+          title='Дискретные выходы(#DO)'
         >
                   <Dropdown 
                     auto
-                    label={'Вход1(DO1)'}
+                    label={'Выход1(#DO1)'}
                     onChange={this.handleChange.bind(null,0)}
                     source={DOvalues}
                     value={this.state.DO[0]}
@@ -48,13 +48,20 @@ export class DoDialog extends React.Component {
                   />
                   <Dropdown 
                     auto
-                    label={'Вход1(DO2)'}
+                    label={'Выход2(#DO2)'}
                     onChange={this.handleChange.bind(null,1)}
                     source={DOvalues}
                     value={this.state.DO[1]}
                     //theme={}
                   />
-
+                  <Dropdown 
+                    auto
+                    label={'Выход3(#DO3)'}
+                    onChange={this.handleChange.bind(null,2)}
+                    source={DOvalues}
+                    value={this.state.DO[2]}
+                    //theme={}
+                  />
 
 
         </Dialog>

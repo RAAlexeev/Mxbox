@@ -1,6 +1,6 @@
 {
   "name": "MxBox-server",
-  "version": "1.0.0",
+    "version": "1.0.0",
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "apollo-server-express": "^2.1.0",
     "bindings": "^1.5.0",
     "bufferutil": "^4.0.0",
-    "cjs": "0.0.11",
+    "cjs": "^0.0.11",
     "debug": "^4.1.1",
     "encoding": "^0.1.12",
     "graphql": "^14.0.2",
@@ -25,7 +25,6 @@
     "modbus-serial": "^7.5.1",
     "nedb": "^1.8.0",
     "nmp": "^1.0.3",
-    "node": "^10.10.0",
     "node-addon-api": "^1.6.3",
     "node-cmd": "^3.0.0",
     "node-cron": "^2.0.3",
@@ -36,10 +35,10 @@
     "request": "^2.88.0",
     "serialport": "^7.1.5",
     "serialport-gsm": "^3.1.0",
-    "short-id": "0.1.0-1",
+    "short-id": "^0.1.0-1",
     "smtp-client": "^0.3.1",
     "tar-fs": "^2.0.0",
-    "tz-offset": "0.0.2",
+    "tz-offset": "^0.0.2",
     "utf-8-validate": "^5.0.1"
   },
   "devDependencies": {

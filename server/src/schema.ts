@@ -88,6 +88,9 @@ import * as _APN from './APN'
     type  ErrorMessages{
         message:String
     }   
+    type  SignalGSM{
+      signalQuality:Int
+  }   
     type UpdDNK4ViewData{
       _id:ID
       buffer:[Int]
@@ -96,6 +99,7 @@ import * as _APN from './APN'
     type Subscription {
       deviceLinkState:DeviceLinkState
       errorMessages:ErrorMessages
+      signalGSM:SignalGSM
       updDNK4ViewData(id:ID!):UpdDNK4ViewData
     }
 
@@ -119,6 +123,11 @@ import * as _APN from './APN'
       user:String
       password:String
     }
+    input WiFiConfInput{
+      SSID:String
+      PSK:String
+      TYPE:String
+    }
     type PortConf{
       num:Int
       speed:Int
@@ -138,10 +147,35 @@ import * as _APN from './APN'
       mnc:String
       user:String
     }
+    type WiFiConf{
+      SSID:String
+      PSK:String
+      TYPE:String
+    }
     type Directory {
       address:[String]
       numbers:[String]
     } 
+    type IfaceInfo{
+      address: String
+      netmask: String
+      family: String
+      mac: String
+      internal: Boolean
+      cidr: String
+    }
+    type Ifaces{
+      ap0:[IfaceInfo]
+      ccmni0:[IfaceInfo]
+      ccmni1:[IfaceInfo]      
+      ccmni2:[IfaceInfo]      
+    }
+    type Info{
+      ifaces:Ifaces
+      uptime:Int
+      hostname:String
+      freemem:String
+    }
     type Query {
       devices:[Device]
       rules(device:ID!):[Rule]
@@ -151,6 +185,8 @@ import * as _APN from './APN'
       getSmtpConfig:SmtpConf
       getPortsConfig:[PortConf]
       getAPNConfig:ApnConf
+      getWiFiConfig:WiFiConf
+      getInfo:Info
     }
     type Result{
       status:String
@@ -183,6 +219,7 @@ import * as _APN from './APN'
       setSmtpConfig( smtpConf:SmtpConfInput! ):Result
       setPortConfig( portConf:PortConfInput! ):Result
       setAPNconfig(APNconf:APNconfInput! ):Result
+      setWiFiConfig(WiFiConf:WiFiConfInput! ):Result
       exchangeNum( sNum:String!, dNum:String! ):Result
     }
 `);
@@ -262,6 +299,7 @@ import { reloadCronTask } from './tests.devices/cron.test'
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const ERROR_MESSAGES = 'ERROR_MESSAGES'
+export const SIGNAL_GSM = 'SIGNAL_GSM'
 export const DNK4_UPD_VIEW = 'UPV'
 export const pubsub = new PubSub();
 var mutated = 0
@@ -286,6 +324,9 @@ export const resolvers = {
     },
     deviceLinkState:{
       subscribe:(parent, args)=>pubsub.asyncIterator([LINK_STATE_CHENG])
+    },
+    signalGSM:{
+      subscribe:(parent, args)=>pubsub.asyncIterator([SIGNAL_GSM])
     },
     updDNK4ViewData:{
       subscribe:  withFilter((parent, args)=>{ console.dir('subscribe' ,args ); devicesSubscribed.push(args._id); return pubsub.asyncIterator([DNK4_UPD_VIEW])},(payload, variables) => {console.log(payload, variables);return payload.ID == variables.ID;  })
@@ -355,10 +396,25 @@ export const resolvers = {
     },
     getAPNConfig:(paren,args)=>{
            return _APN.getAPN()
+    },
+    getWiFiConfig:(paren,args)=>{
+      db_settings.loadDatabase()
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve(conf); else this.reject({message:'err no WiFiSettings'}) }         
+      const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'WiFiSettings'}, callback.bind({resolve, reject} ))})    
+      return p.then().catch() 
+    },
+    getInfo:()=>{
+      const os = require('os');
+     return{
+          ifaces : os.networkInterfaces(),
+          uptime : os.uptime(),
+          hostname : os.hostname(),
+          freemem : os.freemem()
+     }
     }
   },
   Mutation:{
-    async procUpload(parent, args)  {
+    async procUpload(parent, args){
       console.dir(args)
       const f  = await args.file;
       const { stream , filename, mimetype, encoding } =  f;
@@ -604,7 +660,13 @@ export const resolvers = {
     },
     setAPNconfig(parent,APN,context,info){
      _APN.setAPN(APN.APNconf)
-    }
+    },
+    setWiFiConfig(parent,{ WiFiConf },context,info){
+      db_settings.loadDatabase()
+      var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve({status:'OK:'+numberUpdated}) }}            
+      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'WiFiSettings'},{$set:WiFiConf} , {upsert:true}, callback.bind({resolve,reject}))})    
+      return p.then((v)=>v).catch((v)=>v)   
+     }
   }   
 }
 

@@ -1,4 +1,4 @@
-import { Sms, Device, ERROR_MESSAGES, pubsub } from '../../schema';
+import { Sms, Device, ERROR_MESSAGES, pubsub, SIGNAL_GSM } from '../../schema';
 
 import cmd  from 'node-cmd'
 import { isUndefined } from 'util';
@@ -43,26 +43,28 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
         })
         return
       }
-      await sleep(1000)        
-      cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
+
+      cmd.get('sleep 25 && svc wifi disable && sleep 25 && service call wifi 29 i32 0 i32 1',(err, data, stderr)=>{
+        if (!err) {
+           console.log(data)
+
+         //  setTimeout(()=>cmd.run('stop zygote'),50000)
+        } else {
+           console.error('init:', err)
+        }
+    })//service call wifi  29  i32 0 i32 1
+      await sleep(60000)        
+      cmd.get("echo 'a'"/*"kill -STOP "+ pid*/, async (err,data,stderr)=>{
                 await sleep(100)
                 if (!err) {
-                    modem.open('/dev/radio/atci1', options,(err,res)=>{
+                    modem.open('/dev/radio/pttycmd2', options,(err,res)=>{
                         if(err){
                             console.error('reboot',err)
                             cmd.run('reboot')
                         }
-                        else
+      
                          
-                        cmd.get('sleep 25 && svc wifi disable && service call wifi 29 i32 0 i32 1',(err, data, stderr)=>{
-                            if (!err) {
-                               console.log(data)
-
-                             //  setTimeout(()=>cmd.run('stop zygote'),50000)
-                            } else {
-                               console.error('init:', err)
-                            }
-                        })//service call wifi  29  i32 0 i32 1
+      
                         console.log(res)
                     
                 })}
@@ -103,7 +105,7 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
 })
    
 const lamp = { intervalId:undefined, state:false }
-process.on('exit',(code)=>setDO(26,0)) // погасить
+process.on('exit',(code)=>setDO(3,0)) // погасить
 const getNetworkSignal = ()=>{
     if(!(RTUproxyReguest.length||TCPproxyReguest.length))
     modem.getNetworkSignal(async(result, error)=>{
@@ -112,7 +114,7 @@ const getNetworkSignal = ()=>{
             const q=parseInt(result.data.signalQuality)
            // console.dir( result )
             //console.log( 'q:',q,lamp.intervalId )
-           
+            pubsub.publish( SIGNAL_GSM, {  signalQuality:q  } );
             if( q > 6 && q <= 30 ){     
                 clearInterval( lamp.intervalId ) 
                 lamp.intervalId = undefined
@@ -122,9 +124,9 @@ const getNetworkSignal = ()=>{
                 lamp.intervalId = setInterval(()=>{
                     lamp.state =  !lamp.state
                     if( lamp.state ) 
-                     setDO(26,1) // зажеч      
+                     setDO(3,1) // зажеч      
                     else
-                    setDO(26,0)  // погасить
+                    setDO(3,0)  // погасить
                     
                     },200) as any
                else{
@@ -136,7 +138,7 @@ const getNetworkSignal = ()=>{
         }else
             console.log('getNetworkSignal:',error)
         
-
+            pubsub.publish( SIGNAL_GSM, {  signalQuality:-999  } );
 
 
     })

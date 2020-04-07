@@ -17,7 +17,7 @@ export const TemplateMenu = (realyDialog,templatesStore:TemplatesStore,devicesSt
         <TooltipMenuItem tooltip='Добавить'  className={ style.menuItem } value={ 'template'+ index } icon='unarchive' caption={template.name} onClick={rulesStore.addFromTemplate.bind(rulesStore,devicesStore.selected,template)} />
         
         
-        <Button className={ style.clearButton } icon='clear' onClick={
+        <Button disabled={template.name[0]==='!'} className={ style.clearButton } icon='clear' onClick={
           ()=>{realyDialog.onDelete=templatesStore.delTemplate.bind(templatesStore, template); realyDialog.handleToggle()}
          }/>
         </div>

@@ -56,6 +56,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     obj.cancel = resolve.bind(null, { canceled: true })
                                                     
                                                 }) 
+                                                
                                         const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: parseInt(settings['1'].param[2]) })
                                        
                                         proxyPort.on("data",data=>{
@@ -160,7 +161,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 if(!(port.isOpen)){
                                                     
                                                     await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
-                                                                                                             if(!port.isOpen)port.open(()=>{
+                                                                                                             if(!port.isOpen)port.open((err)=>{
                                                                                                                     if(port.isOpen)resolve(); else reject({err:'port not open!'})
                                                                                                                 })
                                                                                                             })

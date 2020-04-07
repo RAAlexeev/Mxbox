@@ -226,20 +226,20 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
               />
               
              <CardText> 
-                <div style={{width:'20%', float:"left"}}>
+             <div style={{width:'20%', float:"left"}}>
                 <Input
                     type='text'
                     label='APN'
                     name='apn'
-                    hint=''
+                    hint='Точка доступа'
                     error=''
                     value={settingsStore.APN.apn}
                     onChange={settingsStore.onAPNChange.bind(settingsStore,'apn')}
-
+        
                   />
-
+                  
                   </div>
-                  <div style={{width:'20%', float:"left"}}>
+              <div style={{width:'20%', float:"left"}}>
                 <Input
                     type='text'
                     label='MCC'
@@ -287,6 +287,41 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                   </div>
               </CardText> 
           </Card>
+          </Tab>
+          <Tab label="Wifi">
+            <Card>
+              <CardTitle
+                  avatar=''
+                  title="WiFi"
+                  subtitle="Параметры"
+                />  
+              <CardText> 
+              <div style={{width:'20%', float:"left"}}>
+                <Input
+                    type='text'
+                    label='SSID'
+                    name='SSID'
+                    hint=''
+                    error=''
+                    value={settingsStore.WiFi.SSID}
+                    onChange={settingsStore.onWiFiChange.bind(settingsStore,"SSID")}
+        
+                  />
+                  </div>
+                  <div style={{width:'20%', float:"left"}}>
+                    <Input
+                      type='password'
+                      label='Пароль'
+                      name='PSK'
+                      hint='PSK'
+                      error=''
+                      value={settingsStore.WiFi.PSK}
+                      onChange={settingsStore.onWiFiChange.bind(settingsStore,"PSK")}
+                    />                  
+                  </div>
+              </CardText>
+            </Card>
+
           </Tab>
    </Tabs>
     </section>)

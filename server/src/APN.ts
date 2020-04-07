@@ -28,6 +28,7 @@ export function getAPN()
            }
           
         }else  console.error(err)
+        return {}
     })
 }
 var tOut;

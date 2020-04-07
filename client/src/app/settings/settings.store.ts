@@ -28,6 +28,11 @@ export class SettingsStore {
     user:string,
     password:string
   }={  apn:'', mcc:'',  mnc:'',    user:'',    password:'' }
+  @observable  WiFi:{
+    SSID:string,
+    PSK:string,
+    TYPE:string
+  }={SSID:"",PSK:"",TYPE:""}
   onSmtpChange = async (name:string, value:string|number)=>{
     const save = this.smtpSettings[name]
     this.smtpSettings[name]=value
@@ -122,6 +127,19 @@ async onUpload (value){
          this.APN = result.data.getAPNConfig
          else throw new Error('Пустое значение АПН')
         }
+
+        async loadWiFi(){
+          const result = await AppStore.getInstance().apolloClient.query<any,{}>({
+                 query: gql`query getWiFiConfig{getWiFiConfig{SSID PSK TYPE}}`,
+             variables:{},
+             fetchPolicy: 'no-cache'
+             }) 
+             //console.log(result.data.getWiFiConfig)
+             if(result.data.getWiFiConfig)
+             this.WiFi = result.data.getWiFiConfig
+             else throw new Error('Пустое значение getWiFiConfig')
+            }
+
     async onAPNChange(name:string, value:string){
       let save=value
       this.APN[name]=value
@@ -138,6 +156,20 @@ async onUpload (value){
        
   
     }
+    async onWiFiChange(name:string,value:string){
+      let save=value
+      this.WiFi[name]=value
+      try{
+            const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        mutation: gql`mutation setWiFiConfig($WiFiConf:WiFiConfInput!) { setWiFiConfig(WiFiConf:$WiFiConf){status}}`, 
+          variables:{ WiFiConf: {[name]:value} },
+          fetchPolicy: 'no-cache'  
+        })
+      }catch(err){
+        this.WiFi[name]=save
+        throw  err
+      }
+    }
   constructor(){  
     // this.smtpSettings={
     //    address:undefined,     port:undefined,  name:undefined,  password:undefined
@@ -146,5 +178,6 @@ async onUpload (value){
     this.loadPorts()
     this.loadSmtp()
     this.loadAPN()
+    this.loadWiFi()
   }
 }
