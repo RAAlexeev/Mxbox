@@ -3,6 +3,7 @@
 import { AppStore } from '../app.store'
 import gql from 'graphql-tag'
 import { observable } from 'mobx'
+import { isUndefined } from 'util'
 
 type IfaceInfo={
   address: String
@@ -25,23 +26,53 @@ type Info={
   freemem:String
 }
 export class HomeStore {
-  @observable info 
+  @observable info ={ifaces:undefined,firmware:'',uptime:0,hostname:'',freemem:0}
+  @observable signalQuality:0
   async loadInfo(){
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
            query: gql`query getInfo{getInfo{ifaces{ ap0{address netmask family mac internal } ccmni0{address netmask family mac internal } ccmni1{address netmask family mac internal } ccmni2{address netmask family mac internal }
-                                                  }uptime hostname freemem                                          
+                                                  }firmware uptime hostname freemem                                          
                                    }       }`,
        variables:{},
        fetchPolicy: 'no-cache'
        }) 
        console.log(result.data.getInfo)
        if(result.data.getInfo)
-       this.info = result.data.getInfo
+       this.info = {... result.data.getInfo}
        else throw new Error('Пустое значение Info')
       }
+      subscription
       constructor(){
+ 
+          this.subscription =  AppStore.getInstance().apolloClient.subscribe({
+            query: gql`subscription signalGSM{
+              signalGSM
+            }`,
+            variables: { }
+          }).subscribe({
+            next:({data})=> {
+    
+             //console.log('subscribe:',errorMessages)
+              if( !isUndefined(data) ) return;
+              this.signalQuality=data
+            },
+            error:(err)=> { 
+              console.error(err)
+            },
+          }) 
+         
+
+          //console.log(document.domain)
+      
+      
+        
         this.loadInfo()
       } 
+
+      destructor(){
+        if(this.subscription)this.subscription.unsubscribe()
+      }
+      
 /*   @observable counter = 0
   increment = () => {
     this.counter++

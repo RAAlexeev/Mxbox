@@ -1,6 +1,6 @@
 import * as net from 'net'
 export const TCPproxyReguest:any[] = [];
-const HOST = '127.0.0.1';
+const HOST = '0.0.0.0';
 const PORT = 502;
 
 // Create a server instance, and chain the listen function to it

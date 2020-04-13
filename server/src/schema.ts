@@ -5,6 +5,8 @@ import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as crypto from 'crypto'
 import * as _APN from './APN'
+
+
 // The GraphQL schema
  export const typeDefs = gql(`\
     scalar Upload
@@ -88,9 +90,7 @@ import * as _APN from './APN'
     type  ErrorMessages{
         message:String
     }   
-    type  SignalGSM{
-      signalQuality:Int
-  }   
+
     type UpdDNK4ViewData{
       _id:ID
       buffer:[Int]
@@ -99,7 +99,7 @@ import * as _APN from './APN'
     type Subscription {
       deviceLinkState:DeviceLinkState
       errorMessages:ErrorMessages
-      signalGSM:SignalGSM
+      signalGSM:Int
       updDNK4ViewData(id:ID!):UpdDNK4ViewData
     }
 
@@ -171,6 +171,7 @@ import * as _APN from './APN'
       ccmni2:[IfaceInfo]      
     }
     type Info{
+      firmware:String
       ifaces:Ifaces
       uptime:Int
       hostname:String
@@ -295,6 +296,7 @@ class Device implements DeviceInput{
 
 import { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test'
+import { isArray } from 'util'
 
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
@@ -365,7 +367,7 @@ export const resolvers = {
                                           let numbers:Array<string> = []
                                            devs.forEach(dev =>{ 
                                              dev.rules.forEach(rule => {
-                                                if(rule&&rule.acts){
+                                                if(rule&&isArray(rule.acts)){
                                                   for(const act of rule.acts ) {                                                   
                                                       if( act.sms ) act.sms.numbers.forEach(number=>{ if(number)numbers.push( number )})
                                                       if( act.email ) act.email.address.split(';').forEach(addr=> {if(addr)emails.push( addr )})
@@ -406,6 +408,7 @@ export const resolvers = {
     getInfo:()=>{
       const os = require('os');
      return{
+          firmware : process.env.npm_package_version,
           ifaces : os.networkInterfaces(),
           uptime : os.uptime(),
           hostname : os.hostname(),
@@ -443,7 +446,10 @@ export const resolvers = {
             .pipe(tar.extract('/data/mxBox'))
             //.pipe(fs.createWriteStream(path))
             .on('error', error => reject(error))
-            .on('finish', () => resolve({ id, filename }))
+            .on('finish', () =>{ 
+                                  resolve({ id, filename })
+                                  process.exit(0)
+                                })
         })
       }
      
@@ -477,7 +483,7 @@ export const resolvers = {
               //.pipe(fs.createWriteStream(path))
               .on('error', error => reject(error))
               .on('finish', () =>{
-                process.exit(0)
+
                 resolve({ id, filename })})
           })
         }
