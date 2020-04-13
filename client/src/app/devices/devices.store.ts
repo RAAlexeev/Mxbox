@@ -51,6 +51,7 @@ export class DevicesStore {
    
   @observable isEdit:boolean = false
   deviceSubscription: ZenObservable.Subscription;
+  
   constructor() {
     let self = this
     this.appStore = AppStore.getInstance()

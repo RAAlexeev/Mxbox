@@ -4,6 +4,7 @@ import { HomeStore } from './home.store'
 import { AppStore } from '../app.store'
 import { DevicesStore } from '../devices/devices.store';
 import { UserProvider } from '../userContext';
+import { isUndefined } from 'util';
 
 @observer
 export class Home extends React.Component<any, any> {
@@ -34,7 +35,7 @@ interface HomeComponentProps {
 export class HomeComponent extends React.Component<HomeComponentProps, any> {
 
   render() {
-    const  obj2htmltable =(obj) =>{
+ /*    const  obj2htmltable =(obj) =>{
       var html = '<table>';
       for (var key in obj) {
           var item = obj[key];
@@ -47,37 +48,33 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
     const { homeStore, appStore } = this.props
     const props = {
       dangerouslySetInnerHTML: { __html: obj2htmltable(homeStore.info) },
-    };
+    }; */
       
-   // const { homeStore, appStore } = this.props
+    const { homeStore, appStore } = this.props
     return <div>
         <h2>Конфигуратор системы оповещения и мониторинга MxBox©</h2>
         <p>Позволяет конфигурировать серверную часть системы, создавая "Правила" для устройств, подключенных к MxBox©, и определяя в них события и соответствующие событиям действия.
         Для добавления устройства к перечню подключенных к системе оповещения следует в левой панели основного (первого) экрана нажать курсором (левой клавишей мыши) на красный значок +. Внизу панели добавится поле ввода наименования и Modbus-адреса нового устройства.</p>
         <p>Если устройство уже включено в перечень, выберите его курсором (при этом стрелка курсора превращается в "руку"), откорректируйте при необходимости наименование и адрес Modbus в поле Адрес. После выбора и/или корректировки параметров переведите курсор в на правую (серую) панель экрана и сформируйте/откорректируйте "Правила", руководствуясь выпадающей вкладкой подсказки.</p>
         По всем вопросам и предложениям пишите:<a href="mailto:alekseev@mx-omsk.ru">alekseev@mx-omsk.ru</a>
-
-
-        <table>
-        <tr> <td>
-        ap0:{homeStore.info.ifaces.ap0?homeStore.info.ifaces.ap0.map((item)=>{
-                                                                            return<table> 
-                                                                                  <tr> <td>{ item.address } </td></tr>
-                                                                                  <tr> <td>{ item.netmask } </td></tr>
-                                                                                  <tr> <td>{ item.mac } </td></tr>
-                                                                              </table>
-        }):'НЕТ'}
-        </td></tr>
-        <tr> <td>
-        ccmni0:{homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.map((item)=>{
-                                                                            return<table> 
-                                                                                  <tr> <td>{ item.address } </td></tr>
-                                                                                  <tr> <td>{ item.netmask } </td></tr>
-                                                                                  <tr> <td>{ item.mac } </td></tr>
-                                                                              </table>
-        }):'НЕТ'}
-        </td></tr>
-        </table>
+ 
+ <h2>Информация о системе</h2>
+        уровень сигнала(RSSI dB (> 9 OK)):{homeStore.signalQuality.toString()}
+        { isUndefined( homeStore.info.ifaces )?null:<table>
+         <caption>Сетевые_интерфейсы</caption> 
+        <tbody>
+       <tr><td>ap0:{homeStore.info.ifaces.ap0?homeStore.info.ifaces.ap0.map((item)=>{
+                                                                            return<tr><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
+        }):null}</td></tr>
+        <tr><td>ccmni0:{homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.map((item)=>{
+                                                                            return <tr><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
+        }):null}</td></tr></tbody></table>}
+        <table><caption>Разное</caption><tbody> 
+        <tr><td>firmware:</td><td>{homeStore.info.firmware}</td></tr>
+          <tr><td>uptime:</td><td>{homeStore.info.uptime}</td></tr>
+          <tr><td>hostname:</td><td>{homeStore.info.hostname}</td></tr>
+          <tr><td>freemem:</td><td>{homeStore.info.freemem}</td></tr>
+          </tbody></table>
         </div>
   }
   

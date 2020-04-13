@@ -54,7 +54,7 @@ app.get('*', (req,res) =>{
 //ioInit()
 init()
 getAPN()
-  var server = /*http.createServer(options,*/app/*)*/.listen(  3001,   ()=>{
+  var server = /*http.createServer(options,*/app/*)*/.listen(  3001,'0.0.0.0',   ()=>{
   const host = (server.address() as AddressInfo).address;
   const port = (server.address()as AddressInfo).port;
   console.log('App listening at http://%s:%s$', host, port);

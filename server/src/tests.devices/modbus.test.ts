@@ -2,7 +2,7 @@ import ModbusRTU from '../../node_modules/modbus-serial'
 import { db, pubsub, LINK_STATE_CHENG, Device, isMutated, portReinit, db_settings, DNK4_UPD_VIEW } from '../schema' 
 import { sendMail } from './result/send.email'
 import { sendSMS } from './result/send.sms'
-import { debug } from 'util'
+import { debug, isArray } from 'util'
 import SerialPort from 'serialport'
 import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
 import cmd  from 'node-cmd'
@@ -371,8 +371,8 @@ export class TestDevicesModbus {
 
      static async onTrig( device:Device, rule:Rule ){
        // console.log(rule)
-        if( rule && rule.acts ) 
-        for(const act of rule.acts)
+        if( rule && isArray(rule.acts)  ) 
+        for( const act of rule.acts )
             {  
                 
                 if( act.email ){
@@ -430,7 +430,7 @@ export class TestDevicesModbus {
                 
             }
             let jsCode:string = trig.jsCode?trig.jsCode:'';
-            if( trig && trig.regs ){
+            if( trig && isArray(trig.regs) ){
              trig.regs.forEach(reg => {
                 if( jsCode && reg  )
                     

@@ -44,7 +44,7 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
         return
       }
 
-      cmd.get('sleep 25 && svc wifi disable && sleep 25 && service call wifi 29 i32 0 i32 1',(err, data, stderr)=>{
+      cmd.get('svc wifi disable && sleep 25 && service call wifi 29 i32 0 i32 1',(err, data, stderr)=>{
         if (!err) {
            console.log(data)
 
@@ -54,10 +54,10 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
         }
     })//service call wifi  29  i32 0 i32 1
       await sleep(60000)        
-      cmd.get("echo 'a'"/*"kill -STOP "+ pid*/, async (err,data,stderr)=>{
+      cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
                 await sleep(100)
                 if (!err) {
-                    modem.open('/dev/radio/pttycmd2', options,(err,res)=>{
+                    modem.open('/dev/radio/atci1', options,(err,res)=>{
                         if(err){
                             console.error('reboot',err)
                             cmd.run('reboot')
@@ -108,13 +108,13 @@ const lamp = { intervalId:undefined, state:false }
 process.on('exit',(code)=>setDO(3,0)) // погасить
 const getNetworkSignal = ()=>{
     if(!(RTUproxyReguest.length||TCPproxyReguest.length))
-    modem.getNetworkSignal(async(result, error)=>{
+    modem.getNetworkSignal((result, error)=>{
        
         if(!error){
             const q=parseInt(result.data.signalQuality)
            // console.dir( result )
             //console.log( 'q:',q,lamp.intervalId )
-            pubsub.publish( SIGNAL_GSM, {  signalQuality:q  } );
+            pubsub.publish( SIGNAL_GSM, q );
             if( q > 6 && q <= 30 ){     
                 clearInterval( lamp.intervalId ) 
                 lamp.intervalId = undefined
@@ -138,7 +138,7 @@ const getNetworkSignal = ()=>{
         }else
             console.log('getNetworkSignal:',error)
         
-            pubsub.publish( SIGNAL_GSM, {  signalQuality:-999  } );
+            pubsub.publish( SIGNAL_GSM, -1);
 
 
     })
