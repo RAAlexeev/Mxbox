@@ -10,6 +10,9 @@ const ASSET_PATH = process.env.ASSET_PATH || '/';
 const NodemonPlugin = require( 'nodemon-webpack-plugin' ) // Ding
 // plugins
 var nodeExternals = require('webpack-node-externals');
+
+var WebpackAutoInject = require('webpack-auto-inject-version');
+
 const serverConf={
   externals:{
     serialport: "serialport",
@@ -68,6 +71,13 @@ const serverConf={
     ]
   },
   plugins: [
+    new WebpackAutoInject({
+      // options
+      // example:
+      components: {
+          AutoIncreaseVersion: true
+      }
+  }),
     new webpack.LoaderOptionsPlugin({
       debug: true
     }),

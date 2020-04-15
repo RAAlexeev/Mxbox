@@ -171,6 +171,7 @@ import * as _APN from './APN'
       ccmni2:[IfaceInfo]      
     }
     type Info{
+      io:[String]
       firmware:String
       ifaces:Ifaces
       uptime:Int
@@ -297,6 +298,7 @@ class Device implements DeviceInput{
 import { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test'
 import { isArray } from 'util'
+import { getStateIO } from './io'
 
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
@@ -405,14 +407,22 @@ export const resolvers = {
       const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'WiFiSettings'}, callback.bind({resolve, reject} ))})    
       return p.then().catch() 
     },
-    getInfo:()=>{
+    getInfo:async ()=>{
       const os = require('os');
+       let io
+      try{
+      io = await getStateIO()
+      }catch{
+        io=[]
+      }
      return{
-          firmware : process.env.npm_package_version,
-          ifaces : os.networkInterfaces(),
+           ifaces : os.networkInterfaces(),
+           firmware :'[AIV]{version}[/AIV]',
           uptime : os.uptime(),
           hostname : os.hostname(),
-          freemem : os.freemem()
+          freemem : os.freemem(),
+          io :  io
+
      }
     }
   },
