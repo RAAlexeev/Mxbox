@@ -36,9 +36,12 @@ export  const getStateIO=()=>new Promise((resolve,reject)=>fs.readFile('/sys/dev
    }
      const splitData = data.split('\n')
      let ret = Array(splitData[0])
-     for(const n in _di.concat(_do)){
-      ret = ret.concat(splitData[n])
+     for(let n=0;   _di.length;n++){
+        ret.push(splitData[_di[n]+1])
      }
+     for(let n=0;   _do.length;n++){
+      ret.push(splitData[_do[n]+1])
+   }
    resolve(ret)
 
 }))

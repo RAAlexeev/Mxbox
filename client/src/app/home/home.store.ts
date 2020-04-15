@@ -27,22 +27,20 @@ type Info={
   freemem:String
 }
 export class HomeStore {
-<<<<<<< .mine
-  @observable info ={ifaces:undefined,firmware:'',uptime:0,hostname:'',freemem:0}
-  @observable signalQuality:0
-=======
+
   @observable info ={ifaces:undefined,io:[], firmware:'',uptime:0,hostname:'',freemem:0}
   @observable signalQuality:0
->>>>>>> .theirs
+
   async loadInfo(){
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-           query: gql`query getInfo{getInfo{ifaces{ ap0{address netmask family mac internal } ccmni0{address netmask family mac internal } ccmni1{address netmask family mac internal } ccmni2{address netmask family mac internal }
-<<<<<<< .mine
-                                                  }firmware uptime hostname freemem                                          
-=======
-                                                  } io firmware uptime hostname freemem                                          
->>>>>>> .theirs
-                                   }       }`,
+           query: gql`query getInfo{getInfo{ifaces{ 
+                                                ap0{address netmask family mac internal } 
+                                                ccmni0{address netmask family mac internal } 
+                                                ccmni1{address netmask family mac internal }
+                                                ccmni2{address netmask family mac internal }
+                                                  } 
+                                                  io firmware uptime hostname freemem                                          
+                                   }}`,
        variables:{},
        fetchPolicy: 'no-cache'
        }) 
