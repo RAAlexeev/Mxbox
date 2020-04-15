@@ -1,6 +1,11 @@
 {
+<<<<<<< .mine
   "name": "mxbox-server",
   "version": "0.0.11",
+=======
+  "name": "mxbox-server",
+  "version": "0.0.10",
+>>>>>>> .theirs
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
@@ -40,7 +45,8 @@
     "smtp-client": "^0.3.1",
     "tar-fs": "^2.0.0",
     "tz-offset": "^0.0.2",
-    "utf-8-validate": "^5.0.1"
+    "utf-8-validate": "^5.0.1",
+    "webpack-auto-inject-version": "^1.2.2"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.6",

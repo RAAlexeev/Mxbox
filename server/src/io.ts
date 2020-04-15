@@ -1,13 +1,20 @@
 import  * as fs  from 'fs'
 import { dioTest } from './tests.devices/di.test';
+import { pubsub, SIGNAL_GSM } from './schema';
+
 export const _di = [56,128,89,109,24,25] 
 export const _do = [58,140,139,26]
+
 export function setDO(n,value:number){
    fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin',`-w=${_do[n]}:0 0 0 ${value} 0 1 0`,(err)=>{if (err) console.error('setDO:',err);})
 }
+var state =""
 export const di=(n:number)=>new Promise((resolve,reject)=>fs.readFile('/sys/devices/virtual/misc/mtgpio/pin','utf8',(err,data:string)=>{
+   
    if(err)reject(err)
-   else resolve(data[70+_di[n]*14]==='1')
+   state=data
+   resolve(data[70+_di[n]*14]==='1')
+
 }))
 
 export function ioInit(){
@@ -20,3 +27,18 @@ export function ioInit(){
   }
   setInterval(()=>  dioTest(),50)
 }
+
+export  const getStateIO=()=>new Promise((resolve,reject)=>fs.readFile('/sys/devices/virtual/misc/mtgpio/pin','utf8',(err,data:string)=>{  
+
+   if(err){
+      
+      return reject([err])
+   }
+     const splitData = data.split('\n')
+     let ret = Array(splitData[0])
+     for(const n in _di.concat(_do)){
+      ret = ret.concat(splitData[n])
+     }
+   resolve(ret)
+
+}))
