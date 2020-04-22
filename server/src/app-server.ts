@@ -51,7 +51,7 @@ app.get('*', (req,res) =>{
     requestCert: true,                   #new
     rejectUnauthorized: false            #new
 };  */
-//ioInit()
+ioInit()
 init()
 getAPN()
   var server = /*http.createServer(options,*/app/*)*/.listen(  3001,'0.0.0.0',   ()=>{

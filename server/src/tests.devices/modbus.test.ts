@@ -403,13 +403,13 @@ export class TestDevicesModbus {
                 if(act.DO) act.DO.forEach((val,index,array)=>{
                     switch(val){
                         case 0:
-                        case 1:io.setDO(io._do[index], val)
+                        case 1:io.setDO(index, val)
                         break
-                        case 2:  io.setDO(io._do[index], 1)
-                                 setTimeout( ()=>io.setDO(io._do[index], 0) ,1000)
+                        case 2:  io.setDO(index, 1)
+                                 setTimeout( ()=>io.setDO(index, 0) ,1000)
                         break        
-                        case 3:   io.setDO(io._do[index], 0)
-                                 setTimeout( ()=>io.setDO(io._do[index], 1) ,1000)         
+                        case 3:   io.setDO(index, 0)
+                                 setTimeout( ()=>io.setDO(index, 1) ,1000)         
                     }
                    
                 })
@@ -449,7 +449,7 @@ export class TestDevicesModbus {
                 const regExp:RegExp= new RegExp(/#DI?(\d+)/)
                 if(regExp.test(jsCode)){               
                     let match = regExp.exec(jsCode)  
-                    if(match) return io.di(io._di[parseInt(match[1])]).then((value)=>{
+                    if(match) return io.di(parseInt(match[1])).then((value)=>{
                             while (match){
                                 jsCode = jsCode.replace(match[0],'('+ value +')')
                                 match = regExp.exec(jsCode) 

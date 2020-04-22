@@ -1,6 +1,7 @@
 import { observable } from 'mobx'
 import { AppStore } from '../app.store';
 import gql from 'graphql-tag';
+import { writeSync } from 'fs';
 
 export class SettingsStore {
   
@@ -162,7 +163,7 @@ async onUpload (value){
       try{
             const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
         mutation: gql`mutation setWiFiConfig($WiFiConf:WiFiConfInput!) { setWiFiConfig(WiFiConf:$WiFiConf){status}}`, 
-          variables:{ WiFiConf: {[name]:value} },
+          variables:{ WiFiConf: {ssid:this.WiFi.SSID,psk:this.WiFi.PSK} },
           fetchPolicy: 'no-cache'  
         })
       }catch(err){

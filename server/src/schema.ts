@@ -678,6 +678,28 @@ export const resolvers = {
      _APN.setAPN(APN.APNconf)
     },
     setWiFiConfig(parent,{ WiFiConf },context,info){
+
+      fs.writeFile("/data/misc/wifi/wpa_supplicant.conf",`ctrl_interface=/data/misc/wifi/sockets
+                                                          driver_param=use_p2p_group_interface=1
+                                                          update_config=1
+                                                          device_name=hexing72_cwet_lca
+                                                          manufacturer=alps
+                                                          model_name=E8 plus
+                                                          model_number=E8 plus
+                                                          serial_number=0123456789ABCDEF
+                                                          device_type=10-0050F204-5
+                                                          os_version=01020300
+                                                          config_methods=physical_display virtual_push_button
+                                                          p2p_no_group_iface=1
+                                                          network={
+                                                              ssid="${WiFiConf.SSID}"
+                                                              psk="${WiFiConf.PSK}"
+                                                              key_mgmt=WPA-PSK
+                                                              sim_slot="-1"
+                                                              imsi="none"
+                                                              priority=2
+                                                            }
+      `,(err)=>err?console.error(err):null);
       db_settings.loadDatabase()
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve({status:'OK:'+numberUpdated}) }}            
       const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'WiFiSettings'},{$set:WiFiConf} , {upsert:true}, callback.bind({resolve,reject}))})    

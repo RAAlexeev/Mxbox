@@ -43,16 +43,6 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
         })
         return
       }
-
-      cmd.get('svc wifi disable && sleep 25 && service call wifi 29 i32 0 i32 1',(err, data, stderr)=>{
-        if (!err) {
-           console.log(data)
-
-         //  setTimeout(()=>cmd.run('stop zygote'),50000)
-        } else {
-           console.error('init:', err)
-        }
-    })//service call wifi  29  i32 0 i32 1
       await sleep(60000)        
       cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
                 await sleep(100)
@@ -85,11 +75,14 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
 
   modem.on('open', () => {
            setInterval(getNetworkSignal,40000)
+
             modem.setModemMode( (msg, err)=>{
                 if(err)
                     console.error(err)
                 else modem.isInit=true
             },'PDU')
+            modem.enableEcho();
+       
             modem.executeCommand('AT+CNMI=0',()=>{
             setInterval(()=>{
                 modem.getSimInbox((data, err)=>{
@@ -118,7 +111,7 @@ const getNetworkSignal = ()=>{
             if( q > 6 && q <= 30 ){     
                 clearInterval( lamp.intervalId ) 
                 lamp.intervalId = undefined
-                setDO(26,1) // зажеч   
+                setDO(3,1) // зажеч   
                }else{
               if( q <= 6  && isUndefined( lamp.intervalId ))
                 lamp.intervalId = setInterval(()=>{
@@ -131,7 +124,7 @@ const getNetworkSignal = ()=>{
                     },200) as any
                else{
                 clearInterval(lamp.intervalId)
-                setDO(26,0)  // погасить
+                setDO(3,0)  // погасить
                }
             }
 

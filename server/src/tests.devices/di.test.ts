@@ -30,6 +30,6 @@ export const dioTest =  ()=>{
         else fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin','-w=28:0 0 0 0 0 1 0',(err)=>{if (err) console.error(err);})
     }) },1000) */
     
-  for(let n = 0; n < io._do.length;n++)
-    io.di(io._di[n]).then((value)=>io.setDO(n,(<number>value))).catch((reason)=>console.error(reason))
+  for(let n = 0; n < 6;n++)
+    io.di(n).then((value)=>io.setDO(((n<3)?n:(n-3)),value)).catch((reason)=>console.error(reason))
 }

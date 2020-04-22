@@ -1,6 +1,6 @@
 {
   "name": "mxbox-server",
-  "version": "0.0.17",
+  "version": "0.0.37",
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "pdu": "^1.1.0",
     "request": "^2.88.0",
     "serialport": "^7.1.5",
-    "serialport-gsm": "^3.1.0",
+    "serialport-gsm": "^3.2.1",
     "short-id": "^0.1.0-1",
     "smtp-client": "^0.3.1",
     "tar-fs": "^2.0.0",
