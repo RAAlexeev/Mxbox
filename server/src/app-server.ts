@@ -1,4 +1,5 @@
 import * as express  from 'express';
+import * as basicAuth from  'express-basic-auth';
 const app = express();
 import {apollo} from './index'
 import {  modbusTestRun } from './tests.devices/modbus.test';
@@ -16,6 +17,10 @@ import { getAPN } from './APN';
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});
+app.use(basicAuth({ users:{'username':'password'},
+                    challenge: true,
+                    realm: 'Imb4T3st4pp'
+                  }));
 app.get('/download', function(req, res){
   const file = `/data/mxBox/DB/setings.tar.gz`;
   const gzip = zlib.createGzip() 

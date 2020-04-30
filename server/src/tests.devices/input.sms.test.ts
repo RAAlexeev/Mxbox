@@ -15,7 +15,7 @@ export const  inputSMS = ({data})=>{
         
         for(const dev of devices){
             for(const rule of dev.rules){
-                if(rule.trigs)
+                if(rule&&rule.trigs)
                 for(const trig of rule.trigs){
                     if(trig)
                     if(trig.type === 2){

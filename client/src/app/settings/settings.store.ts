@@ -157,11 +157,18 @@ async onUpload (value){
        
   
     }
+    wiFiChangeTimeout 
+    wiFiChangeSave
     async onWiFiChange(name:string,value:string){
-      let save=value
+     
+      let save=this.WiFi[name]
       this.WiFi[name]=value
+      
+      clearTimeout(this.wiFiChangeTimeout)
+      
+      this.wiFiChangeTimeout = setTimeout(async ()=>{
       try{
-            const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        await AppStore.getInstance().apolloClient.mutate<any,{}>({
         mutation: gql`mutation setWiFiConfig($WiFiConf:WiFiConfInput!) { setWiFiConfig(WiFiConf:$WiFiConf){status}}`, 
           variables:{ WiFiConf: {ssid:this.WiFi.SSID,psk:this.WiFi.PSK} },
           fetchPolicy: 'no-cache'  
@@ -170,6 +177,7 @@ async onUpload (value){
         this.WiFi[name]=save
         throw  err
       }
+    },500)
     }
   constructor(){  
     // this.smtpSettings={

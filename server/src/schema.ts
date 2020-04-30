@@ -370,7 +370,7 @@ export const resolvers = {
                                            devs.forEach(dev =>{ 
                                              dev.rules.forEach(rule => {
                                                 if(rule&&isArray(rule.acts)){
-                                                  for(const act of rule.acts ) {                                                   
+                                                  for(const act of rule.acts ) if(act){                                                   
                                                       if( act.sms ) act.sms.numbers.forEach(number=>{ if(number)numbers.push( number )})
                                                       if( act.email ) act.email.address.split(';').forEach(addr=> {if(addr)emails.push( addr )})
                                                   }
@@ -576,7 +576,7 @@ export const resolvers = {
           { 
             let update = false
             for(const dev of devices){
-              for(const rule of dev.rules){
+              for(const rule of dev.rules)if(rule){
                 if(rule.acts)
                   for(const act of rule.acts){
                     if(act && act.sms)

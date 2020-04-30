@@ -161,11 +161,12 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 if(!(port.isOpen)){
                                                     
                                                     await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
+                                                                                                             if(err)console.error(err)                       
                                                                                                              if(!port.isOpen)port.open((err)=>{
-                                                                                                                    if(port.isOpen)resolve(); else reject({err:'port not open!'})
+                                                                                                                    if(port.isOpen)resolve(); else reject(err)
                                                                                                                 })
                                                                                                             })
-                                                                                                        }),sleep(300)])
+                                                                                                        }),sleep(100)])
                                                     
                                                 }
                                                 const query = async (reguest)=>{ 
@@ -372,7 +373,7 @@ export class TestDevicesModbus {
      static async onTrig( device:Device, rule:Rule ){
        // console.log(rule)
         if( rule && isArray(rule.acts)  ) 
-        for( const act of rule.acts )
+        for( const act of rule.acts )if(act)
             {  
                 
                 if( act.email ){

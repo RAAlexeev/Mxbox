@@ -1,6 +1,6 @@
 {
   "name": "mxbox-server",
-  "version": "0.0.37",
+  "version": "0.0.45",
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
@@ -18,6 +18,7 @@
     "cjs": "^0.0.11",
     "debug": "^4.1.1",
     "encoding": "^0.1.12",
+    "express-basic-auth": "^1.2.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
     "graphql-type-json": "^0.2.1",

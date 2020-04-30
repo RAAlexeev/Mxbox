@@ -11,7 +11,7 @@ export function getAPN()
 
     else
     cmd.get('content query --uri content://telephony/carriers/preferapn',(err, data:string, stderr)=>{
-        if (!err ) {
+        if (!err && !stderr) {
             try{
             _APN = JSON.parse(
                   '{'+data.substring(7)

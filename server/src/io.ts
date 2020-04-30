@@ -2,8 +2,8 @@ import  * as fs  from 'fs'
 import { dioTest } from './tests.devices/di.test';
 
 
-const _di = [58,128,89,109,24,25,27] 
-const _do = [56,140,139,26]
+const _di = [56,128,89,109,24,25,27] 
+const _do = [26,140,144,58]
 
 export function setDO(n,value){
    fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin',`-w=${_do[n]}:0 0 0 ${value?1:0} 0 1 0`,(err)=>{if (err) console.error('setDO:',err);})
@@ -11,9 +11,13 @@ export function setDO(n,value){
 
 export const di=(n:number)=>new Promise((resolve,reject)=>fs.readFile('/sys/devices/virtual/misc/mtgpio/pin','utf8',(err,data:string)=>{
    
-   if(err)reject(err)
+   if(err)
+   {
+      reject(err)
+      return
+   }
    const splitData = data.split('\n')
-   resolve(splitData[_di[n]+1].charAt(8)==='0')
+   resolve(splitData[_di[n]+1].charAt(6)==='0')
 
   //resolve(data[70+_di[n]*14]==='0')
 
