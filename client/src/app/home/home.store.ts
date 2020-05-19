@@ -39,12 +39,12 @@ export class HomeStore {
                                                 ccmni1{address netmask family mac internal }
                                                 ccmni2{address netmask family mac internal }
                                                   } 
-                                                  io firmware uptime hostname freemem                                          
+                                                   io firmware uptime hostname freemem                                          
                                    }}`,
        variables:{},
        fetchPolicy: 'no-cache'
        }) 
-       console.log(result.data.getInfo)
+      // console.log(result.data.getInfo)
        if(result.data.getInfo)
        this.info = {... result.data.getInfo}
        else throw new Error('Пустое значение Info')
@@ -59,10 +59,10 @@ export class HomeStore {
             variables: { }
           }).subscribe({
             next:({data})=> {
-    
-             //console.log('subscribe:',errorMessages)
-              if( !isUndefined(data) ) return;
-              this.signalQuality=data
+              const {signalGSM} = data
+           //  console.log('signalGSM:',data)
+            
+              this.signalQuality=signalGSM
             },
             error:(err)=> { 
               console.error(err)

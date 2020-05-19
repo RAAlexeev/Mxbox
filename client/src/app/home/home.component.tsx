@@ -16,13 +16,13 @@ export class Home extends React.Component<any, any> {
 
   homeStore: HomeStore
   componentWillMount() {
-    this.homeStore = new HomeStore()
+
     DevicesStore.getInstance().select(null)
   }
 
   render() {
     const user = { name: 'Tania', loggedIn: true }
-    return <Provider homeStore={this.homeStore}>
+    return <Provider homeStore={new HomeStore()}>
       <UserProvider value={user}>
       <HomeComponent />
       </UserProvider>
@@ -71,12 +71,12 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
         { isUndefined( homeStore.info.ifaces )?null:<table>
          <caption>Сетевые_интерфейсы</caption> 
         <tbody>
-       <tr><td>ap0:{homeStore.info.ifaces.ap0?homeStore.info.ifaces.ap0.map((item,_key)=>{
+       <table><tbody><tr><th class={{rowspan:`${homeStore.info.ifaces.ap0?homeStore.info.ifaces.ap0.lengh:0}`}}>ap0:</th> </tr>{homeStore.info.ifaces.ap0?homeStore.info.ifaces.ap0.map((item,_key)=>{
                                                                             return<tr key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
-        }):null}</td></tr>
-        <tr><td>ccmni0:{homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.map((item,_key)=>{
+        }):null}</tbody></table>
+        <table><tbody><tr><th class={{rowspan:`${homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.lengh:0}`}}>ccmni0:</th></tr>{homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.map((item,_key)=>{
                                                                             return <tr  key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
-        }):null}</td></tr></tbody></table>}
+        }):null}</tbody></table></tbody></table>}
         <table><caption>Разное</caption><tbody> 
         <tr><td>firmware:</td><td>{homeStore.info.firmware}</td></tr>
           <tr><td>uptime:</td><td>{homeStore.info.uptime}</td></tr>
