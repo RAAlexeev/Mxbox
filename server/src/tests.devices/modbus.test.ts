@@ -128,7 +128,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                         })
                            
                                        
-                                        const tOut = { trig:100,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},30000)} 
+                                        const tOut = { trig:100,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},3000)} 
                                         
                                         const proxyQuery = async(device)=>{  
                                             try{
@@ -139,7 +139,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                   // clearTimeout(tOut)
                                                   // tOut = setTimeout(()=>{elapsed=true},5000)
                                                   tOut.trig=100
-                                                    debug('proxyQuery2')  
+                                                    console.log('proxyQuery2')  
                                                   
                                                     try{
                                                        if(port.isOpen){ 
@@ -337,7 +337,8 @@ export class TestDevicesModbus {
     constructor(){
        
     }
-    private static parse ( s:string) :Reg[]{   
+    private static parse ( src:string) :Reg[]{   
+        let s:string =src
         const regs:Reg[] = []  
         const regExp:RegExp= new RegExp(/\[(\d+)\s?(\d?)\.?(\d?[\d,f,u]?)\]/)
         let match = regExp.exec(s)
@@ -347,14 +348,14 @@ export class TestDevicesModbus {
 
                 regs.push({
                     pattern:match[0],//0
-                    func:match[2]?parseInt(match[1],10):3,//1
-                    addr:match[2]?parseInt(match[2],10):parseInt(match[1],10),//2
+                    addr:match[1]?parseInt(match[1]):0,
+                    func:match[2]?parseInt(match[2]):3,//1        
                     qualifier:match[3]//3
                 })
                 
             }
-
-            match = regExp.exec(s=s.replace(match[0],''))
+            s=s.replace(match[0],'')
+            match = regExp.exec(s)
         }
    
            
@@ -419,7 +420,7 @@ export class TestDevicesModbus {
             //send SMSs Emails
     }
     private static  testTrig ( trig:Trig ){
-       
+       //console.log("fn:testTrig",trig)
             if( trig.condition  )
             if(trig.jsCode===undefined){
 
@@ -438,14 +439,15 @@ export class TestDevicesModbus {
                     jsCode = jsCode.replace(reg.pattern,'('+ reg.val + ')') 
                 })}
                 //const di:{pattern?:string, index?:number}[] = []  
-               const result = (jsCode)=>{   try{
-                    debug('jsCode:'+ jsCode)
-                    return new Function('','return ('+jsCode+')')()    
-                }catch(err){
-                    console.error(err)
-                    return false
-                } 
-            }
+               const result = (jsCode)=>{   
+                   try{
+                        debug('jsCode:'+ jsCode)
+                        return new Function('','return ('+jsCode+')')()    
+                    }catch(err){
+                        console.error(err)
+                        return false
+                    } 
+                }
                
                 const regExp:RegExp= new RegExp(/#DI?(\d+)/)
                 if(regExp.test(jsCode)){               
@@ -458,13 +460,13 @@ export class TestDevicesModbus {
                            return result(jsCode) 
                         }).catch((reason)=>console.error(reason)) 
                 } 
-                      
+            return result(jsCode)       
                  
 }
         
     private static getSizeDataReguest(reg:Reg):number{
         if( reg.qualifier )
-         if( reg.qualifier.search(/f/) ) return 2
+         if( reg.qualifier==='f') return 2
          
         return 1
     }    
@@ -515,10 +517,10 @@ export class TestDevicesModbus {
             this.skip = 100  
             try{
             switch(reg.func){                                    
-                case 1:  reg.val = await client.readInputRegisters(reg.addr,1)
+                case 2:  reg.val = await client.readDiscreteInputs(reg.addr,1)
                         this.processResponse(reg)
                 break 
-                case 2: reg.val = await client.readCoils(reg.addr,1)
+                case 1: reg.val = await client.readCoils(reg.addr,1)
                         this.processResponse(reg)
                 break
                 case 3:  reg.val = await client.readHoldingRegisters(reg.addr, this.getSizeDataReguest(reg))
@@ -539,6 +541,7 @@ export class TestDevicesModbus {
         }
 
     } 
+
     static skip: number = 100;
     static async testTrigs ( device:Device, client:ModbusRTU ){
             for( const rule of device.rules) {
@@ -547,8 +550,10 @@ export class TestDevicesModbus {
                         if(trig){
                             if ( trig.condition ){
                                 trig.regs =  this.parse(trig.condition)
+                           
                                 await this.reguesting(trig.regs,client,device)
-                               // debug('#trig.active:' + trig.active)
+ 
+
                                 if( this.testTrig( trig ) ){ 
                                    debug('#trig.active:' + trig.active)
                                    if(!trig.active)trig.active=0

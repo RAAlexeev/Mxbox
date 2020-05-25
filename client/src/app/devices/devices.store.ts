@@ -96,7 +96,7 @@ export class DevicesStore {
     })    
   // console.log(result.data.devices)
   
-    result.data.devices.forEach(item =>item.error='###' )
+  //  result.data.devices.forEach(item =>item.error='###' )
     this.devices = result.data.devices
   
   }catch(err){
@@ -143,14 +143,15 @@ export class DevicesStore {
     this.updDevice({_id:device._id, type:type})
     device.type=type
   }
-  nameOnChange=(device:Device, deviceStore:DevicesStore, value)=>{
+
+  nameOnChange(device:Device, deviceStore:DevicesStore, value){
 
     device.name = value.replace(/[\/\:]/g,'')
     
     this.updDevice({_id:device._id, name:device.name})
  }
 
- mb_addrOnChange=(device:Device, deviceStore:DevicesStore, value)=>{
+ mb_addrOnChange(device:Device, deviceStore:DevicesStore, value){
  // if (!value.search(/\d+/g))  return;
   if(value){
    // console.log(value)

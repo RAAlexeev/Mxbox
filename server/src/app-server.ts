@@ -17,7 +17,7 @@ import { getAPN } from './APN';
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});
-app.use(basicAuth({ users:{'username':'password'},
+app.use(basicAuth({ users:{'username':'passw0rd'},
                     challenge: true,
                     realm: 'Imb4T3st4pp'
                   }));

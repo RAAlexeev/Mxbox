@@ -43,7 +43,7 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
         })
         return
       }
-      await sleep(60000)        
+      await sleep(30000)        
       cmd.get("kill -STOP "+ pid, async (err,data,stderr)=>{
                 await sleep(100)
                 if (!err) {
@@ -100,43 +100,75 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
 const lamp = { intervalId:undefined, state:false }
 process.on('exit',(code)=>setDO(3,0)) // погасить
 const getNetworkSignal = ()=>{
-    if(!(RTUproxyReguest.length||TCPproxyReguest.length))
-    modem.getNetworkSignal((result, error)=>{
+    if(!(RTUproxyReguest.length||TCPproxyReguest.length)){
+        modem.executeCommand('AT+CREG?',(res, err)=>{
+            console.log("AT+CREG?:",res)
+            if(!err&&res.data.stat){
+                modem.getNetworkSignal((result, error)=>{
        
-        if(!error){
-            const q=parseInt(result.data.signalQuality)
-           // console.dir( result )
-            //console.log( 'q:',q,lamp.intervalId )
-            pubsub.publish( SIGNAL_GSM, q );
-            if( q > 6 && q <= 30 ){     
-                clearInterval( lamp.intervalId ) 
-                lamp.intervalId = undefined
-                setDO(3,1) // зажеч   
-               }else{
-              if( q <= 6  && isUndefined( lamp.intervalId ))
-                lamp.intervalId = setInterval(()=>{
-                    lamp.state =  !lamp.state
-                    if( lamp.state ) 
-                     setDO(3,1) // зажеч      
-                    else
-                    setDO(3,0)  // погасить
+                    if(!error){
+                        const q=parseInt(result.data.signalQuality)
+                    // console.dir( result )
+                        //console.log( 'q:',q,lamp.intervalId )
+                        pubsub.publish( SIGNAL_GSM, q );
+                        if( q > 6 && q <= 30 ){     
+                            clearInterval( lamp.intervalId ) 
+                            lamp.intervalId = undefined
+                            setDO(3,1) // зажеч   
+                        }else{
+                        if( q <= 6  && isUndefined( lamp.intervalId ))
+                            lamp.intervalId = setInterval(()=>{
+                                lamp.state =  !lamp.state
+                                if( lamp.state ) 
+                                setDO(3,1) // зажеч      
+                                else
+                                setDO(3,0)  // погасить
+                                
+                                },200) as any
+                        else{
+                            clearInterval(lamp.intervalId)
+                            setDO(3,0)  // погасить
+                        }
+                        }
                     
-                    },200) as any
-               else{
-                clearInterval(lamp.intervalId)
-                setDO(3,0)  // погасить
-               }
+                    }else{
+                        console.log('getNetworkSignal:', error)
+                        setDO(3,0)  // погасить
+                        pubsub.publish( SIGNAL_GSM, -1);
+                    }
+    
+    
+            })
+            }  
+        }).logic = (newpart) => {
+            if (newpart.startsWith('+CREG:')) {
+                let value = newpart.split(' ')
+                   value = value[1].split(',')
+              return {
+                resultData: {
+                  status: 'success',
+                  request: '+CREG?',
+                  data:{
+                      n:value[0],
+                      stat:value[1]
+                  } 
+                },
+                returnResult: true
+              }
+            } else if (newpart.includes('ERROR')) {
+              return {
+                resultData: {
+                  status: 'ERROR',
+                  request: '+CREG?',
+                  data: `+CREG?  ${newpart}`
+                },
+                returnResult: true
+              }
             }
+          }
 
-        }else
-            console.log('getNetworkSignal:',error)
-        
-            pubsub.publish( SIGNAL_GSM, -1);
-
-
-    })
+  }
 }
-
 export function sendSMS(sms:Sms,device?:Device){
     let interval
    const sendSMS =(sms:Sms,device?:Device)=>{

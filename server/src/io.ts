@@ -1,5 +1,5 @@
 import  * as fs  from 'fs'
-import { dioTest } from './tests.devices/di.test';
+import { dioTest } from './tests.devices/dio.test';
 
 
 const _di = [56,128,89,109,24,25,27] 
@@ -32,7 +32,7 @@ export function ioInit(){
    setDO(n,0)
    //fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin',`-w=${n}:0 0 0 0 0 1 0`,(err)=>{if (err) console.error('ioInit:',err);})
   }
-  setInterval(()=>dioTest(),50)
+  //etInterval(()=>dioTest(),50)
 }
 
 export  const getStateIO=()=>new Promise((resolve,reject)=>fs.readFile('/sys/devices/virtual/misc/mtgpio/pin','utf8',(err,data:string)=>{  

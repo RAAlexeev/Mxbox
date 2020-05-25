@@ -2,8 +2,8 @@
 
 import { AppStore } from '../app.store'
 import gql from 'graphql-tag'
-import { observable } from 'mobx'
-import { isUndefined } from 'util'
+import { observable, action } from 'mobx'
+
 
 type IfaceInfo={
   address: String
@@ -29,8 +29,10 @@ type Info={
 export class HomeStore {
 
   @observable info ={ifaces:undefined,io:[], firmware:'',uptime:0,hostname:'',freemem:0}
-  @observable signalQuality:0
-
+  @observable signalQuality=0
+  @observable pingResult = ""
+  @observable ip_addr = ""
+  @observable ioTest = false
   async loadInfo(){
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
            query: gql`query getInfo{getInfo{ifaces{ 
@@ -46,21 +48,19 @@ export class HomeStore {
        }) 
       // console.log(result.data.getInfo)
        if(result.data.getInfo)
-       this.info = {... result.data.getInfo}
+       this.info = result.data.getInfo
        else throw new Error('Пустое значение Info')
       }
       subscription
       constructor(){
  
           this.subscription =  AppStore.getInstance().apolloClient.subscribe({
-            query: gql`subscription signalGSM{
-              signalGSM
-            }`,
+            query: gql`subscription signalGSM{signalGSM}`,
             variables: { }
           }).subscribe({
             next:({data})=> {
               const {signalGSM} = data
-           //  console.log('signalGSM:',data)
+             console.log('signalGSM:',data)
             
               this.signalQuality=signalGSM
             },
@@ -75,12 +75,42 @@ export class HomeStore {
       
         
         this.loadInfo()
+      }
+      set_ip_addr(ip_addr){
+        this.ip_addr = ip_addr
       } 
-
+    async ping(){
+      this.pingResult=""
+      try{
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation ping($ip_addr:String){ ping(ip_addr:$ip_addr) }`, 
+          variables:{ ip_addr: this.ip_addr?this.ip_addr:"ya.ru" },
+          fetchPolicy: 'no-cache'  
+        })
+        this.pingResult = result.data.ping 
+      }catch(err){
+       // this.APN[name]=save
+        throw  err
+      }
+    } 
+   @action  async switch_ioTest(){
+      this.ioTest!=this.ioTest
+      try{
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation switch_io_test{switch_io_test}`, 
+          variables:{},
+          fetchPolicy: 'no-cache'  
+        })
+        this.ioTest=result.data.switch_io_test
+      }catch(err){
+        this.ioTest=!this.ioTest
+        throw  err
+      } 
+    }
       destructor(){
         if(this.subscription)this.subscription.unsubscribe()
       }
-      
+
 /*   @observable counter = 0
   increment = () => {
     this.counter++

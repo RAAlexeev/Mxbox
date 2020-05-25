@@ -135,7 +135,6 @@ async onUpload (value){
              variables:{},
              fetchPolicy: 'no-cache'
              }) 
-             //console.log(result.data.getWiFiConfig)
              if(result.data.getWiFiConfig)
              this.WiFi = result.data.getWiFiConfig
              else throw new Error('Пустое значение getWiFiConfig')
@@ -146,7 +145,7 @@ async onUpload (value){
       this.APN[name]=value
       try{
             const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-        mutation: gql`mutation setAPNconfig($APNconf:APNconfInput!) { setAPNconfig(APNconf:$APNconf){status}}`, 
+        mutation: gql`mutation setAPNconfig($APNconf:APNconfInput!) { setAPNconfig(APNconf:$APNconf){status}}`,
           variables:{ APNconf: {[name]:value} },
           fetchPolicy: 'no-cache'  
         })
@@ -158,7 +157,7 @@ async onUpload (value){
   
     }
     wiFiChangeTimeout 
-    wiFiChangeSave
+    
     async onWiFiChange(name:string,value:string){
      
       let save=this.WiFi[name]
@@ -169,9 +168,9 @@ async onUpload (value){
       this.wiFiChangeTimeout = setTimeout(async ()=>{
       try{
         await AppStore.getInstance().apolloClient.mutate<any,{}>({
-        mutation: gql`mutation setWiFiConfig($WiFiConf:WiFiConfInput!) { setWiFiConfig(WiFiConf:$WiFiConf){status}}`, 
-          variables:{ WiFiConf: {ssid:this.WiFi.SSID,psk:this.WiFi.PSK} },
-          fetchPolicy: 'no-cache'  
+        mutation: gql`mutation setWiFiConfig($WiFiConf:WiFiConfInput!) { setWiFiConfig(WiFiConf:$WiFiConf){status} }`, 
+        variables:{ WiFiConf: {ssid:this.WiFi.SSID,psk:this.WiFi.PSK} },
+        fetchPolicy: 'no-cache'  
         })
       }catch(err){
         this.WiFi[name]=save

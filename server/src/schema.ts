@@ -5,7 +5,7 @@ import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as crypto from 'crypto'
 import * as _APN from './APN'
-
+import cmd  from 'node-cmd'
 
 // The GraphQL schema
  export const typeDefs = gql(`\
@@ -223,6 +223,8 @@ import * as _APN from './APN'
       setAPNconfig(APNconf:APNconfInput! ):Result
       setWiFiConfig(WiFiConf:WiFiConfInput! ):Result
       exchangeNum( sNum:String!, dNum:String! ):Result
+      ping(ip_addr:String):String
+      switch_io_test:Boolean
     }
 `);
 
@@ -299,6 +301,7 @@ import { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test'
 import { isArray } from 'util'
 import { getStateIO } from './io'
+import { dioTest } from './tests.devices/dio.test'
 
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
@@ -704,6 +707,23 @@ export const resolvers = {
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve({status:'OK:'+numberUpdated}) }}            
       const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'WiFiSettings'},{$set:WiFiConf} , {upsert:true}, callback.bind({resolve,reject}))})    
       return p.then((v)=>v).catch((v)=>v)   
+     },
+
+     ping(parent,{ip_addr},info){
+      const p = new Promise((resolve,reject)=>cmd.get("ping -c3 "+ip_addr,(err,data,stderr)=>{
+        if(err)reject(err)
+         else{
+          if(data)
+          resolve(data) 
+          else
+          resolve(stderr) 
+         } 
+        }))
+        return p.then().catch()   
+     },
+     switch_io_test(){
+      return dioTest()
+       
      }
   }   
 }

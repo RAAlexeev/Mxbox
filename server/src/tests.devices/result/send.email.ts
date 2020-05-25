@@ -9,15 +9,16 @@ export  function sendMail(email:Email, device?:Device, ruleIndex?){
     db_settings.loadDatabase()
      db_settings.findOne({_id:'smtp'}, async function(err,smtpConf:any){
       console.dir(email)
+      if(err && !smtpConf){ 
+        console.error(err)
+        return err;
+      }
     let s= new SMTPClient({
       secure:true,  
       host: smtpConf.address,
       port: smtpConf.port
     });
-    if(err){ 
-      console.error(err)
-      return err;
-    }
+
     try{
       await s.connect();
       await s.greet({hostname: 'mxBox', timeout:0 }); // runs EHLO command or HELO as a fallback
