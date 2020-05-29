@@ -200,7 +200,6 @@ import cmd  from 'node-cmd'
       encoding: String!
     }
     type Mutation{
-      
       procUpload(file: Upload!): File!
       settingsUpload(file:Upload!):File!
       addAsTemplate(_id:ID!):Result
@@ -225,6 +224,7 @@ import cmd  from 'node-cmd'
       exchangeNum( sNum:String!, dNum:String! ):Result
       ping(ip_addr:String):String
       switch_io_test:Boolean
+      tested(sms:SmsInput, email:EmailInput):Result
     }
 `);
 
@@ -302,6 +302,8 @@ import { reloadCronTask } from './tests.devices/cron.test'
 import { isArray } from 'util'
 import { getStateIO } from './io'
 import { dioTest } from './tests.devices/dio.test'
+import { sendSMS } from './tests.devices/result/send.sms'
+import { sendMail } from './tests.devices/result/send.email'
 
 
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
@@ -724,7 +726,12 @@ export const resolvers = {
      switch_io_test(){
       return dioTest()
        
+     },
+     tested(parent,{sms,email},info){
+      if(sms)sendSMS(sms)
+      if(email)sendMail(email) 
      }
+
   }   
 }
 

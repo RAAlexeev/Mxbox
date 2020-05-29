@@ -107,6 +107,19 @@ export class HomeStore {
         throw  err
       } 
     }
+    async testSMS(sms){
+      try{
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation tested($sms:InputSMS){ tested(sms:$sms) }`, 
+          variables:{ sms: sms },
+          fetchPolicy: 'no-cache'  
+        })
+        this.pingResult = result.data.ping 
+      }catch(err){
+       // this.APN[name]=save
+        throw  err
+      }
+    }
       destructor(){
         if(this.subscription)this.subscription.unsubscribe()
       }

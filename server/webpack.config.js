@@ -23,26 +23,16 @@ const serverConf={
   mode:"production",
   context: path.join(__dirname, './src'),
   entry: {
-    main: './app-server.ts',
-     vendor : [
-      'apollo-server-express',
-      'graphql',
-      'nedb',
-      'node-cron',
-      'fs',
-      'crypto',
-      'zlib',
-      'graphql-tag',
-      'tar-fs'
-    ] 
+    main: './app-server.ts'
   },
+  
   output: {
     path: outPath,
     filename: '[name].js',
     chunkFilename: '[name].js',
-    library:'bundle.js',
-    libraryTarget: "commonjs2",
-    publicPath: '/'
+   // library:'bundle.js',
+  //  libraryTarget: "commonjs2",
+  //  publicPath: '/'
   },
   target:'async-node',
   resolve: {
@@ -92,21 +82,23 @@ optimization: {
   splitChunks: {
 
     chunks: 'async',
-   // minSize: 30000,
-   // maxSize: 0,
-    minChunks: 1,
-    maxAsyncRequests: 5,
-    maxInitialRequests: 3,
+    //minSize: 30000,
+    //maxSize: 0,
+    minChunks: 2,
+    name:false,
+  //  maxAsyncRequests: 50,
+    maxInitialRequests: Infinity,
     automaticNameDelimiter: '~',
-    name: true,
     cacheGroups: {
-      vendors: {
+      defaultVendors: {
         test: /[\\/]node_modules[\\/]/,
         priority: -10,
-       reuseExistingChunk: true
+        name:'vendors'
       },
       default: {
-        priority: -20
+        minChunks: 2,
+        priority: -20,
+        reuseExistingChunk: true
         
       }
     }

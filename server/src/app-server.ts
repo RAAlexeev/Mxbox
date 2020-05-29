@@ -14,6 +14,8 @@ import * as fs from 'fs'
 import { ioInit } from './io';
 import { init } from './tests.devices/result/send.sms';
 import { getAPN } from './APN';
+import setSoftap from './set.softap';
+setSoftap();
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});

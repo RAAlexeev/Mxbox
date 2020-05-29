@@ -8,6 +8,7 @@ import Switch from 'react-toolbox/lib/switch';
 import { isUndefined } from 'util';
 import Button from 'react-toolbox/lib/button';
 import { Input } from 'react-toolbox/lib/input';
+import { SmsDialog } from './sms.dialog';
 
 
 @observer
@@ -37,7 +38,7 @@ interface HomeComponentProps {
 @inject('appStore', 'homeStore')
 @observer
 export class HomeComponent extends React.Component<HomeComponentProps, any> {
-
+  dialogs:{smsDialog:SmsDialog}
   render() {
  /*    const  obj2htmltable =(obj) =>{
       var html = '<table>';
@@ -53,7 +54,7 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
     const props = {
       dangerouslySetInnerHTML: { __html: obj2htmltable(homeStore.info) },
     }; */
-      
+    <SmsDialog ref={instance =>  this.dialogs.smsDialog = instance } />   
     const { homeStore, appStore } = this.props
     return <div>
         <h2>Конфигуратор системы оповещения и мониторинга MxBox©</h2>
@@ -104,7 +105,8 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
             checked={homeStore.ioTest}
             label="тестирование DIO"
             onChange={homeStore.switch_ioTest.bind(homeStore)}
-          />  
+          />
+          <Button flat icon="sms" onClick={this.dialogs.smsDialog.handleToggle.bind(homeStore,{sms:{numbers:[],text:""}},homeStore.testSMS)} >Тестовая SMS...</Button> 
         </div>
   }
   

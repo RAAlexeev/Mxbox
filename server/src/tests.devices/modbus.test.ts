@@ -374,21 +374,21 @@ export class TestDevicesModbus {
      static async onTrig( device:Device, rule:Rule ){
        // console.log(rule)
         if( rule && isArray(rule.acts)  ) 
-        for( const act of rule.acts )if(act)
+        for( const act of rule.acts )if( act )
             {  
                 
                 if( act.email ){
                     let body = act.email.body
                      const bReg = body?this.parse(body):undefined
                      
-                      if(bReg && body){
+                      if( bReg && body ){
                         await  this.reguesting(bReg,client,device)
                           for(const reg of bReg){
                             body = body.replace(reg.pattern,'('+ reg.val + ')') 
                           }
                       }
 
-                     sendMail( {...act.email,body:body}, device, device.rules.findIndex(_rule=>{return _rule===rule}) ); 
+                     sendMail( {...act.email,body:body }, device, device.rules.findIndex(_rule=>{return _rule===rule }) ); 
                 }
                 if( act.sms ){
                     let txt = act.sms.text
@@ -465,7 +465,7 @@ export class TestDevicesModbus {
 }
         
     private static getSizeDataReguest(reg:Reg):number{
-        if( reg.qualifier )
+    
          if( reg.qualifier==='f') return 2
          
         return 1

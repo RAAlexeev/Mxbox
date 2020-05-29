@@ -1,9 +1,7 @@
 import Dialog from 'react-toolbox/lib/dialog';
-import React = require('react');
+import * as React  from 'react';
 import Input from 'react-toolbox/lib/input';
-import { observable } from 'mobx';
 import Button from 'react-toolbox/lib/button';
-import * as appStyle from '../../app.css'
 import Autocomplete from 'react-toolbox/lib/autocomplete';
 import { DevicesStore } from '../../devices/devices.store';
 
