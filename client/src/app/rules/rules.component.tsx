@@ -11,16 +11,16 @@ import { DevicesStore } from '../devices/devices.store';
 import { Trigs } from './trigs/trigs.component';
 import { TrigsStore } from './trigs/trigs.store';
 import { CodeDialog } from './dialogs/code.dialog';
-import { EmailDialog } from './dialogs/email.dialog';
+import { EmailDialog } from '../dialogs/email.dialog';
 import { Acts } from './acts/acts.component'
 import { ActsStore } from './acts/acts.store';
-import { SmsDialog } from './dialogs/sms.dialog';
+import { SmsDialog } from '../dialogs/sms.dialog';
 import {TemplateMenu } from './contextenu.componet'
 import { TemplatesStore } from './templates.store';
 import Tooltip from 'react-toolbox/lib/tooltip';
 import { CronDialog } from './dialogs/cron.dialog';
 import './style.css'
-import { RealyDialog } from './dialogs/realy.dialog';
+import { RealyDialog } from '../dialogs/realy.dialog';
 import { DoDialog } from './dialogs/DO.dialog';
 const TooltipButton = Tooltip( Button )
 @inject('appStore','devicesStore')
@@ -69,7 +69,7 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
   realyDialog?:RealyDialog;
   doDialog?:DoDialog;
   } ={}
-  
+
    render() {
   
     const { rulesStore, appStore, devicesStore } = this.props 

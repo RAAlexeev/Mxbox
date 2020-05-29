@@ -3,12 +3,13 @@ import { db, pubsub, LINK_STATE_CHENG, Device, isMutated, portReinit, db_setting
 import { sendMail } from './result/send.email'
 import { sendSMS } from './result/send.sms'
 import { debug, isArray } from 'util'
-import SerialPort from 'serialport'
+//import * as SerialPort from 'serialport'
+const SerialPort = require('serialport');
 import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
-import cmd  from 'node-cmd'
 import { parseCommand } from '../commands/joson';
 import  crc16 from 'modbus-serial/utils/crc16'
 import * as io from '../io'
+
 //import { findTypesThatChangedKind } from 'graphql/utilities/findBreakingChanges';
 const MBAPheaderLenght = 7
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -24,8 +25,8 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                             
                           //  pubsub.subscribe()
                             
-                            db_settings.findOne<any>( { '_id':'portsSettings' },
-                                  async( err,  settings )=>{
+                            db_settings.findOne( { '_id':'portsSettings' },
+                                  async( err,  settings:any )=>{
 
                                 if(err) {
                                     console.error(err)
@@ -53,11 +54,14 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                         client.setTimeout(1000);
                                         
                                                 const cancelPromise = (obj)=> new Promise((resolve, reject) => {
-                                                    obj.cancel = resolve.bind(null, { canceled: true })
+                                                    obj.cancel = resolve.bind(this, { canceled: true })
                                                     
                                                 }) 
-                                                
-                                        const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: parseInt(settings['1'].param[2]) })
+                                        console.log(SerialPort)      
+                                        const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: settings['1'].param[2]==1?1:2 },(err)=>{
+                                            console.error(err)
+                                            this.reject(err)
+                                        })
                                        
                                         proxyPort.on("data",data=>{
                                             
@@ -75,55 +79,56 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                             if([1,2,3,4,5,6,15,16].includes(data[1])){
                                               if(data.length === 2 + 4 + 2 + ( [15,16].includes(data[1]) ? data[6]:0) ){
                                                 RTUproxyReguest.push({data:data, query:0})
-                                                if(proxyPort.cancel)proxyPort.cancel()
+                                                if(proxyPort['cancel'])proxyPort['cancel']()
                                               }
                                               else{
                                                     const index = data.findIndex((item,index,array)=>{
                                                         return ((index > (2 + 4 + ([15,16].includes(array[1])?array[6]:0) + 2+1)) && [1,2,3,4,5,6,15,16].includes(item) )                                                
                                                 })
                                                 if(index>=0) {
-                                                    proxyPort.buff = data.splice(index,data.length-index)
+                                                    proxyPort["buff"] = data.splice(index,data.length-index)
                                                     RTUproxyReguest.push({data:data, query:0})
-                                                    if(proxyPort.cancel)proxyPort.cancel()
+                                                    if(proxyPort['cancel'])proxyPort['cancel']()
                                                 }
                                               }
                                             } else {
-                                                if(proxyPort.buff){
-                                                    RTUproxyReguest.push({data:proxyPort.buff.push(data), query:0})
-                                                    if(proxyPort.cancel)proxyPort.cancel()
-                                                    delete(proxyPort.buff)
+                                                if( proxyPort["buff"]){
+                                                    RTUproxyReguest.push({data: proxyPort["buff"].push(data), query:0})
+                                                    if(proxyPort['cancel'])proxyPort['cancel']()
+                                                    delete(proxyPort['buff'])
                                                 }
                                             }
                                         }
                                         })
                                         
-                                        const port = new SerialPort("/dev/ttyMT1",{ baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) })
+                                        const port =  new SerialPort("/dev/ttyMT1",{ baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: (settings['0'].param[2]==1?1:2) }
+                                        ,err=>console.error(err))
                                         port.on("data", data=>{
                                                 
                                             console.log(data)
                                             
                                                 if([1,2,3,5].includes(data[1]) && (data[2] > data.length-2-1-2)){
-                                                    port.buf =  Buffer.from( data )
+                                                    port["buf"] =  Buffer.from( data )
                                                     return 
-                                                }else if(port.buf){
+                                                }else if(port["buf"]){
                                                   
-                                                    if(port.buf[2] > port.buf.length-2-1-2){
-                                                        port.buf=Buffer.concat([port.buf,data])    
-                                                        if(port.buf[2] > port.buf.length-2-1-2)return
+                                                    if(port["buf"][2] > port["buf"].length-2-1-2){
+                                                        port["buf"]=Buffer.concat([port["buf"],data])    
+                                                        if(port["buf"][2] > port["buf"].length-2-1-2)return
                                                     }
                                                 
                                                 } 
                                               
                                                 if(TCPproxyReguest[0]&&TCPproxyReguest[0].query) {
                                                    const MBAPheader:Buffer = TCPproxyReguest[0].data.slice(0,MBAPheaderLenght-1)
-                                                   MBAPheader.writeUInt16LE(port.buf? port.buf.length:data.length,4)
-                                                    TCPproxyReguest.shift().sock.write(port.buf? Buffer.concat([MBAPheader, port.buf]) : Buffer.concat([MBAPheader,data]))                                     
+                                                   MBAPheader.writeUInt16LE(port["buf"]? port["buf"].length:data.length,4)
+                                                    TCPproxyReguest.shift().sock.write(port["buf"]? Buffer.concat([MBAPheader, port["buf"]]) : Buffer.concat([MBAPheader,data]))                                     
                                                 }else if(RTUproxyReguest[0]&& RTUproxyReguest[0].query){
                                                     RTUproxyReguest.shift() 
-                                                    proxyPort.write(port.buf? port.buf : data)
+                                                    proxyPort.write(port["buf"]? port["buf"] : data)
                                                 }
-                                                delete port.buf
-                                                if(port.cancel)port.cancel()
+                                                delete port["buf"]
+                                                if(port["cancel"])port["cancel"]()
                                                                                         
                                         })
                            
@@ -174,7 +179,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                             debug('proxyQuery4')
                                                             //console.dir(reguest)
                                                             reguest[0].query++
-                                                            delete(port.buf)
+                                                            delete(port["buf"])
                                                             let data = reguest[0].data
                                                             if(reguest[0].sock){
                                                                 const crc:Buffer = Buffer.allocUnsafe(2)
@@ -374,21 +379,21 @@ export class TestDevicesModbus {
      static async onTrig( device:Device, rule:Rule ){
        // console.log(rule)
         if( rule && isArray(rule.acts)  ) 
-        for( const act of rule.acts )if(act)
+        for( const act of rule.acts )if( act )
             {  
                 
                 if( act.email ){
                     let body = act.email.body
                      const bReg = body?this.parse(body):undefined
                      
-                      if(bReg && body){
+                      if( bReg && body ){
                         await  this.reguesting(bReg,client,device)
                           for(const reg of bReg){
                             body = body.replace(reg.pattern,'('+ reg.val + ')') 
                           }
                       }
 
-                     sendMail( {...act.email,body:body}, device, device.rules.findIndex(_rule=>{return _rule===rule}) ); 
+                     sendMail( {...act.email,body:body }, device, device.rules.findIndex(_rule=>{return _rule===rule }) ); 
                 }
                 if( act.sms ){
                     let txt = act.sms.text
@@ -465,7 +470,7 @@ export class TestDevicesModbus {
 }
         
     private static getSizeDataReguest(reg:Reg):number{
-        if( reg.qualifier )
+    
          if( reg.qualifier==='f') return 2
          
         return 1

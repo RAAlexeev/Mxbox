@@ -178,6 +178,20 @@ async onUpload (value){
       }
     },500)
     }
+  //  @observable testEmailStatus=''
+    async testEmail(email){
+      try{
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation tested($email:InputEmail){ tested(email:$email) }`, 
+          variables:{ email: email },
+          fetchPolicy: 'no-cache'  
+        })
+        alert('Оправлено...')
+      }catch(err){
+        alert(err.message)
+        throw  err
+      }
+    }
   constructor(){  
     // this.smtpSettings={
     //    address:undefined,     port:undefined,  name:undefined,  password:undefined

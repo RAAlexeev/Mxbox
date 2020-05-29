@@ -204,12 +204,12 @@ node: {
       
       chunks: 'async',
       maxInitialRequests: Infinity,
-      minSize: 0,
+      minSize: 30000,
    cacheGroups: {
      vendor: {
        test: /[\\/]node_modules[\\/]/,
        name: 'vendor',
-       enforce: true,
+       //enforce: true,
        //chunks: 'all'
      },
    },

@@ -2,7 +2,7 @@ import Dialog from 'react-toolbox/lib/dialog';
 import React = require('react');
 import Dropdown from 'react-toolbox/lib/dropdown';
 import { Act } from '../acts/acts.store';
-import { observable } from 'mobx';
+
 
 
 export class DoDialog extends React.Component {

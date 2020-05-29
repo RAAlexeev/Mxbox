@@ -1,5 +1,5 @@
-import  * as fs  from 'fs'
-import { dioTest } from './tests.devices/dio.test';
+import * as fs  from 'fs'
+
 
 
 const _di = [56,128,89,109,24,25,27] 

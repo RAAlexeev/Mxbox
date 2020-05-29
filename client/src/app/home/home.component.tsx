@@ -8,6 +8,7 @@ import Switch from 'react-toolbox/lib/switch';
 import { isUndefined } from 'util';
 import Button from 'react-toolbox/lib/button';
 import { Input } from 'react-toolbox/lib/input';
+import { SmsDialog } from '../dialogs/sms.dialog';
 
 
 @observer
@@ -17,6 +18,9 @@ export class Home extends React.Component<any, any> {
   componentWillMount() {
 
     DevicesStore.getInstance().select(null)
+    
+    
+   
   }
 
   render() {
@@ -37,25 +41,14 @@ interface HomeComponentProps {
 @inject('appStore', 'homeStore')
 @observer
 export class HomeComponent extends React.Component<HomeComponentProps, any> {
-
+  dialogs:{smsDialog?:SmsDialog,  
+  }={}
+  smsDialogHandleToggle=()=>{this.dialogs.smsDialog.handleToggle({sms:{numbers:[],text:""}},this.props.homeStore.testSMS)}
   render() {
- /*    const  obj2htmltable =(obj) =>{
-      var html = '<table>';
-      for (var key in obj) {
-          var item = obj[key];
-          var value = (typeof(item) === 'object') ? obj2htmltable(item) : item.toString();
-          html += '<tr><td>' + key + '</td><td>' + value + '</tr>';
-      }
-      html += '</table>';
-      return html;
-  }
+   
     const { homeStore, appStore } = this.props
-    const props = {
-      dangerouslySetInnerHTML: { __html: obj2htmltable(homeStore.info) },
-    }; */
-      
-    const { homeStore, appStore } = this.props
-    return <div>
+    return <div> 
+      <SmsDialog actionLabel1="Отправить..." ref={instance => this.dialogs.smsDialog = instance}/>
         <h2>Конфигуратор системы оповещения и мониторинга MxBox©</h2>
         <p>Позволяет конфигурировать серверную часть системы, создавая "Правила" для устройств, подключенных к MxBox©, и определяя в них события и соответствующие событиям действия.
         Для добавления устройства к перечню подключенных к системе оповещения следует в левой панели основного (первого) экрана нажать курсором (левой клавишей мыши) на красный значок +. Внизу панели добавится поле ввода наименования и Modbus-адреса нового устройства.</p>
@@ -104,7 +97,8 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
             checked={homeStore.ioTest}
             label="тестирование DIO"
             onChange={homeStore.switch_ioTest.bind(homeStore)}
-          />  
+          />
+          <Button flat icon="sms" onClick={this.smsDialogHandleToggle.bind(this)} >Тестовая SMS...</Button> 
         </div>
   }
   

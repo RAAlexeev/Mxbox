@@ -7,8 +7,9 @@ import { DevicesStore } from '../devices/devices.store';
 import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
 import * as theme from './settings.css'
-import { BrowseButton } from 'react-toolbox/lib/button';
+import Button, { BrowseButton } from 'react-toolbox/lib/button';
 import {Tab, Tabs} from 'react-toolbox/lib/tabs';
+import { EmailDialog } from '../dialogs/email.dialog'
 
 
 
@@ -54,7 +55,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   componentWillMount() {
   
   }
-
+  dialogs : {emailDialog?:EmailDialog }={}
   render() {
     
 
@@ -64,6 +65,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
     
     return (
        <section>
+         <EmailDialog  ref={ instance =>  this.dialogs.emailDialog = instance }/>
+
           <Tabs index={this.state.index} onChange={this.handleTabChange}>
 
           <Tab label='Общие'>
@@ -155,7 +158,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
               avatar=''
               title="Сервер почты"
               subtitle="настройки"
-            />
+            ><Button flat icon="email" onClick={this.dialogs.emailDialog.handleToggle.bind(settingsStore,{sms:{numbers:[],text:""}},settingsStore.testEmail)} >Тестовая SMS...</Button> 
+            </CardTitle>
     
      <CardText> 
         <Input
