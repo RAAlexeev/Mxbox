@@ -1,6 +1,10 @@
 {
   "name": "mxbox-server",
+<<<<<<< HEAD
   "version": "0.0.75",
+=======
+  "version": "0.0.66",
+>>>>>>> 2b7387927a473b7ee40d1259f1253e1a3a6f534c
   "description": "",
   "main": "webpack.config.js",
   "scripts": {

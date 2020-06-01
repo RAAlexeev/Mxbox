@@ -8,7 +8,11 @@ import Switch from 'react-toolbox/lib/switch';
 import { isUndefined } from 'util';
 import Button from 'react-toolbox/lib/button';
 import { Input } from 'react-toolbox/lib/input';
+<<<<<<< HEAD
 import { SmsDialog } from '../dialogs/sms.dialog';
+=======
+import { SmsDialog } from './sms.dialog';
+>>>>>>> 2b7387927a473b7ee40d1259f1253e1a3a6f534c
 
 
 @observer
@@ -41,11 +45,31 @@ interface HomeComponentProps {
 @inject('appStore', 'homeStore')
 @observer
 export class HomeComponent extends React.Component<HomeComponentProps, any> {
+<<<<<<< HEAD
   dialogs:{smsDialog?:SmsDialog,  
   }={}
   smsDialogHandleToggle=()=>{this.dialogs.smsDialog.handleToggle({sms:{numbers:[],text:""}},this.props.homeStore.testSMS)}
   render() {
    
+=======
+  dialogs:{smsDialog:SmsDialog}
+  render() {
+ /*    const  obj2htmltable =(obj) =>{
+      var html = '<table>';
+      for (var key in obj) {
+          var item = obj[key];
+          var value = (typeof(item) === 'object') ? obj2htmltable(item) : item.toString();
+          html += '<tr><td>' + key + '</td><td>' + value + '</tr>';
+      }
+      html += '</table>';
+      return html;
+  }
+    const { homeStore, appStore } = this.props
+    const props = {
+      dangerouslySetInnerHTML: { __html: obj2htmltable(homeStore.info) },
+    }; */
+    <SmsDialog ref={instance =>  this.dialogs.smsDialog = instance } />   
+>>>>>>> 2b7387927a473b7ee40d1259f1253e1a3a6f534c
     const { homeStore, appStore } = this.props
     return <div> 
       <SmsDialog actionLabel1="Отправить..." ref={instance => this.dialogs.smsDialog = instance}/>
@@ -98,7 +122,11 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
             label="тестирование DIO"
             onChange={homeStore.switch_ioTest.bind(homeStore)}
           />
+<<<<<<< HEAD
           <Button flat icon="sms" onClick={this.smsDialogHandleToggle.bind(this)} >Тестовая SMS...</Button> 
+=======
+          <Button flat icon="sms" onClick={this.dialogs.smsDialog.handleToggle.bind(homeStore,{sms:{numbers:[],text:""}},homeStore.testSMS)} >Тестовая SMS...</Button> 
+>>>>>>> 2b7387927a473b7ee40d1259f1253e1a3a6f534c
         </div>
   }
   

@@ -114,9 +114,15 @@ export class HomeStore {
           variables:{ sms: sms },
           fetchPolicy: 'no-cache'  
         })
+<<<<<<< HEAD
         alert("Отправлено...")
       }catch(err){
         alert(err.message)
+=======
+        this.pingResult = result.data.ping 
+      }catch(err){
+       // this.APN[name]=save
+>>>>>>> 2b7387927a473b7ee40d1259f1253e1a3a6f534c
         throw  err
       }
     }
