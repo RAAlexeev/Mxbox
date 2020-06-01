@@ -16,23 +16,22 @@ var WebpackAutoInject = require('webpack-auto-inject-version');
 const serverConf={
   externals:{
     serialport: "serialport",
-    //node_modbus:"node-modbus"
+   //node_modbus:"node-modbus"
     
   },
- mode:"development",
- // mode:"production",
+  //mode:"development",
+  mode:"production",
   context: path.join(__dirname, './src'),
   entry: {
     main: './app-server.ts'
   },
-  
   output: {
     path: outPath,
     filename: '[name].js',
     chunkFilename: '[name].js',
-   // library:'bundle.js',
-  //  libraryTarget: "commonjs2",
-  //  publicPath: '/'
+    library:'bundle.js',
+    libraryTarget: "commonjs2",
+    publicPath: '/'
   },
   target:'async-node',
   resolve: {
@@ -69,7 +68,7 @@ const serverConf={
       }
   }),
     new webpack.LoaderOptionsPlugin({
-      debug: true
+     // debug: true
     }),
     new NodemonPlugin(), // Dong
 ],
@@ -82,28 +81,26 @@ optimization: {
   splitChunks: {
 
     chunks: 'async',
-    //minSize: 30000,
-    //maxSize: 0,
-    minChunks: 2,
-    name:false,
-  //  maxAsyncRequests: 50,
-    maxInitialRequests: Infinity,
+   // minSize: 30000,
+   // maxSize: 0,
+    minChunks: 1,
+    maxAsyncRequests: 5,
+    maxInitialRequests: 3,
     automaticNameDelimiter: '~',
+    name: true,
     cacheGroups: {
-      defaultVendors: {
+      vendors: {
         test: /[\\/]node_modules[\\/]/,
         priority: -10,
-        name:'vendors'
+       reuseExistingChunk: true
       },
       default: {
-        minChunks: 2,
-        priority: -20,
-        reuseExistingChunk: true
+        priority: -20
         
       }
     }
   }
-}
+},
 //externals: [nodeExternals()]
 }
 

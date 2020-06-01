@@ -3,8 +3,6 @@ import { db, pubsub, LINK_STATE_CHENG, Device, isMutated, portReinit, db_setting
 import { sendMail } from './result/send.email'
 import { sendSMS } from './result/send.sms'
 import { debug, isArray } from 'util'
-//import * as SerialPort from 'serialport'
-const SerialPort = require('serialport');
 import { TCPproxyReguest } from './modbusProxy/TCP.proxy';
 import { parseCommand } from '../commands/joson';
 import  crc16 from 'modbus-serial/utils/crc16'
@@ -57,10 +55,12 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     obj.cancel = resolve.bind(this, { canceled: true })
                                                     
                                                 }) 
-                                        console.log(SerialPort)      
+                                                const SerialPort = require('serialport')
+                                                const serialPort = SerialPort.serialPort;
+                                                //const bindings = require('@serialport/bindings')
+                                        console.debug(SerialPort)      
                                         const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: settings['1'].param[2]==1?1:2 },(err)=>{
                                             console.error(err)
-                                            this.reject(err)
                                         })
                                        
                                         proxyPort.on("data",data=>{
