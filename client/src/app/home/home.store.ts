@@ -107,22 +107,22 @@ export class HomeStore {
         throw  err
       } 
     }
-    async testSMS(sms){
+    async testSMS({sms}){
       try{
         const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-          mutation: gql`mutation tested($sms:InputSMS){ tested(sms:$sms) }`, 
+          mutation: gql`mutation tested($sms:SmsInput){ tested(sms:$sms){status} }`, 
           variables:{ sms: sms },
           fetchPolicy: 'no-cache'  
         })
-        alert("Отправлено...")
+     if(result.data.tested.status)alert(result.data.tested.status)
       }catch(err){
-        alert(err.message)
+       // alert(err.message)
         throw  err
       }
     }
-      destructor(){
+    destructor(){
         if(this.subscription)this.subscription.unsubscribe()
-      }
+    }
 
 /*   @observable counter = 0
   increment = () => {

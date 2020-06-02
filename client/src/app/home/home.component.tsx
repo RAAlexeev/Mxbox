@@ -43,7 +43,8 @@ interface HomeComponentProps {
 export class HomeComponent extends React.Component<HomeComponentProps, any> {
   dialogs:{smsDialog?:SmsDialog 
   }={}
-  smsDialogHandleToggle=()=>{this.dialogs.smsDialog.handleToggle({sms:{numbers:[],text:""}},this.props.homeStore.testSMS)}
+  obj={sms:{numbers:[""],text:"ТЕСТ"}}
+  smsDialogHandleToggle=()=>{this.dialogs.smsDialog.handleToggle(this.obj,this.props.homeStore.testSMS)}
   
   render() {
    
@@ -57,8 +58,26 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
         По всем вопросам и предложениям пишите:<a href="mailto:alekseev@mx-omsk.ru">alekseev@mx-omsk.ru</a>
         
  <h2>Информация о системе  <Button flat= {true} icon="replay" onClick={homeStore.loadInfo.bind(this)} /></h2>
-        уровень сигнала(RSSI dB (> 9 OK)):{homeStore.signalQuality}
-        { isUndefined( homeStore.info.ifaces )?null:
+ <Input  style={{width:'auto',float:'left'}}   
+                    floating
+                    type='text'
+                    label='Адрес:'
+                    name='ip_addr'
+                    hint='ya.ru'
+                    error=''
+                    value={homeStore.ip_addr}
+                    onChange={homeStore.set_ip_addr.bind(homeStore)}
+                  />
+  <Button flat icon="compare_arrows" onClick={homeStore.ping.bind(homeStore)} >ping</Button>
+  <Button flat icon="sms" onClick={this.smsDialogHandleToggle.bind(this)} >Тестовая SMS...</Button>          
+  <Switch style={{width:'auto',display:'inline-block'}}   
+            checked={homeStore.ioTest}
+            label="тестирование DIO"
+            onChange={homeStore.switch_ioTest.bind(homeStore)}
+          />
+        <p>{homeStore.pingResult}</p>          
+       <h3> уровень сигнала(RSSI dB (> 9 OK)):{homeStore.signalQuality}</h3>
+        {isUndefined( homeStore.info.ifaces )?null:
         <table>
          <caption>Сетевые_интерфейсы</caption> 
         <tbody>     
@@ -71,35 +90,18 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
                                                                               return <tr  key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
             }):null}
         </tbody></table>}
-        <Input  style={{width:'auto',float:'left'}}   
-                    floating
-                    type='text'
-                    label='Адрес:'
-                    name='ip_addr'
-                    hint='ya.ru'
-                    error=''
-                    value={homeStore.ip_addr}
-                    onChange={homeStore.set_ip_addr.bind(homeStore)}
-                  />
-        <Button flat icon="compare_arrows" onClick={homeStore.ping.bind(homeStore)} >ping</Button>
-        <p>{homeStore.pingResult}</p>          
         <table><caption>Разное</caption><tbody> 
         <tr><td>firmware:</td><td>{homeStore.info.firmware}</td></tr>
           <tr><td>uptime:</td><td>{homeStore.info.uptime}</td></tr>
           <tr><td>hostname:</td><td>{homeStore.info.hostname}</td></tr>
           <tr><td>freemem:</td><td>{homeStore.info.freemem}</td></tr>
           </tbody></table>
-
           <table><caption>{homeStore.info.io?"IO":null}</caption><tbody> 
           {homeStore.info.io?homeStore.info.io.map((item,_key)=><tr key={_key}>{_key?<td>{(_key<7?"DI"+_key:"DO"+(_key-6))}</td>:null}<td>{item}</td></tr>
           ):null}
           </tbody></table>
-          <Switch
-            checked={homeStore.ioTest}
-            label="тестирование DIO"
-            onChange={homeStore.switch_ioTest.bind(homeStore)}
-          />
-          <Button flat icon="sms" onClick={this.smsDialogHandleToggle.bind(this)} >Тестовая SMS...</Button> 
+
+          
         </div>
   }
   

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { NavLink } from 'react-router-dom'
 import * as style from './app.css'
-import { Layout, NavDrawer, Panel, Sidebar } from 'react-toolbox/lib/layout';
+import { Layout, NavDrawer, Panel } from 'react-toolbox/lib/layout';
 import { AppBar } from 'react-toolbox/lib/app_bar';
 import {Devices} from './devices/devices.component'
 import { inject } from 'mobx-react';

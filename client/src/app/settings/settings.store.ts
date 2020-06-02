@@ -182,11 +182,11 @@ async onUpload (value){
     async testEmail(email){
       try{
         const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-          mutation: gql`mutation tested($email:InputEmail){ tested(email:$email) }`, 
+          mutation: gql`mutation tested($email:InputEmail){ tested(email:$email){status} }`, 
           variables:{ email: email },
           fetchPolicy: 'no-cache'  
         })
-        alert('Оправлено...')
+        alert(result.data.tested.status)
       }catch(err){
         alert(err.message)
         throw  err

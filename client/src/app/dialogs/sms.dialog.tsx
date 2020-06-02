@@ -68,7 +68,7 @@ export class SmsDialog extends React.Component<any> {
    componentWillMount() {
     DevicesStore.getInstance().getDirectory()
     this.setState({...this.state, directory: DevicesStore.getInstance().directory.numbers})
-    console.log('!!',this.state.directory)
+    //console.log('!!',this.state.directory)
    
     
   }

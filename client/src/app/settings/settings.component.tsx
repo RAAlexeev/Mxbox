@@ -56,6 +56,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   
   }
   dialogs : {emailDialog?:EmailDialog }={}
+  tstEmail={email:{address:"",subject:"mxBox ТЕСТ",body:"тест"}}
+  emailDialogHandleToggle(settingsStore){this.dialogs.emailDialog.handleToggle(this.tstEmail,settingsStore.testEmail)}
   render() {
     
 
@@ -158,7 +160,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
               avatar=''
               title="Сервер почты"
               subtitle="настройки"
-            ><Button flat icon="email" onClick={this.dialogs.emailDialog.handleToggle.bind(settingsStore,{sms:{numbers:[],text:""}},settingsStore.testEmail)} >Тестовая SMS...</Button> 
+            ><Button flat icon="email" onClick={this.dialogs.emailDialog.handleToggle.bind(this,settingsStore)} >Тестовая SMS...</Button> 
             </CardTitle>
     
      <CardText> 

@@ -170,7 +170,7 @@ const getNetworkSignal = ()=>{
   }
 }
 export function sendSMS(sms:Sms,device?:Device){
-    let interval
+   if( !modem.isOpened ) return 'modem:close'
    const sendSMS =(sms:Sms,device?:Device)=>{
     const text=device?device.name +':'+sms.text:sms.text
    for(const mumber of sms.numbers)
@@ -188,10 +188,11 @@ export function sendSMS(sms:Sms,device?:Device){
                     setImmediate(sendSMS,sms,device)
                }
                pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send sms: '+ result.response }  });  
-             }
+             } else
+             pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send sms: '+ result.status }  });  
                  
            }
-       x().next()
+     
    }) 
 }
 

@@ -728,10 +728,11 @@ export const resolvers = {
        
      },
      tested(parent,{sms,email},info){
-      if(sms)sendSMS(sms)
-      if(email)sendMail(email) 
+      if(sms) return {status:sendSMS(sms)}
+      if(email) sendMail(email)
+      return 
      }
-
+     
   }   
 }
 
