@@ -1,6 +1,6 @@
 //https://www.npmjs.com/package/smtp-client
 import {SMTPClient} from 'smtp-client';
-import { db_settings, Email,Device } from '../../schema';
+import { db_settings, Email,Device, pubsub, ERROR_MESSAGES } from '../../schema';
 
  
 
@@ -11,7 +11,8 @@ export  function sendMail(email:Email, device?:Device, ruleIndex?){
       console.dir(email)
       if(err && !smtpConf){ 
         console.error(err)
-        return err;
+        pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send email: '+ err.message }  });  
+
       }
     let s= new SMTPClient({
       secure:true,  
@@ -26,11 +27,15 @@ export  function sendMail(email:Email, device?:Device, ruleIndex?){
       await s.mail( {from: smtpConf.name} ); // runs MAIL FROM command
       await s.rcpt( {to: email.address} ); // runs RCPT TO command (run this multiple times to add more recii)
       await s.data( 'To:'+email.address+'\r\n'+'From:' +smtpConf.name +' '+ (device?device.name:'') + '#'+ ruleIndex?ruleIndex:'' +'\r\nSubject:'+ email.subject+'\r\nContent-Type: text/plain\r\n\r\n' +email.body ); // runs DATA command and streams email source
-      await s.quit(); // runs QUIT command
+      await s.quit(); // runs QUIT command      pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send email: '+ e.message }  });  
+      pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:email.subject });  
+
     }catch(e){
-      console.error(e)
-      
+      console.error(e)               
+      pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send email: '+ e.message }  });  
+    
     }
+
   })
 
 

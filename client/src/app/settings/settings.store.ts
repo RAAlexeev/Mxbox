@@ -179,10 +179,10 @@ async onUpload (value){
     },500)
     }
   //  @observable testEmailStatus=''
-    async testEmail(email){
+    async testEmail({email}){
       try{
         const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-          mutation: gql`mutation tested($email:InputEmail){ tested(email:$email){status} }`, 
+          mutation: gql`mutation tested($email:EmailInput){ tested(email:$email){status} }`, 
           variables:{ email: email },
           fetchPolicy: 'no-cache'  
         })
