@@ -1,2 +1,2 @@
 #!/bin/bash
- tar --dereference -vzcf - ./dist | openssl  aes-256-cbc -p -nosalt -pass pass:qaqzwswxedec -out ../mxBox.tar.gz
+ rm ./mxBox.tar.gz & tar --dereference -vzcf - ./dist ./Release | openssl  aes-256-cbc -p -nosalt -pass pass:qaqzwswxedec -out ./mxBox.tar.gz

@@ -1,5 +1,5 @@
 import { ApolloServer } from 'apollo-server-express';
-import { schema } from './schema';
+import  schema  from './schema';
 import { mkdir } from 'fs';
 mkdir('/data/mxBox/DB',{recursive:true,mode:0x777},()=>{})
  export const apollo = new ApolloServer({

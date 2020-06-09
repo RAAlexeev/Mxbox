@@ -1,7 +1,7 @@
 import { observable } from 'mobx'
 import { AppStore } from '../app.store';
 import gql from 'graphql-tag';
-import { writeSync } from 'fs';
+
 
 export class SettingsStore {
   
@@ -89,12 +89,12 @@ async onUpload (value){
     }) 
     //console.log(result)
     if(result.data.procUpload.filename){
-      AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`${result.data.procUpload.filename} успешно загружен...`})
+      AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`${result.data.procUpload.filename} успешно загружен... презагрузка...`})
     }
   } 
   async loadSmtp(){
    const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-          query: gql`query getSmtpConfig{getSmtpConfig{address port name }}`,
+          query: gql`query getSmtpConfig{getSmtpConfig{address port name password}}`,
       variables:{},
       fetchPolicy: 'no-cache'
       }) 
@@ -130,15 +130,20 @@ async onUpload (value){
         }
 
         async loadWiFi(){
+          try{
           const result = await AppStore.getInstance().apolloClient.query<any,{}>({
                  query: gql`query getWiFiConfig{getWiFiConfig{SSID PSK TYPE}}`,
-             variables:{},
-             fetchPolicy: 'no-cache'
+                 variables:{},
+                 fetchPolicy: 'no-cache'
              }) 
              if(result.data.getWiFiConfig)
              this.WiFi = result.data.getWiFiConfig
              else throw new Error('Пустое значение getWiFiConfig')
+            }catch(err){
+              //alert(err.message)
+              throw err
             }
+          }
 
     async onAPNChange(name:string, value:string){
       let save=value
@@ -181,14 +186,14 @@ async onUpload (value){
   //  @observable testEmailStatus=''
     async testEmail({email}){
       try{
-        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+         await AppStore.getInstance().apolloClient.mutate<any,{}>({
           mutation: gql`mutation tested($email:EmailInput){ tested(email:$email){status} }`, 
           variables:{ email: email },
           fetchPolicy: 'no-cache'  
         })
-        alert(result.data.tested.status)
+        //alert(result.data.tested.status)
       }catch(err){
-        alert(err.message)
+      // alert(err.message)
         throw  err
       }
     }

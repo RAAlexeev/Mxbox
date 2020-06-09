@@ -81,9 +81,9 @@ export class AppStore {
     }).subscribe({
       next:({data})=> {
        const {errorMessages} = data 
-       //console.log('subscribe:',errorMessages)
+       console.log('subscription:',errorMessages)
         if( !(errorMessages) ) return;
-        if(this.appComponent)this.appComponent.snackbar.setState({active:true, label:errorMessages})
+        if(this.appComponent)this.appComponent.snackbar.setState({active:true, label:errorMessages.message})
        
       },
       error:(err)=> { console.error(err)

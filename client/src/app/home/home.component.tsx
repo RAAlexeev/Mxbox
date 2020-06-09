@@ -3,18 +3,18 @@ import { inject, observer, Provider } from 'mobx-react'
 import { HomeStore } from './home.store'
 import { AppStore } from '../app.store'
 import { DevicesStore } from '../devices/devices.store';
-import { UserProvider } from '../userContext';
+//import { UserProvider } from '../userContext';
 import Switch from 'react-toolbox/lib/switch';
 import { isUndefined } from 'util';
 import Button from 'react-toolbox/lib/button';
 import { Input } from 'react-toolbox/lib/input';
 import { SmsDialog } from '../dialogs/sms.dialog';
-
+import * as theme from './home.css'
 
 @observer
 export class Home extends React.Component<any, any> {
 
-  homeStore: HomeStore
+
   componentWillMount() {
 
     DevicesStore.getInstance().select(null)
@@ -24,11 +24,11 @@ export class Home extends React.Component<any, any> {
   }
 
   render() {
-    const user = { name: 'Tania', loggedIn: true }
+    //const user = { name: 'Tania', loggedIn: true }
     return <Provider homeStore={new HomeStore()}>
-      <UserProvider value={user}>
+
       <HomeComponent />
-      </UserProvider>
+
     </Provider>
   }
 }
@@ -38,9 +38,9 @@ interface HomeComponentProps {
   homeStore?: HomeStore
 }
 
+
 @inject('appStore', 'homeStore')
-@observer
-export class HomeComponent extends React.Component<HomeComponentProps, any> {
+@observer  class HomeComponent extends React.Component<HomeComponentProps, any> {
   dialogs:{smsDialog?:SmsDialog 
   }={}
   obj={sms:{numbers:[""],text:"ТЕСТ"}}
@@ -57,7 +57,7 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
         <p>Если устройство уже включено в перечень, выберите его курсором (при этом стрелка курсора превращается в "руку"), откорректируйте при необходимости наименование и адрес Modbus в поле Адрес. После выбора и/или корректировки параметров переведите курсор в на правую (серую) панель экрана и сформируйте/откорректируйте "Правила", руководствуясь выпадающей вкладкой подсказки.</p>
         По всем вопросам и предложениям пишите:<a href="mailto:alekseev@mx-omsk.ru">alekseev@mx-omsk.ru</a>
         
- <h2>Информация о системе  <Button flat= {true} icon="replay" onClick={homeStore.loadInfo.bind(this)} /></h2>
+ 
  <Input  style={{width:'auto',float:'left'}}   
                     floating
                     type='text'
@@ -70,13 +70,15 @@ export class HomeComponent extends React.Component<HomeComponentProps, any> {
                   />
   <Button flat icon="compare_arrows" onClick={homeStore.ping.bind(homeStore)} >ping</Button>
   <Button flat icon="sms" onClick={this.smsDialogHandleToggle.bind(this)} >Тестовая SMS...</Button>          
-  <Switch style={{width:'auto',display:'inline-block'}}   
+  <Switch  theme={theme}
             checked={homeStore.ioTest}
             label="тестирование DIO"
             onChange={homeStore.switch_ioTest.bind(homeStore)}
           />
-        <p>{homeStore.pingResult}</p>          
-       <h3> уровень сигнала(RSSI dB (> 9 OK)):{homeStore.signalQuality}</h3>
+        <p>{homeStore.pingResult}</p>  
+       <h2>Информация о системе  <Button flat= {true} icon="replay" onClick={homeStore.loadInfo.bind(this)} /></h2>        
+       <p>Регистрация в сети:{homeStore.CREG} </p>
+       <p> уровень сигнала(RSSI dB (> 9 OK)):{homeStore.signalQuality}</p>
         {isUndefined( homeStore.info.ifaces )?null:
         <table>
          <caption>Сетевые_интерфейсы</caption> 

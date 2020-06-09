@@ -1,3 +1,5 @@
+import * as SerialPort from 'serialport'
+
 import ModbusRTU from '../../node_modules/modbus-serial'
 import { db, pubsub, LINK_STATE_CHENG, Device, isMutated, portReinit, db_settings, DNK4_UPD_VIEW } from '../schema' 
 import { sendMail } from './result/send.email'
@@ -13,7 +15,6 @@ const MBAPheaderLenght = 7
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const client = new ModbusRTU();
 export const RTUproxyReguest:any[] = [];
-var  elapsed = false
 export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
             ,async( err,  devices:Device[] )=>{
                 if(err) console.error(err) 
@@ -55,10 +56,11 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     obj.cancel = resolve.bind(this, { canceled: true })
                                                     
                                                 }) 
-                                                const SerialPort = require('serialport')
-                                                const serialPort = SerialPort.serialPort;
+                                                
+                                               // let SerialPort
                                                 //const bindings = require('@serialport/bindings')
-                                        console.debug(SerialPort)      
+                                 
+                                        console.debug(SerialPort)
                                         const proxyPort = new SerialPort("/dev/ttyMT0", { baudRate: settings['1'].speed, parity:parity(settings['1'].param), stopBits: settings['1'].param[2]==1?1:2 },(err)=>{
                                             console.error(err)
                                         })

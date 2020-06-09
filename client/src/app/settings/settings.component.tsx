@@ -32,8 +32,7 @@ interface SettingsComponentProps {
   settingsStore?: SettingsStore
 }
 const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},{value:'8o1',label:'8 нечет 1'},{value:'8s1',label:'8 пробел 1'}]
-@inject('appStore', 'settingsStore')
-
+ @inject('appStore', 'settingsStore')
  @observer  class SettingsComponent extends React.Component<SettingsComponentProps, any> {
   //speeds:[{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]
   state = {
@@ -67,7 +66,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
     
     return (
        <section>
-         <EmailDialog  ref={ instance =>  this.dialogs.emailDialog = instance }/>
+         <EmailDialog  actionLabel1="Отправить..." ref={ instance =>  this.dialogs.emailDialog = instance }/>
 
           <Tabs index={this.state.index} onChange={this.handleTabChange}>
 
@@ -160,7 +159,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
               avatar=''
               title="Сервер почты"
               subtitle="настройки"
-            ><Button flat icon="email" onClick={this.dialogs.emailDialog.handleToggle.bind(this,settingsStore)} >Тестовая SMS...</Button> 
+            >
+              <Button flat icon="email" onClick={this.emailDialogHandleToggle.bind(this,settingsStore)} >Тестовое Email...</Button> 
             </CardTitle>
     
      <CardText> 
@@ -169,7 +169,6 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           label='Адрес smtp:'
           name='smtpAddress'
           hint='smtp.yandex.ru'
-          error=''
           value={settingsStore.smtpSettings.address?settingsStore.smtpSettings.address:''}
           onChange={settingsStore.onSmtpChange.bind(null,'address')}
         />        
@@ -178,7 +177,6 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           label='порт:'
           name='smtpPort'
           hint='465'
-          error=''
           value={settingsStore.smtpSettings.port?settingsStore.smtpSettings.port:''}
           onChange={(value)=>{settingsStore.onSmtpChange('port',parseInt(value))}}
         />
@@ -187,7 +185,6 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           label='Имя пользователя:'
           name='smtpName'
           hint='username'
-          error=''
           value={settingsStore.smtpSettings.name?settingsStore.smtpSettings.name:''}
           onChange={settingsStore.onSmtpChange.bind(this,'name')}
         />
@@ -196,8 +193,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           label='Пароль:'
           name='password'
           hint='password'
-          error=''
-          value={settingsStore.smtpSettings.password?settingsStore.smtpSettings.password:''}
+          value={settingsStore.smtpSettings.password}
           onChange={settingsStore.onSmtpChange.bind(this,'password')}
         />
    </CardText> 

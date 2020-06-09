@@ -5,7 +5,7 @@ import {apollo} from './index'
 import {  modbusTestRun } from './tests.devices/modbus.test';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
-import { schema } from './schema';
+import  schema  from './schema';
 import { AddressInfo } from 'net';
 import { loadCronTask } from './tests.devices/cron.test';
 import * as zlib from 'zlib'

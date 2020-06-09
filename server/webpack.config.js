@@ -1,3 +1,5 @@
+
+
 var webpack = require('webpack');
 var path = require('path');
 
@@ -9,18 +11,19 @@ var outPath = path.join(__dirname, './dist');
 const ASSET_PATH = process.env.ASSET_PATH || '/';
 const NodemonPlugin = require( 'nodemon-webpack-plugin' ) // Ding
 // plugins
-var nodeExternals = require('webpack-node-externals');
+//var nodeExternals = require('webpack-node-externals');
 
 var WebpackAutoInject = require('webpack-auto-inject-version');
 
 const serverConf={
+   // mode:" --mode=production",
+  //mode:"production",
   externals:{
-    serialport: "serialport",
-   //node_modbus:"node-modbus"
-    
-  },
-  //mode:"development",
-  mode:"production",
+  
+    //bindings:'bindings',
+    serialport:'serialport'
+   //node_modbus:"node-modbus"  
+  }, 
   context: path.join(__dirname, './src'),
   entry: {
     main: './app-server.ts'
@@ -29,8 +32,8 @@ const serverConf={
     path: outPath,
     filename: '[name].js',
     chunkFilename: '[name].js',
-    library:'bundle.js',
-    libraryTarget: "commonjs2",
+    library:'lib',
+    libraryTarget: "commonjs",
     publicPath: '/'
   },
   target:'async-node',
@@ -56,6 +59,10 @@ const serverConf={
         type: 'javascript/auto',
         test: /\.mjs$/,
         use: []
+      },
+      {
+      test: /\.node$/,
+      use: 'node-loader'
       }
     ]
   },
@@ -78,28 +85,28 @@ node: {
 optimization: {
   
   // minimize: false,
-  splitChunks: {
+  // splitChunks: {
 
-    chunks: 'async',
-   // minSize: 30000,
-   // maxSize: 0,
-    minChunks: 1,
-    maxAsyncRequests: 5,
-    maxInitialRequests: 3,
-    automaticNameDelimiter: '~',
-    name: true,
-    cacheGroups: {
-      vendors: {
-        test: /[\\/]node_modules[\\/]/,
-        priority: -10,
-       reuseExistingChunk: true
-      },
-      default: {
-        priority: -20
+  //   chunks: 'async',
+  //  // minSize: 30000,
+  //  // maxSize: 0,
+  //   minChunks: 1,
+  //   maxAsyncRequests: 5,
+  //   maxInitialRequests: 3,
+  //   automaticNameDelimiter: '~',
+  //   name: true,
+  //   cacheGroups: {
+  //     vendors: {
+  //       test: /[\\/]node_modules[\\/]/,
+  //       priority: -10,
+  //      reuseExistingChunk: true
+  //     },
+  //     default: {
+  //       priority: -20
         
-      }
-    }
-  }
+  //     }
+  //   }
+  // }
 },
 //externals: [nodeExternals()]
 }

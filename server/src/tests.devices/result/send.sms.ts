@@ -103,14 +103,14 @@ const getNetworkSignal = ()=>{
     if(!(RTUproxyReguest.length||TCPproxyReguest.length)){
         modem.executeCommand('AT+CREG?',(res, err)=>{
             console.log("AT+CREG?:",res)
-            if(!err&&res.data.stat){
+            if( !err ){
                 modem.getNetworkSignal((result, error)=>{
        
                     if(!error){
                         const q=parseInt(result.data.signalQuality)
                     // console.dir( result )
                         //console.log( 'q:',q,lamp.intervalId )
-                        pubsub.publish( SIGNAL_GSM, q );
+                        pubsub.publish( SIGNAL_GSM, {signalGSM:{value:q,  CREG: res.data}} );
                         if( q > 6 && q <= 30 ){     
                             clearInterval( lamp.intervalId ) 
                             lamp.intervalId = undefined
@@ -134,7 +134,7 @@ const getNetworkSignal = ()=>{
                     }else{
                         console.log('getNetworkSignal:', error)
                         setDO(3,0)  // погасить
-                        pubsub.publish( SIGNAL_GSM, -1);
+                        pubsub.publish( SIGNAL_GSM, {signalGSM:{value:-1}});
                     }
     
     
@@ -173,10 +173,10 @@ export function sendSMS(sms:Sms,device?:Device){
    if( !modem.isOpened ) return 'modem:close'
    const sendSMS =(sms:Sms,device?:Device)=>{
     const text=device?device.name +':'+sms.text:sms.text
-   for(const mumber of sms.numbers)
-    if( mumber )modem.sendSMS( mumber, text, false, 
-       (result)=>{
-          async function* x(){
+   for(const number of sms.numbers)
+    if( number )modem.sendSMS( number, text, false, 
+      async function*(result){
+         // async function* x(result){
           
                console.log("sending... ",result)
                yield console.log("sended... ",result)
@@ -187,12 +187,12 @@ export function sendSMS(sms:Sms,device?:Device){
                     await sleep(600000) 
                     setImmediate(sendSMS,sms,device)
                }
-               pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send sms: '+ result.response }  });  
+               pubsub.publish(ERROR_MESSAGES,{ errorMessages:{ message:'Send sms: '+ result.response }})
              } else
-             pubsub.publish(ERROR_MESSAGES, { deviceLinkState:{ message:'Send sms: '+ result.status }  });  
+             pubsub.publish(ERROR_MESSAGES, {errorMessages:{ message:'Send sms: '+ result.status }} )
                  
-           }
-     
+           //}
+    // x(result)
    }) 
 }
 

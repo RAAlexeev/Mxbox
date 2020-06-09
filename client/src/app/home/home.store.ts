@@ -28,12 +28,16 @@ type Info={
 }
 export class HomeStore {
 
-  @observable info ={ifaces:undefined,io:[], firmware:'',uptime:0,hostname:'',freemem:0}
-  @observable signalQuality=0
+  @observable 
+    info = {ifaces:undefined, io:[], firmware:'',uptime:0,hostname:'',freemem:0}
+  @observable 
+          signalQuality=0
+  @observable CREG = ""
   @observable pingResult = ""
   @observable ip_addr = ""
   @observable ioTest = false
-  async loadInfo(){
+
+  @action async loadInfo(){
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
            query: gql`query getInfo{getInfo{ifaces{ 
                                                 ap0{address netmask family mac internal } 
@@ -47,22 +51,33 @@ export class HomeStore {
        fetchPolicy: 'no-cache'
        }) 
       // console.log(result.data.getInfo)
-       if(result.data.getInfo)
+       //if(result.data.getInfo)
        this.info = result.data.getInfo
-       else throw new Error('Пустое значение Info')
+      // else throw new Error('Пустое значение Info')
       }
+
       subscription
       constructor(){
  
           this.subscription =  AppStore.getInstance().apolloClient.subscribe({
-            query: gql`subscription signalGSM{signalGSM}`,
+            query: gql`subscription signalGSM{ signalGSM{value CREG{n stat}} }`,
             variables: { }
           }).subscribe({
             next:({data})=> {
               const {signalGSM} = data
              console.log('signalGSM:',data)
             
-              this.signalQuality=signalGSM
+              this.signalQuality=signalGSM.value
+              let stat 
+              switch(signalGSM.CREG.stat){
+                case 0: stat="(not registered, MT is not currently searching a new operator to register to)"
+                case 1: stat="(registered, home network)"
+                case 2: stat="(not registered, but MT is currently searching a new operator to register to)"
+                case 3: stat="(registration denied)"
+                case 4: stat="(unknown)"
+                case 5: stat="(registered, roaming)"
+              }
+              this.CREG = signalGSM.CREG.n?"enable network registration": "disable network registration"+stat
             },
             error:(err)=> { 
               console.error(err)

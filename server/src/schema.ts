@@ -8,7 +8,7 @@ import * as _APN from './APN'
 import cmd  from 'node-cmd'
 
 // The GraphQL schema
- export const typeDefs = gql(`\
+export  const typeDefs = gql(`\
     scalar Upload
     type Sms{
       enabled:Boolean
@@ -95,11 +95,18 @@ import cmd  from 'node-cmd'
       _id:ID
       buffer:[Int]
     }
-
+    type CREG{
+      n:Int
+      stat:Int
+    } 
+    type SignalGSM{
+      value:Int
+      CREG:CREG
+    }
     type Subscription {
       deviceLinkState:DeviceLinkState
       errorMessages:ErrorMessages
-      signalGSM:Int
+      signalGSM:SignalGSM
       updDNK4ViewData(id:ID!):UpdDNK4ViewData
     }
 
@@ -299,10 +306,10 @@ class Device implements DeviceInput{
 
 import { PubSub, makeExecutableSchema, withFilter } from 'apollo-server-express'
 import { reloadCronTask } from './tests.devices/cron.test'
-import { isArray } from 'util'
+import { isArray, isObject } from 'util'
 import { getStateIO } from './io'
 import { dioTest } from './tests.devices/dio.test'
-import { sendSMS } from './tests.devices/result/send.sms'
+import { sendSMS, modem } from './tests.devices/result/send.sms'
 import { sendMail } from './tests.devices/result/send.email'
 
 
@@ -374,7 +381,7 @@ export const resolvers = {
                                           let numbers:Array<string> = []
                                            devs.forEach(dev =>{ 
                                              dev.rules.forEach(rule => {
-                                                if(rule&&isArray(rule.acts)){
+                                                if(rule && isArray(rule.acts)){
                                                   for(const act of rule.acts ) if(act){                                                   
                                                       if( act.sms ) act.sms.numbers.forEach(number=>{ if(number)numbers.push( number )})
                                                       if( act.email ) act.email.address.split(';').forEach(addr=> {if(addr)emails.push( addr )})
@@ -408,7 +415,7 @@ export const resolvers = {
     },
     getWiFiConfig:(paren,args)=>{
       db_settings.loadDatabase()
-      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve(conf); else this.reject({message:'err no WiFiSettings'}) }         
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve(conf); else this.reject('no WiFiSettings') }         
       const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'WiFiSettings'}, callback.bind({resolve, reject} ))})    
       return p.then().catch() 
     },
@@ -451,7 +458,7 @@ export const resolvers = {
 
            stream
              .on('error', error => {
-              if (stream.truncated)
+              if(stream.truncated)
                  // Delete the truncated file.
                  fs.unlinkSync('/data/mxBox')
                reject(error)
@@ -462,8 +469,10 @@ export const resolvers = {
             //.pipe(fs.createWriteStream(path))
             .on('error', error => reject(error))
             .on('finish', () =>{ 
+                                if( modem.isOpened ) {modem.close(()=>{
+                                    setTimeout( ()=>process.exit(1), 5000)})
+                                }else setTimeout( ()=>process.exit(), 5000)
                                   resolve({ id, filename })
-                                  process.exit(0)
                                 })
         })
       }
@@ -724,19 +733,22 @@ export const resolvers = {
         return p.then().catch()   
      },
      switch_io_test(){
-      return dioTest()
+        return dioTest()
        
      },
      tested(parent,{sms,email},info){
-      if(sms) return {status:sendSMS(sms)}
-      if(email) sendMail(email)
-      return 
+       try{
+          if(sms) return {status:sendSMS(sms)}
+          if(email) sendMail(email)
+       }catch(err){
+        return err//{status:err.message}
+       }  
      }
      
   }   
 }
 
-export const schema = makeExecutableSchema({
+export  default makeExecutableSchema({
   typeDefs,
   resolvers,
 });

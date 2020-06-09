@@ -38,7 +38,7 @@ state = {
     this.handleToggle()
   }
   actions = [
-    { label: "Сохранить", onClick: this.handleOnSave.bind(this) },
+    { label: this.props.actionLabel1?this.props.actionLabel1:"Сохранить", onClick: this.handleOnSave.bind(this) },
     { label: "Отмена", onClick: this.handleToggle }
   ]
   handleChange(name:string, value:string){
