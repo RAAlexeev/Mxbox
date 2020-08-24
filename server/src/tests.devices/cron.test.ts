@@ -1,12 +1,15 @@
 import { db, Device} from '../schema'
 import cron from 'node-cron'
 import { TestDevicesModbus } from './modbus.test'
+import { isArray } from 'util'
 const tasks:any[] = []
 export const loadCronTask = ()=>{
     db.find( { 'rules.trigs.type':1 }, ( err, devices:Device[] )=>{
         for(const device of devices){
+            if(device)
             for(const rule of device.rules){
-                if(rule.trigs)
+               if(rule) 
+                if(isArray(rule.trigs))
                 for(const trig of rule.trigs){
                    if(trig)
                    if(trig.type === 1 ){

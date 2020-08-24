@@ -21,8 +21,8 @@ const serverConf={
   externals:{
   
     //bindings:'bindings',
-    serialport:'serialport'
-   //node_modbus:"node-modbus"  
+    serialport:'serialport',
+   'node-pdu':'node-pdu'  
   }, 
   context: path.join(__dirname, './src'),
   entry: {

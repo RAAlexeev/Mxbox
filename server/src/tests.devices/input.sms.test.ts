@@ -1,5 +1,5 @@
 
-import {db, Device} from '../schema'
+import {db, Device, pubsub, ERROR_MESSAGES} from '../schema'
 import{TestDevicesModbus} from './modbus.test'
 //node-gsm-modem sms-gsm
 
@@ -7,6 +7,10 @@ import{TestDevicesModbus} from './modbus.test'
 //modem.on('onNewMessage', (messageDetails)=>{console.dir(messageDetails)})
 
 export const  inputSMS = ({data})=>{
+  for(const inSms of data){
+    pubsub.publish(ERROR_MESSAGES,{errorMessages:{message:inSms.message+'['+inSms.sender+']'}})
+  }
+   
     db.find( {'rules.trigs.type':2}, async(err,devices:Device[])=>{
         if(err){
             console.error(err)
@@ -24,6 +28,7 @@ export const  inputSMS = ({data})=>{
                             const n = number.replace(/^\+?8/,'7')
                           for(const inSms of data){
                             console.log(n,inSms.sender,trig.sms.text === inSms.message)
+                            pubsub.publish(ERROR_MESSAGES,{errorMessages:{message:inSms.toString()}})
                             if(  n  === inSms.sender  ){
                               if(trig.sms.text === inSms.message){
                                  

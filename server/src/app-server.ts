@@ -15,6 +15,29 @@ import { ioInit } from './io';
 import { init } from './tests.devices/result/send.sms';
 import { getAPN } from './APN';
 import setSoftap from './set.softap';
+const fileUpload = require('express-fileupload');
+//const fileUpload = require('express-fileupload');
+
+
+// default options
+/* app.use(fileUpload());
+
+app.post('/upload', function(req, res) {
+  if (!req['files'] || Object.keys( req['files'] ).length === 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+  let sampleFile = req['files'].sampleFile;
+
+  // Use the mv() method to place the file somewhere on your server
+  sampleFile.mv('/somewhere/on/your/server/filename.jpg', function(err) {
+    if (err)
+      return res.status(500).send(err);
+
+    res.send('File uploaded!');
+  });
+}); */
 setSoftap();
 //echo 0 > /proc/sys/kernel/printk
 //stop console
@@ -43,7 +66,41 @@ app.get('*', (req,res) =>{
   
   res.sendFile('index.html',{root:"./dist/client"});
 })
+app.use(fileUpload({
+  useTempFiles : true,
+  tempFileDir : '/data/local/tmp/expressUpload',
+  debug:true
+}));
 
+import {updateProc, settingsUpload} from './uploads'
+
+ app.post('/upload', async function(req, res) {
+  const {fProc, fBD }= req['files'];
+  console.dir(req['files']); // the uploaded file object
+  if(fProc){
+    res.send(await 
+      updateProc(fs.createReadStream(fProc.tempFilePath))
+      )
+  }else
+  if(fBD){
+    settingsUpload(fs.createReadStream(fBD.tempFilePath))
+  }else if(req['files']){
+    for (const f in req['files']) {
+      fs.rmdir(f['tempFilePath'],(err)=>{
+        console.error(err)
+      })
+    }
+    
+  }
+
+});
+/* const graphqlHTTP = require('express-graphql');
+import { graphqlUploadExpress } from 'graphql-upload';
+app.use(
+  '/graphql',
+  graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 1 }),
+  graphqlHTTP({ schema })
+) */
 /* app.get('/*', function(req, res){
     res.sendFile('./upload');
 }); */

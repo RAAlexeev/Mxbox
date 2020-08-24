@@ -7,7 +7,7 @@ import { DevicesStore } from './devices.store'
 import { AppStore } from '../app.store'
 import * as style from './devices.css'
 import * as appStyle from '../app.css'
-import { ContextMenu } from './contextenu.componet';
+import { ContextMenu } from './contextmenu.componet';
 import { Input } from 'react-toolbox/lib/input'
 import RouterStore from '../router.store';
 import Navigation from 'react-toolbox/lib/navigation';

@@ -355,8 +355,8 @@ export class TestDevicesModbus {
 
                 regs.push({
                     pattern:match[0],//0
-                    addr:match[1]?parseInt(match[1]):0,
-                    func:match[2]?parseInt(match[2]):3,//1        
+                    func:match[2]?parseInt(match[1]):3,//1
+                    addr:match[2]?parseInt(match[2]):parseInt(match[1]),//2
                     qualifier:match[3]//3
                 })
                 
@@ -374,6 +374,12 @@ export class TestDevicesModbus {
         pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:err.message }  });
         device.errno = err.errno 
         console.error('modbusError:',err)
+        for(const rule of device.rules){
+            if(rule.trigs)
+            for(const trig of rule.trigs){
+                if(trig)if(trig.type===3)if(trig.active > 10 && trig.active%10 === 0) this.onTrig(device,rule); else trig.active++
+            }
+        }
     }
 
 
@@ -456,7 +462,7 @@ export class TestDevicesModbus {
                     } 
                 }
                
-                const regExp:RegExp= new RegExp(/#DI?(\d+)/)
+                const regExp:RegExp = new RegExp(/#DI?(\d+)/)
                 if(regExp.test(jsCode)){               
                     let match = regExp.exec(jsCode)  
                     if(match) return io.di(parseInt(match[1])).then((value)=>{
@@ -524,16 +530,16 @@ export class TestDevicesModbus {
             this.skip = 100  
             try{
             switch(reg.func){                                    
-                case 2:  reg.val = await client.readDiscreteInputs(reg.addr,1)
+                case 2:  reg.val = await client.readDiscreteInputs(reg.addr -(device.mbAddrCorrect?1:0),1)
                         this.processResponse(reg)
                 break 
-                case 1: reg.val = await client.readCoils(reg.addr,1)
+                case 1: reg.val = await client.readCoils(reg.addr - (device.mbAddrCorrect?1:0), 1)
                         this.processResponse(reg)
                 break
-                case 3:  reg.val = await client.readHoldingRegisters(reg.addr, this.getSizeDataReguest(reg))
+                case 3:  reg.val = await client.readHoldingRegisters(reg.addr -(device.mbAddrCorrect?1:0), this.getSizeDataReguest(reg))
                         this.processResponse(reg)
                 break
-                case 4: reg.val = await client.readInputRegisters(reg.addr, 1)
+                case 4: reg.val = await client.readInputRegisters(reg.addr -(device.mbAddrCorrect?1:0), 1)
                         this.processResponse(reg) 
                 break 
                 default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')                                            
