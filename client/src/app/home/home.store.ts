@@ -2,7 +2,7 @@
 
 import { AppStore } from '../app.store'
 import gql from 'graphql-tag'
-import { observable, action } from 'mobx'
+import { observable, action, computed, extendObservable } from 'mobx'
 
 
 type IfaceInfo={
@@ -28,16 +28,15 @@ type Info={
 }
 export class HomeStore {
 
-  @observable 
-    info = {ifaces:undefined, io:[], firmware:'',uptime:0,hostname:'',freemem:0}
-  @observable 
-          signalQuality=0
+  @observable info = {ifaces:undefined, io:[], firmware:'',uptime:0,hostname:'',freemem:0}
+  @observable signalQuality=0
   @observable CREG = ""
   @observable pingResult = ""
   @observable ip_addr = ""
   @observable ioTest = false
 
   @action async loadInfo(){
+    try{
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
            query: gql`query getInfo{getInfo{ifaces{ 
                                                 ap0{address netmask family mac internal } 
@@ -50,11 +49,16 @@ export class HomeStore {
        variables:{},
        fetchPolicy: 'no-cache'
        }) 
-      // console.log(result.data.getInfo)
+       console.log(result.data.getInfo)
        //if(result.data.getInfo)
-       this.info = result.data.getInfo
+        Object.assign(this.info ,result.data.getInfo)
       // else throw new Error('Пустое значение Info')
-      }
+    }catch(err){
+      console.error(err)
+    }finally{
+
+    }
+}
 
       subscription
       constructor(){
@@ -74,10 +78,10 @@ export class HomeStore {
                 case 1: stat="(registered, home network)"
                 case 2: stat="(not registered, but MT is currently searching a new operator to register to)"
                 case 3: stat="(registration denied)"
-                case 4: stat="(unknown)"
                 case 5: stat="(registered, roaming)"
+                default: stat="(unknown)"
               }
-              this.CREG = signalGSM.CREG.n?"enable network registration": "disable network registration"+stat
+              this.CREG = signalGSM.CREG.n?"enable network registration"+stat: "disable network registration"+stat
             },
             error:(err)=> { 
               console.error(err)
@@ -106,6 +110,8 @@ export class HomeStore {
       }catch(err){
        // this.APN[name]=save
         throw  err
+      }finally{
+
       }
     } 
    @action  async switch_ioTest(){
@@ -120,6 +126,8 @@ export class HomeStore {
       }catch(err){
         this.ioTest=!this.ioTest
         throw  err
+      }finally{
+
       } 
     }
     async testSMS({sms}){
@@ -133,6 +141,8 @@ export class HomeStore {
       }catch(err){
        // alert(err.message)
         throw  err
+      }finally{
+        
       }
     }
     destructor(){

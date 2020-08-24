@@ -106,7 +106,7 @@ export class SmsDialog extends React.Component<any> {
           )}
           {this.state.numbers[this.state.numbers.length-1]!=''?<Button icon='add' onClick={this.handleAddNumber.bind(this)} floating  mini  />:''}
          
-         <Input type='text' multiline rows={5} error={this.state.error} hint='Здесь вы  также можете вставлять ссылки на modbus адреса в квадратных скобках [03 12], [12f] или [1]'
+         <Input type='text' multiline rows={5} error={this.state.error} hint=''
            icon='message' value={this.state.text} onChange={this.handleChange.bind(this,'text') }/>
         </Dialog>
       </div>

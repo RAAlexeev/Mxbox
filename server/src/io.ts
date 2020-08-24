@@ -39,7 +39,7 @@ export  const getStateIO=()=>new Promise((resolve,reject)=>fs.readFile('/sys/dev
 
    if(err){
       
-      return reject([err])
+      return reject(err)
    }
      const splitData = data.split('\n')
      let ret = Array(splitData[0])

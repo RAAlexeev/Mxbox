@@ -120,6 +120,8 @@ export class TrigsStore {
     }catch(err){
       console.error(err)
       return false
+    }finally{
+
     }
   }
   @action  delTrig = async (trigNum:number)=>{

@@ -3,6 +3,14 @@ import  schema  from './schema';
 import { mkdir } from 'fs';
 mkdir('/data/mxBox/DB',{recursive:true,mode:0x777},()=>{})
  export const apollo = new ApolloServer({
+  uploads: {
+    // Limits here should be stricter than config for surrounding
+    // infrastructure such as Nginx so errors can be handled elegantly by
+    // graphql-upload:
+    // https://github.com/jaydenseric/graphql-upload#type-processrequestoptions
+    maxFileSize: 10000000, // 10 MB
+    maxFiles: 20,
+  },
     // These will be defined for both new or existing servers
     schema:schema,
 /*     context: ({ req }) => {
@@ -16,6 +24,7 @@ mkdir('/data/mxBox/DB',{recursive:true,mode:0x777},()=>{})
       return { user };
     }, */
     playground:true,
+
     subscriptions: {
       
       onConnect: (connectionParams, webSocket, context) => {

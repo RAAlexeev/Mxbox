@@ -7,7 +7,7 @@ import { DevicesStore } from './devices.store'
 import { AppStore } from '../app.store'
 import * as style from './devices.css'
 import * as appStyle from '../app.css'
-import { ContextMenu } from './contextenu.componet';
+import { ContextMenu } from './contextmenu.componet';
 import { Input } from 'react-toolbox/lib/input'
 import RouterStore from '../router.store';
 import Navigation from 'react-toolbox/lib/navigation';
@@ -43,19 +43,19 @@ interface DevicesComponentProps {
 export class DevicesComponent extends React.Component<DevicesComponentProps, any> {
   render() {
     
-    const { devicesStore, appStore, routerStore } = this.props
+    const { devicesStore /*,  appStore, routerStore */ } = this.props
     //console.log(this.props)
     return <div>
 
-{ window.location.pathname.search('views')<0?<Button icon='add' onClick={devicesStore.addDevice.bind(devicesStore)} floating accent mini className={appStyle.floatRight}/>:''}
+{ window.location.pathname.search('views')<0?<Button icon='add' onClick={devicesStore.addDevice.bind(devicesStore)} floating accent mini className={appStyle.floatRight}/>:null}
        
       
      <Navigation type='vertical'>
-      {devicesStore.devices.map(device =>
-        <NavLink key={device._id} to={ window.location.pathname.search('views')<0?`/rules/${device.name}/${device._id}`:`/views/${device.name}/${device._id}` }  activeClassName={style.active} isActive={(_, { pathname }) =>{ return pathname === `/rules/${device.name}/:${device._id}`}}>
-          <Card    onClick={devicesStore.select.bind(devicesStore ,device)} className={style.messageCard +  ((devicesStore.selected === device)?(' '+ style.activeCard):'')} >
+      {devicesStore.devices?devicesStore.devices.map(device =>
+        <NavLink key={device._id} to={ window.location.pathname.search('views')<0?`/rules/${device._id}`:`/views/${device.name}/${device._id}` }  activeClassName={style.active} isActive={(_, { pathname }) =>{ return pathname === `/rules/${device.name}/:${device._id}`}}>
+          <Card    onClick={devicesStore.select.bind(devicesStore, device)} className={style.messageCard +  ((devicesStore.selected === device)?(' '+ style.activeCard):null)} >
             <CardTitle className ={style.cardTitle}
-            title={ ContextMenu( devicesStore,  device ) }
+            title={ ContextMenu(devicesStore,device)  }
             subtitle=''/>  
             <div style={{whiteSpace:'nowrap', width:'100%'}}>          
             <Input 
@@ -85,9 +85,10 @@ export class DevicesComponent extends React.Component<DevicesComponentProps, any
               </div>
        
         
-        </Card> </NavLink> 
+        </Card> </NavLink>
         
-        )}
+        )
+        :null}
           </Navigation>
 
     </div>

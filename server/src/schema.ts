@@ -74,6 +74,7 @@ export  const typeDefs = gql(`\
         ip_addr: String
         rules:[Rule]! 
         type:Int
+        mbAddrCorrect:Int
     }
     input DeviceInput{
       _id:ID
@@ -82,6 +83,7 @@ export  const typeDefs = gql(`\
       ip_addr:String
       rules:[RuleInput]
       type:Int
+      mbAddrCorrect:Int
     }
     type  DeviceLinkState{
       _id:ID
@@ -207,7 +209,7 @@ export  const typeDefs = gql(`\
       encoding: String!
     }
     type Mutation{
-      procUpload(file: Upload!): File!
+      singleUpload(file: Upload!): File
       settingsUpload(file:Upload!):File!
       addAsTemplate(_id:ID!):Result
       delTemplate(_id:ID!):Result
@@ -280,6 +282,7 @@ export interface Device{
   ip_addr:string
   rules:Rule[]
   errno?:string
+  mbAddrCorrect?:number
 }
 // A map of functions which return data for the schema.
 /* interface DeviceInput{
@@ -311,8 +314,7 @@ import { getStateIO } from './io'
 import { dioTest } from './tests.devices/dio.test'
 import { sendSMS, modem } from './tests.devices/result/send.sms'
 import { sendMail } from './tests.devices/result/send.email'
-
-
+import { GraphQLUpload } from 'graphql-upload';
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const ERROR_MESSAGES = 'ERROR_MESSAGES'
 export const SIGNAL_GSM = 'SIGNAL_GSM'
@@ -332,9 +334,11 @@ export const portReinit =(_reinit?:boolean )=>{
       
       return reinit
     }
+
 export const devicesSubscribed=[0]
 export const resolvers = {
-  Subscription:{
+ // Upload: GraphQLUpload,
+   Subscription:{
     errorMessages:{
       subscribe:(parent, args)=>pubsub.asyncIterator([ERROR_MESSAGES])
     },
@@ -424,97 +428,26 @@ export const resolvers = {
        let io
       try{
       io = await getStateIO()
-      }catch{
+      }catch(err){
+        console.error(err)
         io=[]
+      }finally{
+          return{
+                ifaces : os.networkInterfaces(),
+                firmware :'[AIV]{version}[/AIV]',
+                uptime : os.uptime(),
+                hostname : os.hostname(),
+                freemem : os.freemem(),
+                io :  io
+          }
       }
-     return{
-          ifaces : os.networkInterfaces(),
-          firmware :'[AIV]{version}[/AIV]',
-          uptime : os.uptime(),
-          hostname : os.hostname(),
-          freemem : os.freemem(),
-          io :  io
-
-     }
     }
   },
+
   Mutation:{
-    async procUpload(parent, args){
-      console.dir(args)
-      const f  = await args.file;
-      const { stream , filename, mimetype, encoding } =  f;
-      const key = Buffer.from('DD40F61878B23CFF441652518DB6BF7F11C6AC997CEEBDEFABFEC02A9F532CAF','hex')
-      const iv = Buffer.from('03E5254B8166E4BA1E27B07FE831064F', 'hex')
-      console.log(key,'/',iv)
-      const ungzip = zlib.createGunzip();
-      const decipher = crypto.createDecipheriv('aes-256-cbc' ,key, iv);
-
-      const storeFS = ({ stream, filename }) => {
-        const id = shortid.generate()
-       // const path = `./uploads/${id}-${filename}`
-        
-        return new Promise((resolve, reject) =>{
-        
-
-           stream
-             .on('error', error => {
-              if(stream.truncated)
-                 // Delete the truncated file.
-                 fs.unlinkSync('/data/mxBox')
-               reject(error)
-            })
-            .pipe(decipher).on('error', error => reject(error))
-            .pipe(ungzip).on('error', error => reject(error))
-            .pipe(tar.extract('/data/mxBox'))
-            //.pipe(fs.createWriteStream(path))
-            .on('error', error => reject(error))
-            .on('finish', () =>{ 
-                                if( modem.isOpened ) {modem.close(()=>{
-                                    setTimeout( ()=>process.exit(1), 5000)})
-                                }else setTimeout( ()=>process.exit(), 5000)
-                                  resolve({ id, filename })
-                                })
-        })
-      }
-     
-      return  await storeFS({stream,filename})
+   
       
-      },
 
-      
-      async settingsUpload(parent, args)  {
-        console.dir(args)
-        const f  = await args.file;
-        const { stream , filename, mimetype, encoding } =  f;
-        const ungzip = zlib.createGunzip();
-
-        const storeFS = ({ stream, filename }) => {
-          const id = shortid.generate()
-         
-          
-          return new Promise((resolve, reject) =>{
-          
-  
-             stream
-               .on('error', error => {
-                if (stream.truncated)
-                   // Delete the truncated file.
-                   fs.unlinkSync('/data/mxBox/DB')
-                 reject(error)
-              })
-              .pipe(ungzip).on('error', error => reject(error))
-              .pipe(tar.extract('/data/mxBox/DB'))
-              //.pipe(fs.createWriteStream(path))
-              .on('error', error => reject(error))
-              .on('finish', () =>{
-
-                resolve({ id, filename })})
-          })
-        }
-       
-        return  await storeFS({stream,filename})
-        
-        },
       addDevice(parent,args,context,info){          
             var callback = function( err, dev){ if( err ){ console.log(err); this.reject(err)} else{  this.resolve(dev)} }  
             if(!args.device.rules)  args.device.rules = []       
@@ -740,8 +673,11 @@ export const resolvers = {
        try{
           if(sms) return {status:sendSMS(sms)}
           if(email) sendMail(email)
+          return {status:''}
        }catch(err){
         return err//{status:err.message}
+       }finally{
+         
        }  
      }
      

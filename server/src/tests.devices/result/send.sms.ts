@@ -74,7 +74,7 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
 
 
   modem.on('open', () => {
-           setInterval(getNetworkSignal,40000)
+           setInterval(getNetworkSignal,10000)
 
             modem.setModemMode( (msg, err)=>{
                 if(err)
@@ -111,12 +111,12 @@ const getNetworkSignal = ()=>{
                     // console.dir( result )
                         //console.log( 'q:',q,lamp.intervalId )
                         pubsub.publish( SIGNAL_GSM, {signalGSM:{value:q,  CREG: res.data}} );
-                        if( q > 6 && q <= 30 ){     
+                        if( res.data.stat == 1 && q > 6 && q <= 30  ){     
                             clearInterval( lamp.intervalId ) 
                             lamp.intervalId = undefined
                             setDO(3,1) // зажеч   
                         }else{
-                        if( q <= 6  && isUndefined( lamp.intervalId ))
+                        if( res.data.stat == 1 && q <= 6  && isUndefined( lamp.intervalId ))
                             lamp.intervalId = setInterval(()=>{
                                 lamp.state =  !lamp.state
                                 if( lamp.state ) 
@@ -149,8 +149,8 @@ const getNetworkSignal = ()=>{
                   status: 'success',
                   request: '+CREG?',
                   data:{
-                      n:value[0],
-                      stat:value[1]
+                      n:parseInt( value[0] ),
+                      stat:parseInt(value[1] )
                   } 
                 },
                 returnResult: true
@@ -170,32 +170,30 @@ const getNetworkSignal = ()=>{
   }
 }
 export function sendSMS(sms:Sms,device?:Device){
-   if( !modem.isOpened ) return 'modem:close'
-   const sendSMS =(sms:Sms,device?:Device)=>{
-    const text=device?device.name +':'+sms.text:sms.text
+   if( !modem.isOpened )  return 'modem:close'
+
+    const text=device?device.name +':'+sms.text : sms.text
    for(const number of sms.numbers)
     if( number )modem.sendSMS( number, text, false, 
-      async function*(result){
-         // async function* x(result){
+      function*(result){
+           //function* x(result){
           
-               console.log("sending... ",result)
-               yield console.log("sended... ",result)
+            console.log("sending... ",result)
+            pubsub.publish(ERROR_MESSAGES,{ errorMessages:{ message:'Send sms: '+result.status+'|'+text}})
+            yield console.log("sended... ",result)
+               pubsub.publish(ERROR_MESSAGES,{ errorMessages:{ message:'Send sms: '+ result.status }})
                if(result.status!='success'){
                if( (result.response as string).search('+CMS ERROR: 41')||(result.response as string).search('+CMS ERROR: 521')
                     ||(result.response as string).search('+CMS ERROR: 522')||(result.response as string).search('+CMS ERROR: 532')
                     ||(result.response as string).search('+CMS ERROR: 435') ){  
-                    await sleep(600000) 
-                    setImmediate(sendSMS,sms,device)
+                 
+                    setTimeout( ()=>setImmediate(sendSMS, sms, device), 60000 )
                }
                pubsub.publish(ERROR_MESSAGES,{ errorMessages:{ message:'Send sms: '+ result.response }})
-             } else
-             pubsub.publish(ERROR_MESSAGES, {errorMessages:{ message:'Send sms: '+ result.status }} )
-                 
-           //}
-    // x(result)
-   }) 
-}
-
-sendSMS(sms,device)  
+             } 
             
+                 
+           }
+  ) 
+  return 'пытаемся отправить SMS....'       
 }

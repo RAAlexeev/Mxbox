@@ -1,8 +1,9 @@
-import { observable, action } from 'mobx'
+//import { observable, action } from 'mobx'
 import { ApolloLink, HttpLink, InMemoryCache, gql } from "apollo-boost"
 import {WebSocketLink} from 'apollo-link-ws'
 import { SubscriptionClient    } from 'subscriptions-transport-ws'
 import ApolloClient from 'apollo-client'
+
 //import * as apolloLinkError from 'apollo-link-error'
 
 const wsClient = new SubscriptionClient(`ws://${document.location.host/* .replace(/:3000/,':3001') */}/graphql`, {
@@ -18,11 +19,18 @@ import { App } from './app.component';
 import { createUploadLink } from 'apollo-upload-client'
 
 const customFetch = async (uri, options) => {
+  try {
    const response = await fetch(uri, options)
+   console.log(options)
     if (response.status >= 400) {  // or handle 400 errors
       return Promise.reject(response.status);
     }
     return response;
+  }catch(err){
+    return(err)
+  }finally{
+
+  }
   };
 
 const link = ApolloLink.split(
@@ -43,6 +51,7 @@ const link = ApolloLink.split(
 
 import { onError } from "apollo-link-error";
 import Snackbar from 'react-toolbox/lib/snackbar';
+import { DevicesStore } from './devices/devices.store'
 export class AppStore {
   
   numberExchengDialog: import("../../../../mxBox/client/src/app/dialogs/numberExchange.dialog").NumberExchengDialog
@@ -55,13 +64,15 @@ export class AppStore {
                    
                                                         if (graphQLErrors)
                                                           graphQLErrors.map(({ message, locations, path }) =>{
-
+                                                          console.log( message, locations, path);
                                                           if(this.appComponent)this.appComponent.snackbar.setState({active:true,label://console.log(
                                                                         `[ошибка GraphQL]: Message: ${message}, Location: ${locations}, Path: ${path}`
                                                                     })
                                                                   })
-                                                      if (networkError)// console.log(
+                                                      if (networkError){// console.log(
+                                                        console.dir(networkError)
                                                         if(this.appComponent)this.appComponent.snackbar.setState({active:true,label:`[Ошибка сети]: ${networkError}`})
+                                                      }
                                                         })
                                               , link]),
                       cache: new InMemoryCache()
@@ -102,7 +113,9 @@ export class AppStore {
   static getInstance() {
     return AppStore.instance || (AppStore.instance = new AppStore())
   }
+
   onLoad = async(file)=>{ 
+    try{
     const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation settingsUpload($file: Upload!) {
         settingsUpload(file: $file){
@@ -111,14 +124,17 @@ export class AppStore {
       }`, 
       variables:{ file:file },
       fetchPolicy: 'no-cache'  
-    }) 
-    return result
-    
+    })
+     DevicesStore.getInstance().initializeDevices()
+    return result.data.settingsUpload.file
+    }catch(x){
+      console.error(x)
+    }
   }
   
   async onNumberExchenge(sNumber:string,dNumber:string){
     console.log(sNumber,dNumber)
-    const result = await await AppStore.getInstance().apolloClient.mutate<any,{}>({
+    const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation exchangeNum($sNum:String!,$dNum:String!){exchangeNum(sNum:$sNum,dNum:$dNum){status}}`, 
       variables:{ sNum:sNumber,
                   dNum:dNumber

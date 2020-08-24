@@ -16,11 +16,8 @@ export class Home extends React.Component<any, any> {
 
 
   componentWillMount() {
-
     DevicesStore.getInstance().select(null)
-    
-    
-   
+    DevicesStore.getInstance().initializeDevices()
   }
 
   render() {
@@ -76,10 +73,10 @@ interface HomeComponentProps {
             onChange={homeStore.switch_ioTest.bind(homeStore)}
           />
         <p>{homeStore.pingResult}</p>  
-       <h2>Информация о системе  <Button flat= {true} icon="replay" onClick={homeStore.loadInfo.bind(this)} /></h2>        
-       <p>Регистрация в сети:{homeStore.CREG} </p>
-       <p> уровень сигнала(RSSI dB (> 9 OK)):{homeStore.signalQuality}</p>
-        {isUndefined( homeStore.info.ifaces )?null:
+       <h2>Информация о системе  <Button flat= {true} icon="replay" onClick={homeStore.loadInfo.bind(homeStore)} /></h2>        
+       <p>Регистрация в сети:<b>{homeStore.CREG} </b></p>
+       <p> уровень сигнала(RSSI dB (10+ OK)):<b>{homeStore.signalQuality}</b></p>
+        { (homeStore.info.ifaces)?
         <table>
          <caption>Сетевые_интерфейсы</caption> 
         <tbody>     
@@ -91,7 +88,7 @@ interface HomeComponentProps {
             {homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.map((item,_key)=>{
                                                                               return <tr  key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
             }):null}
-        </tbody></table>}
+        </tbody></table>:null}
         <table><caption>Разное</caption><tbody> 
         <tr><td>firmware:</td><td>{homeStore.info.firmware}</td></tr>
           <tr><td>uptime:</td><td>{homeStore.info.uptime}</td></tr>

@@ -10,6 +10,7 @@ import { parseCommand } from '../commands/joson';
 import  crc16 from 'modbus-serial/utils/crc16'
 import * as io from '../io'
 
+
 //import { findTypesThatChangedKind } from 'graphql/utilities/findBreakingChanges';
 const MBAPheaderLenght = 7
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -50,7 +51,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                     }
                                 }
                                   
-                                        client.setTimeout(1000);
+                                        
                                         
                                                 const cancelPromise = (obj)=> new Promise((resolve, reject) => {
                                                     obj.cancel = resolve.bind(this, { canceled: true })
@@ -135,28 +136,29 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                         })
                            
                                        
-                                        const tOut = { trig:100,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},3000)} 
+                                        const tOut = { trig:31,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},20)} 
                                         
                                         const proxyQuery = async(device)=>{  
                                             try{
                                                // debug(port.isOpen)  
+                                             
+                                                if( (!(RTUproxyReguest.length||TCPproxyReguest.length)) || !tOut.trig)  {
 
-                                                if( (!(RTUproxyReguest.length||TCPproxyReguest.length) && tOut.trig%10) || !tOut.trig)  {
-                                                   
-                                                  // clearTimeout(tOut)
-                                                  // tOut = setTimeout(()=>{elapsed=true},5000)
-                                                  tOut.trig=100
+                                                    if(!tOut.trig)
+                                                        tOut.trig=31
                                                     console.log('proxyQuery2')  
                                                   
                                                     try{
                                                        if(port.isOpen){ 
-                                                        await new Promise((resolve,reject)=>port.close((err)=>{if(err) reject(err); else resolve()} )).catch( (e)=>console.error(e) )
-                                                       
+                                                        await new Promise((resolve,reject)=>port.close((err)=>{ resolve() } ))
+        
                                                         await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) });
-                                                       }
+                                                        client.setTimeout(1000);   
+                                                    }
+                                                      
                                                         await queryDevice(device)
                                                        
-                                                       // await Promise.race([sleep(3000), cancelPromise(proxyPort)])
+                                                        
                                                        
                                                     }catch(e){
                                                      console.error(e)   
@@ -164,7 +166,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     
                                                 }else{
                                                     
-                                                   // debug('proxyQuery3')
+                                                   
                                                 if(!(port.isOpen)){
                                                     
                                                     await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
@@ -173,7 +175,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                                                                                     if(port.isOpen)resolve(); else reject(err)
                                                                                                                 })
                                                                                                             })
-                                                                                                        }),sleep(100)])
+                                                                                                        }),sleep(200)])
                                                     
                                                 }
                                                 const query = async (reguest)=>{ 
@@ -207,15 +209,17 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                               }
                                              }catch(e){
                                                     console.error(e)
-                                                    }
-                                    
-                                        }                                        
-                                        const queryDevice = async (device:Device) => {
+                                             }finally{
+                                                   return true
+                                             }
+                                        } 
+                                                           
+                                        const queryDevice = async ( device:Device ) => {
                                             try {
                                                 // set ID of slave
-                                                await client.setID(device.mb_addr);
-                                               
-                                                await TestDevicesModbus.testTrigs(device, client) 
+                                                client.setID( device.mb_addr );
+                                               //console.log( device.mb_addr,client.getID() )
+                                                await TestDevicesModbus.testTrigs(device, client)
                                                 // return the value
                                     
                                             } catch(e){
@@ -223,72 +227,72 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 console.error(e)
                                             }
                                         }
-                                        const queryDevices = async (devices) => {
-                                            try{                                             
-                                                    // get value of all meters
-                                                        for(let device of devices) {
-                                                    // output value to console
+                                        const queryDevices = async(devices) => {
+                                            for(const device of devices) {
+                                                try{                                             
+                                                        // get value of all devices
                                                         
-                                                            await proxyQuery(device)
-                                                           
-                                                            //await queryDevice(device)
-    
-                                                        }      
-                                            } catch(e){
-                                                // if error, handle them here (it should not)
-                                                console.log(e)
-                                            } finally {
-
-                                                 if(portReinit()) {
-                                                    setTimeout(() => {
-                                                        modbusTestRun()  
-                                                     },1000)
-                                               try{
-                                                     if(port.isOpen)port.close()
-                                             
-                                                     if(proxyPort.isOpen)proxyPort.close()
-                                     
-                                                     await Promise.race([new Promise((resolve,reject)=>{ client.close(()=>{}) }),sleep(300)])
-                                               }finally{
-                                                     return}
-                                                     }
-                                                      
-
-                                   /*                db_settings.findOne<any>( { '_id':'portsSettings' }, ( err, newSettings )=>{ if(!err){settings=newSettings
-                                                    if(!settings[0])settings[0]={speed:19200, param:'8e1'}
-                                                    else{
-                                                        if(!settings[0].speed)settings[0].speed=19200
-                                                        if(!settings[0].param)settings[0].param='8e1'
-                                                    }
-                                      
+                                                        // output value to console
+                                                            
+                                                                await proxyQuery(device) 
+                                                            
+                                                                //await queryDevice(device)
+        
+                                                                
+                                                } catch(e){
+                                                    // if error, handle them here (it should not)
+                                                    console.error(e)
+                                                }finally{
+                                                    Promise.race([sleep(50), cancelPromise(proxyPort)])
                                                 }
-                                                 }) */
+                                            
+                                            }
+                                            if(portReinit()) {
+                                                console.log('portReinit')
+                                                setTimeout(() => {
+                                                    modbusTestRun()  
+                                                    },1000)
+                                                try{
+                                                if(port.isOpen)port.close()
+                                        
+                                                    if(proxyPort.isOpen)proxyPort.close()
+                                
+                                                    await Promise.race([new Promise((resolve,reject)=>{ client.close(()=>{}) }),sleep(300)])
+                                                    return
+                                                }catch(err){
+                                                    console.error(err)
+                                                }finally{
+                                                    return
+                                                }
+                                            }else  
+                                            if(isMutated()){
 
-                                                else 
-                                                if(isMutated())
                                                 db.find( { 'rules.trigs.type':0 }
                                                     ,( err, devices:Device[] )=>{  
                                                     // after get all data from salve repeate it again
-                                                    debug('updated')
+                                                    console.log('updated')
                                                     if(!err)
                                                         setImmediate(() => {
                                                             queryDevices(devices);
                                                         })
                                                     else console.error(err)
+                                                
                                                 })
-                                                else   setImmediate(() => {
-                                                    queryDevices(devices);
-                                                })
-                                            }
+                                                return
+                                            } else
+                                            setImmediate(() => {
+                                                queryDevices(devices);
+                                            })
                                         }
-                                        // start get value
+                                    TestDevicesModbus.delay =  [sleep(350), cancelPromise(proxyPort)]      
+                                    // start get value
                                          queryDevices(devices)               
             })
         }catch(e){
             console.error(e)
-            setImmediate(() => {
-                modbusTestRun();
-            })
+  
+        }finally{
+
         }   
     })
                                   
@@ -339,7 +343,7 @@ interface DevicesRulesTimeOut{
 }
 
 export class TestDevicesModbus {
-   
+  static  delay 
 
     constructor(){
        
@@ -355,9 +359,9 @@ export class TestDevicesModbus {
 
                 regs.push({
                     pattern:match[0],//0
-                    addr:match[1]?parseInt(match[1]):0,
-                    func:match[2]?parseInt(match[2]):3,//1        
-                    qualifier:match[3]//3
+                    func:match[2]?parseInt(match[1]):3,//1
+                    addr:match[2]?parseInt(match[2]):parseInt(match[1]),//2
+                    qualifier:match[3]//3 
                 })
                 
             }
@@ -370,20 +374,32 @@ export class TestDevicesModbus {
     }
 
     private static modbusError( err, device:Device ){
-       //if( device.errno != err.errno )
+       if( device.errno != err.errno )
         pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:err.message }  });
         device.errno = err.errno 
         console.error('modbusError:',err)
+        for(const rule of device.rules){
+            if(rule.trigs)
+            for(const trig of rule.trigs){
+                if(trig)
+                if( trig.type===3  ){
+                    if(trig.active < 100 && trig.active%10 === 0) 
+                        this.onTrig(device,rule); 
+                    else 
+                        trig.active++
+                }
+            }
+        }
     }
 
 
 
-     static async onTrig( device:Device, rule:Rule ){
+     static async onTrig( device:Device, rule:Rule, onlyDO=false ){
        // console.log(rule)
-        if( rule && isArray(rule.acts)  ) 
+        if( rule && Array.isArray(rule.acts)  ) 
         for( const act of rule.acts )if( act )
             {  
-                
+             if(!onlyDO){   
                 if( act.email ){
                     let body = act.email.body
                      const bReg = body?this.parse(body):undefined
@@ -409,6 +425,7 @@ export class TestDevicesModbus {
                         }
                     sendSMS({...act.sms,text:txt}, device) 
                 }
+            }
                 if(act.DO) act.DO.forEach((val,index,array)=>{
                     switch(val){
                         case 0:
@@ -427,11 +444,13 @@ export class TestDevicesModbus {
             //send SMSs Emails
     }
     private static  testTrig ( trig:Trig ){
+        if(trig.type > 0) return false;
        //console.log("fn:testTrig",trig)
             if( trig.condition  )
             if(trig.jsCode===undefined){
 
-                trig.jsCode = trig.condition.replace(/\=+/g,' === ')
+                trig.jsCode = trig.condition.replace(/not=+/ig,' !== ')
+                                            .replace(/\=+/g,' == ')
                                             .replace(/or/ig,'||')
                                             .replace(/and/ig,'&&')
                                             .replace(/not/g,'!')
@@ -439,7 +458,7 @@ export class TestDevicesModbus {
                 
             }
             let jsCode:string = trig.jsCode?trig.jsCode:'';
-            if( trig && isArray(trig.regs) ){
+            if( trig && Array.isArray(trig.regs) ){
              trig.regs.forEach(reg => {
                 if( jsCode && reg  )
                     
@@ -453,10 +472,10 @@ export class TestDevicesModbus {
                     }catch(err){
                         console.error(err)
                         return false
-                    } 
+                    }finally{} 
                 }
                
-                const regExp:RegExp= new RegExp(/#DI?(\d+)/)
+                const regExp:RegExp = new RegExp(/#DI?(\d+)/)
                 if(regExp.test(jsCode)){               
                     let match = regExp.exec(jsCode)  
                     if(match) return io.di(parseInt(match[1])).then((value)=>{
@@ -516,66 +535,68 @@ export class TestDevicesModbus {
     }
     static async reguesting(regs,client:ModbusRTU,device:Device){
          // set ID of slave
-        client.setID(device.mb_addr);
+       if(regs)
         for(const reg of regs){
-            if((RTUproxyReguest.length||TCPproxyReguest.length)&&this.skip--){
-                return
+            if(RTUproxyReguest.length||TCPproxyReguest.length){
+                return false
             }
-            this.skip = 100  
+           
             try{
-            switch(reg.func){                                    
-                case 2:  reg.val = await client.readDiscreteInputs(reg.addr,1)
-                        this.processResponse(reg)
-                break 
-                case 1: reg.val = await client.readCoils(reg.addr,1)
-                        this.processResponse(reg)
-                break
-                case 3:  reg.val = await client.readHoldingRegisters(reg.addr, this.getSizeDataReguest(reg))
-                        this.processResponse(reg)
-                break
-                case 4: reg.val = await client.readInputRegisters(reg.addr, 1)
-                        this.processResponse(reg) 
-                break 
-                default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')                                            
-                
+                switch(reg.func){                                    
+                    case 2:  reg.val = await client.readDiscreteInputs(reg.addr -(device.mbAddrCorrect&&reg.addr?1:0),1)
+                            this.processResponse(reg)
+                    break 
+                    case 1: reg.val = await client.readCoils(reg.addr - (device.mbAddrCorrect&&reg.addr?1:0), 1)
+                            this.processResponse(reg)
+                    break
+                    case 3:  reg.val = await client.readHoldingRegisters(reg.addr -(device.mbAddrCorrect&&reg.addr?1:0), this.getSizeDataReguest(reg))
+                            this.processResponse(reg)
+                    break
+                    case 4: reg.val = await client.readInputRegisters(reg.addr -(device.mbAddrCorrect&&reg.addr?1:0), 1)
+                            this.processResponse(reg) 
+                    break 
+                    default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')   
+                                                    
+                    
+                }
+                if(device)if(device.errno){pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:'-' }  }); delete device.errno}
+            }catch(err){
+             if(device)
+                this.modbusError(err,device)
+            }finally{ 
+                await Promise.race(this.delay)
             }
-
-            if(device)if(device.errno){pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:'' }  }); delete device.errno}
-        }catch(err){
-            if(device)this.modbusError(err,device)
-        } 
-
         }
-
+        return true
     } 
 
     static skip: number = 100;
-    static async testTrigs ( device:Device, client:ModbusRTU ){
+    static async testTrigs ( device:Device, client:ModbusRTU  ){
             for( const rule of device.rules) {
                 if(rule && rule.trigs)
                   for(const trig of  rule.trigs){
                         if(trig){
-                            if ( trig.condition ){
+                            if ( !trig.regs && trig.condition )
                                 trig.regs =  this.parse(trig.condition)
                            
-                                await this.reguesting(trig.regs,client,device)
- 
-
-                                if( this.testTrig( trig ) ){ 
-                                   debug('#trig.active:' + trig.active)
+                               if( true == await this.reguesting(trig.regs, client, device) ){
+                                   if( !device.errno && this.testTrig( trig ) ){ 
+                                    await this.onTrig( device, rule , true)
+                                    console.log('#trig.active:' + trig.active)
                                    if(!trig.active)trig.active=0
                                    if(trig.active < 6)++trig.active
-                                   if( trig.active === 3 ) 
+                                   if( trig.active == 3 ) 
                                        await this.onTrig( device, rule )
                                 }else  if(trig.active)--trig.active
+                              }
                             }
                         }
-                    }
+            }
                     
-                }
+    }
             
 
-     }
+     
 }
 
   
