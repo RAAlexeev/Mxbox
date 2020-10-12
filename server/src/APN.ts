@@ -25,6 +25,8 @@ export function getAPN()
              return _APN
            }catch(err){
             console.error(err)
+           }finally{
+             
            }
           
         }else  console.error("getAPN():",err)

@@ -42,7 +42,7 @@ export const Acts = ( actsStore:ActsStore ) =>
     <IconMenu icon='add' position='topLeft' menuRipple> 
         <MenuItem value='sms' icon='sms' caption='SMS'  onClick={actsStore.addAct.bind(this,{type:0})} />
         <MenuItem value='email' icon='email' caption='Email' onClick={actsStore.addAct.bind(this,{type:1})}/>
-        <MenuItem disabled={actsStore.addDOdisable} value='DO' icon='DO' caption='Выходы' onClick={actsStore.addAct.bind(this,{type:2})}/>
+        <MenuItem  value='DO' icon='DO' caption='Выходы' onClick={actsStore.addAct.bind(this,{type:2})}/>
     </IconMenu>
 
 

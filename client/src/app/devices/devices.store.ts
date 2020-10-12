@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 import { AppStore } from '../app.store'
 import { arrayRemove } from '../utils';
 import { Rule, RulesStore } from '../rules/rules.store';
+import { isUndefined } from 'util';
 
 const DevicesQuery = gql`
   query DevicesQuery {
@@ -12,7 +13,8 @@ const DevicesQuery = gql`
       name,
       mb_addr,
       ip_addr,
-      type
+      type,
+      mbAddrCorrect
     }
   }
 `
@@ -33,6 +35,7 @@ export interface Device {
   rules?: Array<Rule> 
   error?:string
   type?:number
+  mbAddrCorrect?:Boolean
 }
 
 interface DevicesQueryResult {
@@ -46,17 +49,18 @@ export class DevicesStore {
   rulesStore:RulesStore
  // deviceSubscription
 
-  @observable devices: Array<Device> = []
+ @observable devices: Device[] = observable.array(); 
   @observable selected: Device
    
   @observable isEdit:boolean = false
   deviceSubscription: ZenObservable.Subscription;
   
-  constructor() {
+   constructor() {
+    this.initializeDevices()
     let self = this
     this.appStore = AppStore.getInstance()
     this.isEdit = false
-    this.initializeDevices()
+
 
       this.deviceSubscription = this.appStore.apolloClient.subscribe({
       query: gql`subscription onDeviceLinkState{
@@ -74,8 +78,8 @@ export class DevicesStore {
        const index = DevicesStore.getInstance().devices.findIndex( (device,index,devices)=>{
          return device ? (device._id === deviceLinkState._id) : false;
        } )
-       if(index >= 0 &&DevicesStore.getInstance().devices[index].error!= deviceLinkState.state) DevicesStore.getInstance().devices[index] = {... DevicesStore.getInstance().devices[index], error:deviceLinkState.state}
-       
+      // if(index >= 0 &&DevicesStore.getInstance().devices[index].error!= deviceLinkState.state) DevicesStore.getInstance().devices[index] = {... DevicesStore.getInstance().devices[index], error:deviceLinkState.state}
+      if(index >= 0 )DevicesStore.getInstance().devices[index].error= deviceLinkState.state;
       },
       error:(err)=> { console.error(err)
       },
@@ -86,7 +90,7 @@ export class DevicesStore {
     this.deviceSubscription.unsubscribe()
   }
   static getInstance() {
-    return DevicesStore.instance || (DevicesStore.instance = new DevicesStore() )
+    return DevicesStore.instance || ( DevicesStore.instance = new DevicesStore() )
   }
   async initializeDevices() {
     try{
@@ -94,13 +98,14 @@ export class DevicesStore {
       query: DevicesQuery,
       fetchPolicy: 'network-only'
     })    
-  // console.log(result.data.devices)
-  
-  //  result.data.devices.forEach(item =>item.error='###' )
-    this.devices = result.data.devices
+
+    this.devices = observable.array( result.data.devices )
   
   }catch(err){
-    console.log(err.message)
+    this.devices=observable.array(  )
+        console.log(err.message)
+  }finally{
+
   }
 
     
@@ -119,17 +124,25 @@ export class DevicesStore {
     this.devices.push(result.data.addDevice)
   }
   async delDevice(device) {
+   try{
     const result = await this.appStore.apolloClient.mutate<DevicesQueryResult,{}>({
       mutation: gql`mutation delDevice($_id:ID) { delDevice(_id:$_id){status}}`,
       variables:{ _id:device._id },
       fetchPolicy: 'no-cache'  
     })
-    
-    arrayRemove.call(this.devices, this.devices.indexOf(device))
-    if(!this.devices.length) this.selected = null
+   
+   // arrayRemove.call(this.devices, this.devices.indexOf(device))
+
+      this.devices.splice( this.devices.indexOf(device))
+      if(this.devices.length==0) this.selected = null
+    }catch(e){
+      console.error(e)
+    }finally{
+
+    }
   }
 
-  async updDevice(value) {
+  async updDevice( value ) {
     const result = await this.appStore.apolloClient.mutate<DevicesQueryResult,{}>({
       mutation: gql`mutation updDevice($deviceInput:DeviceInput!) { updDevice(deviceInput:$deviceInput){status}}`,
       
@@ -143,12 +156,18 @@ export class DevicesStore {
     this.updDevice({_id:device._id, type:type})
     device.type=type
   }
+  mbAddrCorrectChange(device){
+    
+    device.mbAddrCorrect=!device.mbAddrCorrect
+    this.updDevice({_id:device._id, mbAddrCorrect:device.mbAddrCorrect?1:0})
 
+  }
   nameOnChange(device:Device, deviceStore:DevicesStore, value){
 
     device.name = value.replace(/[\/\:]/g,'')
-    
-    this.updDevice({_id:device._id, name:device.name})
+    if(deviceStore)
+    deviceStore.updDevice({_id:device._id, name:device.name})
+    else this.updDevice({_id:device._id, name:device.name})
  }
 
  mb_addrOnChange(device:Device, deviceStore:DevicesStore, value){
@@ -197,18 +216,16 @@ ip_addrOnChange(device:Device,deviceStore:DevicesStore,value){
 @action select = (device:Device) => {
 
   if(this.selected != device){
-    //console.log(this.rulesStore)
+   this.selected = device
     if(window.location.pathname.search('views') < 0){
    this.isEdit = true;
-  if(this.rulesStore && device)
-      this.rulesStore.initializeRules(device)
-      else{
-        
-      }    
+    if(this.rulesStore && this.selected)
+      this.rulesStore.initializeRules(this.selected)
+    
     }
+
   }
-  if(device)if(!device.name) device.name = 'Новое'
-  this.selected = device
+
 }
  directory={
   address :[],
@@ -223,7 +240,7 @@ getDirectory = async()=>{
           }) 
           
   this.directory=result.data.getDirectory
- console.log(this.directory)
+ //console.log(this.directory)
 
 
 

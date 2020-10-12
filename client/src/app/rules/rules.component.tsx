@@ -22,6 +22,7 @@ import { CronDialog } from './dialogs/cron.dialog';
 import './style.css'
 import { RealyDialog } from '../dialogs/realy.dialog';
 import { DoDialog } from './dialogs/DO.dialog';
+import { ErrorDialog } from './dialogs/error.dialog'
 const TooltipButton = Tooltip( Button )
 @inject('appStore','devicesStore')
 @observer
@@ -68,6 +69,7 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
   cronDialog?:CronDialog;
   realyDialog?:RealyDialog;
   doDialog?:DoDialog;
+  errorDialog?:ErrorDialog;
   } ={}
 
    render() {
@@ -83,6 +85,7 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
         <CronDialog ref={instance => this.dialogs.cronDialog = instance}  />
         <RealyDialog ref={instance => this.dialogs.realyDialog = instance} />
         <DoDialog ref={instance => this.dialogs.doDialog = instance} />
+        <ErrorDialog ref={instance => this.dialogs.errorDialog = instance} />
         { TemplateMenu(this.dialogs.realyDialog, TemplatesStore.getInstance(), devicesStore, rulesStore ) } 
         <TooltipButton tooltip='Добавить' icon='add' onClick={rulesStore.addRule.bind( rulesStore, devicesStore.selected )} floating accent mini className={appStyle.floatRight} />
         <h2>{'Правила для: ' + devicesStore.selected.name}</h2>

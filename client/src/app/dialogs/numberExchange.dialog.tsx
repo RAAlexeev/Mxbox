@@ -27,7 +27,7 @@ export class NumberExchengDialog extends React.Component<any> {
   console.log('qweqwe',this.upd)
   if( this.upd ){  
     this.upd( this.state.sNumber, this.state.dNumber )
-    this.props.rootStores.routerStore.history.push(`/home`)
+    this.props.routerStore.history.push(`/home`)
   }
     this.handleToggle()
   }

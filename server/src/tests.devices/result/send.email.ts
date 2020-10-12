@@ -35,6 +35,8 @@ export  function sendMail(email:Email, device?:Device, ruleIndex?){
     }catch(e){
       console.error(e)               
       pubsub.publish(ERROR_MESSAGES,  {errorMessages:{ message:'Send email: '+ e.message } } );  
+    }finally{
+      
     }
 
   })

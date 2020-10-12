@@ -26,6 +26,8 @@ export const loadCronTask = ()=>{
                         })) 
                     }catch(err){
                         console.error(err)
+                    }finally{
+                        
                     }    
                    }      
             }

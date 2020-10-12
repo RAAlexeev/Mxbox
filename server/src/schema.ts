@@ -431,15 +431,16 @@ export const resolvers = {
       }catch(err){
         console.error(err)
         io=[]
+      }finally{
+          return{
+                ifaces : os.networkInterfaces(),
+                firmware :'[AIV]{version}[/AIV]',
+                uptime : os.uptime(),
+                hostname : os.hostname(),
+                freemem : os.freemem(),
+                io :  io
+          }
       }
-     return{
-          ifaces : os.networkInterfaces(),
-          firmware :'[AIV]{version}[/AIV]',
-          uptime : os.uptime(),
-          hostname : os.hostname(),
-          freemem : os.freemem(),
-          io :  io
-     }
     }
   },
 
@@ -675,6 +676,8 @@ export const resolvers = {
           return {status:''}
        }catch(err){
         return err//{status:err.message}
+       }finally{
+         
        }  
      }
      

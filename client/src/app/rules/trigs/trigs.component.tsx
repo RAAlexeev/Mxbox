@@ -9,8 +9,6 @@ import Tooltip from 'react-toolbox/lib/tooltip';
 const TooltipButton = Tooltip(Button)
 export const Trigs = ( trigStore:TrigsStore ) =>
    <div>
-     
-    
      { trigStore.trigs.map(( trig, index )=>         
       { if(trig)switch(trig.type) {
               case 0:return <Chip key={index} deletable onDeleteClick={trigStore.delTrig.bind(this,index)}>
@@ -31,7 +29,11 @@ export const Trigs = ( trigStore:TrigsStore ) =>
                     <TooltipButton tooltip={'Изменить'} icon={trig.sms?null:'edit menu'} onClick={()=>trigStore.dialogs.smsDialog.handleToggle(trig, trigStore.updTrig) }>
                     {trig.sms?trig.sms.text.trim().slice(0,10):null}
                     </TooltipButton>
-                </Chip>            
+                </Chip>   
+              case 3:return <Chip key={index} deletable onDeleteClick={trigStore.delTrig.bind(this,index)}>
+                             <Avatar style={{backgroundColor: 'deepskyblue'}} icon='error'  />
+      <TooltipButton tooltip={'Изменить'} icon={'edit menu'} onClick={()=>trigStore.dialogs.errorDialog.handleToggle(trig, trigStore.updTrig) }> </TooltipButton>
+                          </Chip>         
               default:
                   break;
           }
@@ -42,6 +44,7 @@ export const Trigs = ( trigStore:TrigsStore ) =>
         <MenuItem value='condition' icon='code' caption='Условие'  onClick={trigStore.addTrig.bind(trigStore,{type:0})} />
         <MenuItem value='cron' icon='alarm' caption='Расписание'  onClick={trigStore.addTrig.bind(trigStore,{type:1})} />
         <MenuItem value='sms' icon='sms' caption='SMS' onClick={trigStore.addTrig.bind(trigStore,{type:2})} />
+        <MenuItem value='onLnkErr' icon='error' caption='Ошибки связи' onClick={trigStore.addTrig.bind(trigStore,{type:3})} />
       
     </IconMenu>
 

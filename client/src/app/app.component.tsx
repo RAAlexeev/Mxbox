@@ -5,7 +5,7 @@ import { Layout, NavDrawer, Panel } from 'react-toolbox/lib/layout';
 import { AppBar } from 'react-toolbox/lib/app_bar';
 import {Devices} from './devices/devices.component'
 import { inject } from 'mobx-react';
-import{Snackbar} from './snackbar.component'
+import{Snackbar} from './snackbar.component';
 import { AppStore } from './app.store';
 import Button, { BrowseButton } from 'react-toolbox/lib/button';
 import Tooltip from 'react-toolbox/lib/tooltip';
@@ -14,7 +14,7 @@ import { NumberExchengDialog } from './dialogs/numberExchange.dialog';
 const TooltipButton = Tooltip(Button)
 const TooltipBrowseButton = Tooltip(BrowseButton)
 
-@inject('devicesStore')
+@inject('appStore','routerStore')
 export class App extends React.Component<any, any> {
   snackbar: Snackbar;
   numberExchengDialog:NumberExchengDialog
@@ -48,6 +48,7 @@ toggleSidebar = () => {
   this.setState({ sidebarPinned: !this.state.sidebarPinned });
 };
   render() {
+    const {appStore, routerStore}= this.props
     return(  
     <Layout>
         <NavDrawer active={this.state.drawerActive}
@@ -60,13 +61,13 @@ toggleSidebar = () => {
            
             <NavLink to='/settings' style={{margin:'1rem'}} activeClassName={style.active}>Настройки</NavLink>  
            
-            <TooltipButton tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>AppStore.getInstance().numberExchengDialog.handleToggle(AppStore.getInstance().onNumberExchenge) }/>
+            <TooltipButton tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>appStore.numberExchengDialog.handleToggle(appStore.onNumberExchenge) }/>
            
             <TooltipButton tooltip='Сохранить настройки' icon='save_alt' href={document.location.origin/* .replace(/:3000/,':3001') */+'/download'}/>
            
-            <TooltipBrowseButton  tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>AppStore.getInstance().onLoad(file)}/>
+            <TooltipBrowseButton  tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>{if(appStore.onLoad(file)){routerStore.history.push(`/reload`)}}}/>
             </div>:null}
-            <Devices {...this.props} />
+            <Devices  />
       </NavDrawer>
       <Panel>
         <AppBar leftIcon='menu' onLeftIconClick={ this.toggleDrawerActive } theme={style} >
@@ -80,7 +81,7 @@ toggleSidebar = () => {
                   </div>
               </div>
         </Panel>
-      <Snackbar ref={inst=>this.snackbar=inst} />
+      <Snackbar  ref={inst=>this.snackbar=inst} />
     </Layout>
     )};
 }

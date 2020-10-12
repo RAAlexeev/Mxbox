@@ -75,23 +75,34 @@ export class SettingsStore {
     this.onPortChange(1,name,value)
   }
 
-async onUpload (value){
-    console.dir(value)
-    
-    const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-      mutation: gql`mutation procUpload($file: Upload!) {
-        procUpload(file: $file){
+async onUpload (file){
+    console.dir(file)
+    let response = await fetch(document.location.origin+'/upload', {
+      method: 'POST',
+      body: file
+    });
+    console.dir(response)
+    /*const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+      mutation: gql`mutation singleUpload($file: Upload!) {
+        singleUpload(file: $file){
           filename
         }
-      }`, 
-      variables:{ file:value },
+      }
+      `, 
+      variables:{ file },
       fetchPolicy: 'no-cache'  
     }) 
-    //console.log(result)
-    if(result.data.procUpload.filename){
-      AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`${result.data.procUpload.filename} успешно загружен... презагрузка...`})
-    }
-  } 
+    AppStore.getInstance().apolloClient.resetStore();
+    console.log(result)
+   */ //if(result.data.procUpload){
+    ///  AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`${result.data.procUpload.filename} успешно загружен... презагрузка...`})
+    //  return true
+   // }
+  //  else{
+    //  AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`${result}`})
+    //  return false
+//    }
+ } 
   async loadSmtp(){
    const result = await AppStore.getInstance().apolloClient.query<any,{}>({
           query: gql`query getSmtpConfig{getSmtpConfig{address port name password}}`,
@@ -173,21 +184,21 @@ async onUpload (value){
       this.wiFiChangeTimeout = setTimeout(async ()=>{
       try{
         await AppStore.getInstance().apolloClient.mutate<any,{}>({
-        mutation: gql`mutation setWiFiConfig($WiFiConf:WiFiConfInput!) { setWiFiConfig(WiFiConf:$WiFiConf){status} }`, 
-        variables:{ WiFiConf: {ssid:this.WiFi.SSID,psk:this.WiFi.PSK} },
-        fetchPolicy: 'no-cache'  
+          mutation: gql`mutation setWiFiConfig( $WiFiConf:WiFiConfInput! ) { setWiFiConfig(WiFiConf:$WiFiConf){status} }`, 
+          variables:{ WiFiConf: { SSID:this.WiFi.SSID,PSK:this.WiFi.PSK } },
+          fetchPolicy: 'no-cache'  
         })
       }catch(err){
         this.WiFi[name]=save
         throw  err
       }
-    },500)
+    },5000)
     }
   //  @observable testEmailStatus=''
     async testEmail({email}){
       try{
          await AppStore.getInstance().apolloClient.mutate<any,{}>({
-          mutation: gql`mutation tested($email:EmailInput){ tested(email:$email){status} }`, 
+          mutation: gql`mutation tested( $email:EmailInput ){ tested(email:$email){ status } }`, 
           variables:{ email: email },
           fetchPolicy: 'no-cache'  
         })

@@ -31,9 +31,10 @@ export class CodeDialog extends React.Component<any> {
   self: this;
 
   handleOnSave(){
-    let code = this.state.code.replace(/\[\d?\s?\d+\.?\d?[f,u]?\]/g,'(-1.1)').replace(/#DI\d+/g,'(0)')
+    let code = this.state.code.replace(/\[\d?\s?\d+\.?[01]?[0-5]?[f,u]?\]/g,'(-1.1)').replace(/#DI\d+/g,'(0)')
         .replace(/([^>^<])\=+/g,'$1 === ').replace(/or/ig,'||').replace(/and/ig,'&&').replace(/not/g,'!').replace(/<>/g,'!=')
-    try{console.log('hadleOnSave:',code ,new Function('return ('+ code +')')())
+    try{
+      console.log('hadleOnSave:',code ,new Function('return ('+ code +')')())
       if(!isBoolean(new Function('return ('+code+')')()) )throw new Error('выражение не логического типа...')    
       this.curTrig.condition = this.state.code
       this.curTrig.coment = this.state.coment 

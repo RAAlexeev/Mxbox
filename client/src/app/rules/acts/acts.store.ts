@@ -64,7 +64,8 @@ export class ActsStore {
     this.acts = rule.acts?rule.acts:[]
     this.rule = rule
     this.dialogs = dialogs
-    this.addDOdisable=false
+
+    //this.addDOdisable=this.acts.every(item=>item.type!==2)
 /*      this.deviceSubscription = this.appStore.apolloClient.subscribe({
       query: DevicesSubscription,
       // This way realtime updates will work only when both posting and reading users have the same name. Proof of concept.
@@ -97,6 +98,8 @@ export class ActsStore {
     this.acts.push(act)
     }catch(err){
       console.error(err.toString())
+    }finally{
+
     }
   }
   @action updActEmail = async (act:Act)=>{

@@ -10,6 +10,8 @@ import * as theme from './settings.css'
 import Button, { BrowseButton } from 'react-toolbox/lib/button';
 import {Tab, Tabs} from 'react-toolbox/lib/tabs';
 import { EmailDialog } from '../dialogs/email.dialog'
+import { RouterStore } from 'mobx-react-router'
+import { UploadFile } from '../upload'
 
 
 
@@ -28,11 +30,12 @@ export class Settings extends React.Component<any, any> {
 }
 
 interface SettingsComponentProps {
-  appStore?: AppStore,
+  routerStore?: RouterStore,
   settingsStore?: SettingsStore
 }
+
 const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},{value:'8o1',label:'8 нечет 1'},{value:'8s1',label:'8 пробел 1'}]
- @inject('appStore', 'settingsStore')
+ @inject('routerStore', 'settingsStore')
  @observer  class SettingsComponent extends React.Component<SettingsComponentProps, any> {
   //speeds:[{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]
   state = {
@@ -60,9 +63,9 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   render() {
     
 
-    const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:56700,label:56700},{value:115200,label:115200}]
+    const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:57600,label:57600},{value:115200,label:115200}]
     
-    const { settingsStore, appStore } = this.props
+    const { settingsStore, routerStore } = this.props
     
     return (
        <section>
@@ -72,40 +75,9 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
 
           <Tab label='Общие'>
           <Card>
-            <CardTitle
-                avatar=''
-                title="Порт1 (RS485-1)"
-                subtitle="Параметры"
-              />
-             
-             <CardText> 
-                <div style={{width:'30%', float:"left"}}>
-                <Dropdown 
-                    auto
-                    label={'Скорость'}
-                    onChange={settingsStore.onPort1Change.bind(null,'speed')}
-                    source={speedList}
-                    value={settingsStore.portsSettings[0].speed?settingsStore.portsSettings[0].speed:''}
-                    theme={theme}
-                  />
-                  </div>
-                 <div style={{width:'30%',float:'left'}}>
-                  <Dropdown
-                    auto
-                    label={'Параметры'}
-                    onChange={settingsStore.onPort1Change.bind(null,'param')}
-                    source={params}
-                    value={settingsStore.portsSettings[0].param?settingsStore.portsSettings[0].param:''}
-                    theme={theme}
-                  />
-                </div>
-
-              </CardText> 
-          </Card>
-          <Card>
             <CardTitle 
                 avatar=''
-                title="Порт2 (RS485-2)"
+                title="Порт1 (RS485-1)"
                 subtitle="Параметры"
               />
 
@@ -136,7 +108,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                     auto
                     label={'Протокол:'}
                     onChange={settingsStore.onPort2Change.bind(null,'protocol')}
-                    source={[{value:0,label:'транслировать'},{value:1,label:'транслировать + joson по modbus'},{value:2,label:'joson'},{value:3,label:'AT команды'},{value:4,label:'транслировать + AT команды по modbus'}]}
+                    source={[{value:0,label:'транслятор'},{value:1,label:'транслятор+модем'},{value:2,label:'модем'}]}
                     value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].protocol:0}
                     theme={theme}
                     />
@@ -144,9 +116,9 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                   <div style={{width:'auto',float:'left'}}>
                   <Input
                     type='text'
-                    label=' mb адрес:'
+                    label='адрес ус-ва:'
                     name='mbAddress'
-                    hint='200'
+                    hint=''
                     error=''
                     value={settingsStore.portsSettings[1]?settingsStore.portsSettings[1].addr:200}
                     onChange={settingsStore.onPort2Change.bind(null,'addr')}
@@ -154,6 +126,38 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
             </div>
               </CardText> 
           </Card>
+          <Card>
+            <CardTitle
+                avatar=''
+                title="Порт2 (RS485-2)"
+                subtitle="Параметры"
+              />
+             
+             <CardText> 
+                <div style={{width:'30%', float:"left"}}>
+                <Dropdown 
+                    auto
+                    label={'Скорость'}
+                    onChange={settingsStore.onPort1Change.bind(null,'speed')}
+                    source={speedList}
+                    value={settingsStore.portsSettings[0].speed?settingsStore.portsSettings[0].speed:''}
+                    theme={theme}
+                  />
+                  </div>
+                 <div style={{width:'30%',float:'left'}}>
+                  <Dropdown
+                    auto
+                    label={'Параметры'}
+                    onChange={settingsStore.onPort1Change.bind(null,'param')}
+                    source={params}
+                    value={settingsStore.portsSettings[0].param?settingsStore.portsSettings[0].param:''}
+                    theme={theme}
+                  />
+                </div>
+
+              </CardText> 
+          </Card>
+
           <Card>
             <CardTitle
               avatar=''
@@ -166,7 +170,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
      <CardText> 
         <Input
           type='text'
-          label='Адрес smtp:'
+          label='Адрес почтового сервера (smtp):'
           name='smtpAddress'
           hint='smtp.yandex.ru'
           value={settingsStore.smtpSettings.address?settingsStore.smtpSettings.address:''}
@@ -212,9 +216,12 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
      <BrowseButton
           icon="file_upload"
           label="Файл"
-          onChange={({ target: { validity, files: [file] } }) =>settingsStore.onUpload(file) }
+          onChange={({ target: { validity, files: [file] } }) =>{settingsStore.onUpload(file)/*routerStore.history.push(`/reload`)*/} }
         />
-      
+        <form encType='multipart/form-data' method='post' ref='uploadForm' action='/upload' >
+        <input name="fProc" type="file" />
+        <input type="submit" ></input>
+        </form>
       </CardText> 
       
    </Card>
