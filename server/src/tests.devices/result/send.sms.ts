@@ -91,7 +91,7 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
                     return
                 }
                 modem.deleteAllSimMessages()
-                if(data.data.length)inputSMS(data) 
+                if(data.data.length)inputSMS(data.data) 
                 
             })},30000)     
         })
@@ -116,7 +116,7 @@ const getNetworkSignal = ()=>{
                             lamp.intervalId = undefined
                             setDO(3,1) // зажеч   
                         }else{
-                        if( res.data.stat == 1 && q <= 6  && isUndefined( lamp.intervalId ))
+                        if( res.data.stat == 1 && q <= 6  && ( lamp.intervalId ==undefined))
                             lamp.intervalId = setInterval(()=>{
                                 lamp.state =  !lamp.state
                                 if( lamp.state ) 

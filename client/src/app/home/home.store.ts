@@ -28,13 +28,26 @@ type Info={
 }
 export class HomeStore {
 
-  @observable info = {ifaces:undefined, io:[], firmware:'',uptime:0,hostname:'',freemem:0}
+  @observable info = {ifaces:undefined, io:[], firmware:'',ts:0,uptime:0,hostname:'',freemem:0}
   @observable signalQuality=0
   @observable CREG = ""
   @observable pingResult = ""
   @observable ip_addr = ""
   @observable ioTest = false
-
+  getDateTime(){
+    let ts = Date.now();
+    let date_ob = new Date(ts);
+    // current hours
+    let hours = date_ob.getHours();
+    // current minutes
+    let minutes = date_ob.getMinutes();
+    // current seconds
+    let seconds = date_ob.getSeconds();
+    let date = date_ob.getDate();
+    let month = date_ob.getMonth() + 1;
+    let year = date_ob.getFullYear();
+    return year + "-" + month + "-" + date + '@'+hours+':'+minutes+':'+ seconds
+  }
   @action async loadInfo(){
     try{
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
@@ -44,7 +57,7 @@ export class HomeStore {
                                                 ccmni1{address netmask family mac internal }
                                                 ccmni2{address netmask family mac internal }
                                                   } 
-                                                   io firmware uptime hostname freemem                                          
+                                                   ts io firmware uptime hostname freemem                                          
                                    }}`,
        variables:{},
        fetchPolicy: 'no-cache'
@@ -137,7 +150,8 @@ export class HomeStore {
           variables:{ sms: sms },
           fetchPolicy: 'no-cache'  
         })
-     if(result.data.tested.status)alert(result.data.tested.status)
+        if(AppStore.getInstance().appComponent.snackbar)  AppStore.getInstance().appComponent.snackbar.setState({active:true,label:`[ТЕСТОВАЯ SMS]: ${AppStore.getInstance().appComponent.snackbar}`})
+     console.log(result.data.tested.status)
       }catch(err){
        // alert(err.message)
         throw  err

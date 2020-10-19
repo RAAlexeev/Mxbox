@@ -15,6 +15,7 @@ import { ioInit } from './io';
 import { init } from './tests.devices/result/send.sms';
 import { getAPN } from './APN';
 import setSoftap from './set.softap';
+import {pingWatchStart} from './ping'
 const fileUpload = require('express-fileupload');
 //const fileUpload = require('express-fileupload');
 
@@ -118,6 +119,8 @@ app.use(
 ioInit()
 init()
 getAPN()
+pingWatchStart()
+
   var server = /*http.createServer(options,*/app/*)*/.listen(  3001,'0.0.0.0',   ()=>{
   const host = (server.address() as AddressInfo).address;
   const port = (server.address()as AddressInfo).port;

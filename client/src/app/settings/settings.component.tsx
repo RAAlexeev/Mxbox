@@ -2,7 +2,6 @@ import * as React from 'react'
 import { inject, observer, Provider } from 'mobx-react'
 import { Input } from 'react-toolbox/lib/input'
 import { SettingsStore } from './settings.store'
-import { AppStore } from '../app.store'
 import { DevicesStore } from '../devices/devices.store';
 import {Card, CardTitle, CardText } from 'react-toolbox/lib/card';
 import Dropdown from 'react-toolbox/lib/dropdown';
@@ -11,7 +10,8 @@ import Button, { BrowseButton } from 'react-toolbox/lib/button';
 import {Tab, Tabs} from 'react-toolbox/lib/tabs';
 import { EmailDialog } from '../dialogs/email.dialog'
 import { RouterStore } from 'mobx-react-router'
-import { UploadFile } from '../upload'
+import Switch from 'react-toolbox/lib/switch';
+
 
 
 
@@ -63,7 +63,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   render() {
     
 
-    const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:57600,label:57600},{value:115200,label:115200}]
+    const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:38400,label:38400},{value:57600,label:57600},{value:115200,label:115200}]
     
     const { settingsStore, routerStore } = this.props
     
@@ -74,6 +74,11 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
           <Tabs index={this.state.index} onChange={this.handleTabChange}>
 
           <Tab label='Общие'>
+          <Switch  theme={theme}
+            checked={settingsStore.settings.pingWatchDogEnable}
+            label="ping watcdog(раз в час ya.ru) - reboot при неудаче"
+            onChange={settingsStore.switchPingWatch.bind(settingsStore)}
+          />
           <Card>
             <CardTitle 
                 avatar=''

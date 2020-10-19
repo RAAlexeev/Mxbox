@@ -21,7 +21,7 @@ import { createUploadLink } from 'apollo-upload-client'
 const customFetch = async (uri, options) => {
   try {
    const response = await fetch(uri, options)
-   console.log(options)
+  // console.log(options)
     if (response.status >= 400) {  // or handle 400 errors
       return Promise.reject(response.status);
     }
@@ -64,13 +64,13 @@ export class AppStore {
                    
                                                         if (graphQLErrors)
                                                           graphQLErrors.map(({ message, locations, path }) =>{
-                                                          console.log( message, locations, path);
+                                                         // console.log( message, locations, path);
                                                           if(this.appComponent)this.appComponent.snackbar.setState({active:true,label://console.log(
                                                                         `[ошибка GraphQL]: Message: ${message}, Location: ${locations}, Path: ${path}`
                                                                     })
                                                                   })
                                                       if (networkError){// console.log(
-                                                        console.dir(networkError)
+                                                       // console.dir(networkError)
                                                         if(this.appComponent)this.appComponent.snackbar.setState({active:true,label:`[Ошибка сети]: ${networkError}`})
                                                       }
                                                         })
@@ -92,7 +92,7 @@ export class AppStore {
     }).subscribe({
       next:({data})=> {
        const {errorMessages} = data 
-       console.log('subscription:',errorMessages)
+      // console.log('subscription:',errorMessages)
         if( !(errorMessages) ) return;
         if(this.appComponent)this.appComponent.snackbar.setState({active:true, label:errorMessages.message})
        

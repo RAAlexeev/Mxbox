@@ -284,7 +284,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 queryDevices(devices);
                                             })
                                         }
-                                    TestDevicesModbus.delay =  [sleep(350), cancelPromise(proxyPort)]      
+                                    TestDevicesModbus.delay =  [sleep(500), cancelPromise(proxyPort)]      
                                     // start get value
                                          queryDevices(devices)               
             })
@@ -584,10 +584,10 @@ export class TestDevicesModbus {
                                     await this.onTrig( device, rule , true)
                                     console.log('#trig.active:' + trig.active)
                                    if(!trig.active)trig.active=0
-                                   if(trig.active < 6)++trig.active
+                                   if(trig.active < 6) ++trig.active
                                    if( trig.active == 3 ) 
                                        await this.onTrig( device, rule )
-                                }else  if(trig.active)--trig.active
+                                }else  if(trig.active) --trig.active
                               }
                             }
                         }

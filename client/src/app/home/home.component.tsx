@@ -88,8 +88,17 @@ interface HomeComponentProps {
             {homeStore.info.ifaces.ccmni0?homeStore.info.ifaces.ccmni0.map((item,_key)=>{
                                                                               return <tr  key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
             }):null}
+            <tr><th rowSpan={homeStore.info.ifaces.ccmni1?homeStore.info.ifaces.ccmni1.lengh:0}>ccmni0:</th></tr>
+            {homeStore.info.ifaces.ccmni1?homeStore.info.ifaces.ccmni1.map((item,_key)=>{
+                                                                              return <tr  key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
+            }):null}
+            <tr><th rowSpan={homeStore.info.ifaces.ccmni2?homeStore.info.ifaces.ccmni2.lengh:0}>ccmni0:</th></tr>
+            {homeStore.info.ifaces.ccmni2?homeStore.info.ifaces.ccmni2.map((item,_key)=>{
+                                                                              return <tr  key={_key}><td>{item.address}</td><td>{item.netmask}</td><td>{item.mac}</td></tr>
+            }):null}
         </tbody></table>:null}
         <table><caption>Разное</caption><tbody> 
+        <tr><td>date:</td><td>{homeStore.getDateTime()}</td></tr> 
         <tr><td>firmware:</td><td>{homeStore.info.firmware}</td></tr>
           <tr><td>uptime:</td><td>{homeStore.info.uptime}</td></tr>
           <tr><td>hostname:</td><td>{homeStore.info.hostname}</td></tr>

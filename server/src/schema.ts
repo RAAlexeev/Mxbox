@@ -137,6 +137,12 @@ export  const typeDefs = gql(`\
       PSK:String
       TYPE:String
     }
+    input SettingsInput{
+      pingWatchDogEnable:Boolean
+    }
+    type Settings{
+      pingWatchDogEnable:Boolean
+    }
     type PortConf{
       num:Int
       speed:Int
@@ -193,6 +199,7 @@ export  const typeDefs = gql(`\
       device(id:ID!):Device
       templates:[Device]
       getDirectory:Directory
+      getSettings:Settings
       getSmtpConfig:SmtpConf
       getPortsConfig:[PortConf]
       getAPNConfig:ApnConf
@@ -233,6 +240,7 @@ export  const typeDefs = gql(`\
       exchangeNum( sNum:String!, dNum:String! ):Result
       ping(ip_addr:String):String
       switch_io_test:Boolean
+      setSettings(settings:SettingsInput!):Result
       tested(sms:SmsInput, email:EmailInput):Result
     }
 `);
@@ -315,6 +323,7 @@ import { dioTest } from './tests.devices/dio.test'
 import { sendSMS, modem } from './tests.devices/result/send.sms'
 import { sendMail } from './tests.devices/result/send.email'
 import { GraphQLUpload } from 'graphql-upload';
+import { pingWatchDog } from './ping'
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const ERROR_MESSAGES = 'ERROR_MESSAGES'
 export const SIGNAL_GSM = 'SIGNAL_GSM'
@@ -433,6 +442,7 @@ export const resolvers = {
         io=[]
       }finally{
           return{
+                ts: Date.now(),
                 ifaces : os.networkInterfaces(),
                 firmware :'[AIV]{version}[/AIV]',
                 uptime : os.uptime(),
@@ -441,7 +451,13 @@ export const resolvers = {
                 io :  io
           }
       }
-    }
+    },
+    getSettings:()=>{
+      db_settings.loadDatabase()
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve(conf); else this.reject('no settings') }         
+      const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'settings'}, callback.bind({resolve, reject} ))})    
+      return p.then().catch() 
+    },
   },
 
   Mutation:{
@@ -666,9 +682,15 @@ export const resolvers = {
         return p.then().catch()   
      },
      switch_io_test(){
-        return dioTest()
-       
+        return dioTest()     
      },
+     setSettings(parent,{settings},context,info){
+      db_settings.loadDatabase()
+      pingWatchDog.enable=! pingWatchDog.enable
+      var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve( pingWatchDog.enable) }}            
+      const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'settings'},{$set:settings} , {upsert:true}, callback.bind({resolve,reject}))})    
+      return p.then((v)=>v).catch((v)=>v)   
+   },
      tested(parent,{sms,email},info){
        try{
           if(sms) return {status:sendSMS(sms)}

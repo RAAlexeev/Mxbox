@@ -5,7 +5,9 @@ import gql from 'graphql-tag';
 
 export class SettingsStore {
   
-
+  @observable settings:{
+    pingWatchDogEnable
+  }={pingWatchDogEnable:false}
   
   @observable  smtpSettings: {
     address:string;
@@ -103,6 +105,16 @@ async onUpload (file){
     //  return false
 //    }
  } 
+ async loadSettings(){
+  const result = await AppStore.getInstance().apolloClient.query<any,{}>({
+         query: gql`query getSettings{getSettings{pingWatchDogEnable}}`,
+     variables:{},
+     fetchPolicy: 'no-cache'
+     }) 
+     console.log( result.data )
+     if( result.data.getSettings )this.settings = result.data.getSettings
+     
+ }
   async loadSmtp(){
    const result = await AppStore.getInstance().apolloClient.query<any,{}>({
           query: gql`query getSmtpConfig{getSmtpConfig{address port name password}}`,
@@ -155,7 +167,19 @@ async onUpload (file){
               throw err
             }
           }
-
+       async switchPingWatch(){
+         this.settings.pingWatchDogEnable = ! this.settings.pingWatchDogEnable
+                 try{
+          const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+      mutation: gql`mutation setSettings($settings:SettingsInput!) { setSettings(settings:$settings){status}}`,
+        variables:{ settings: {['pingWatchdogEnable']: this.settings.pingWatchDogEnable } },
+        fetchPolicy: 'no-cache'  
+      })
+    }catch(err){
+      this.settings.pingWatchDogEnable = ! this.settings.pingWatchDogEnable
+      throw  err
+    }
+       }
     async onAPNChange(name:string, value:string){
       let save=value
       this.APN[name]=value
@@ -213,9 +237,11 @@ async onUpload (file){
     //    address:undefined,     port:undefined,  name:undefined,  password:undefined
     // }
    // this.portsSettings = [{num:0, speed:19200,param:'8e1'}, {num:1, speed:19200, param:'8e1', protocol:0, addr:200}]
+   this.loadSettings()
     this.loadPorts()
     this.loadSmtp()
     this.loadAPN()
     this.loadWiFi()
+
   }
 }
