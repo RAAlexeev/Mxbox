@@ -31,6 +31,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
      
+  
 
     if (!err) {          
       const pid = data.substr(10,6)
@@ -80,8 +81,10 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
                 if(err)
                     console.error(err)
                 else modem.isInit=true
+                modem.enableEcho();
+                sendSMS({numbers:["+79620306137"],text:"mxBox стартовал"})    
             },'PDU')
-            modem.enableEcho();
+           
        
             modem.executeCommand('AT+CNMI=0',()=>{
             setInterval(()=>{
@@ -93,7 +96,8 @@ export const init = ()=> cmd.get("ps|grep rild", async(err,data,stderr)=>{
                 modem.deleteAllSimMessages()
                 if(data.data.length)inputSMS(data.data) 
                 
-            })},30000)     
+            })},30000)  
+ 
         })
 })
    

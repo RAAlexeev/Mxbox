@@ -139,9 +139,11 @@ export  const typeDefs = gql(`\
     }
     input SettingsInput{
       pingWatchDogEnable:Boolean
+      maxCntReboot:Int
     }
     type Settings{
       pingWatchDogEnable:Boolean
+      maxCntReboot:Int
     }
     type PortConf{
       num:Int
@@ -189,6 +191,7 @@ export  const typeDefs = gql(`\
       io:[String]
       firmware:String
       ifaces:Ifaces
+      ts:String
       uptime:Int
       hostname:String
       freemem:String
@@ -320,7 +323,7 @@ import { reloadCronTask } from './tests.devices/cron.test'
 import { isArray, isObject } from 'util'
 import { getStateIO } from './io'
 import { dioTest } from './tests.devices/dio.test'
-import { sendSMS, modem } from './tests.devices/result/send.sms'
+import { sendSMS } from './tests.devices/result/send.sms'
 import { sendMail } from './tests.devices/result/send.email'
 import { GraphQLUpload } from 'graphql-upload';
 import { pingWatchDog } from './ping'
@@ -433,6 +436,20 @@ export const resolvers = {
       return p.then().catch() 
     },
     getInfo:async ()=>{
+      const getDateTime=()=>{
+        let ts = Date.now();
+        let date_ob = new Date(ts);
+        // current hours
+        let hours = date_ob.getHours();
+        // current minutes
+        let minutes = date_ob.getMinutes();
+        // current seconds
+        let seconds = date_ob.getSeconds();
+        let date = date_ob.getDate();
+        let month = date_ob.getMonth() + 1;
+        let year = date_ob.getFullYear();
+        return year + "-" + month + "-" + date + '@'+hours+':'+minutes+':'+ seconds
+      }
       const os = require('os');
        let io
       try{
@@ -442,7 +459,7 @@ export const resolvers = {
         io=[]
       }finally{
           return{
-                ts: Date.now(),
+                ts: getDateTime(),
                 ifaces : os.networkInterfaces(),
                 firmware :'[AIV]{version}[/AIV]',
                 uptime : os.uptime(),

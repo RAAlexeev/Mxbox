@@ -79,30 +79,33 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
 
                                              default:  // транслировать    
                                            // console.log('proxyPort.data:',data)
-                                            if([1,2,3,4,5,6,15,16].includes(data[1])){
-                                              if(data.length === 2 + 4 + 2 + ( [15,16].includes(data[1]) ? data[6]:0) ){
+                                           RTUproxyReguest.push({data:data, query:0}) 
+                                           
+/*                                             if([1,2,3,4,5,6,15,16,17].includes(data[1])&&
+                                              (data.length === (8 + ( [15,16].includes(data[1]) ? data[6]+1:0) ))){
+                                                 // if(data.length === 1 + 5 + 2){
                                                 RTUproxyReguest.push({data:data, query:0})
-                                                if(proxyPort['cancel'])proxyPort['cancel']()
-                                              }
+                                                if(proxyPort['cancel'])proxyPort['cancel']()  
+                                            }
                                               else{
                                                     const index = data.findIndex((item,index,array)=>{
-                                                        return ((index > (2 + 4 + ([15,16].includes(array[1])?array[6]:0) + 2+1)) && [1,2,3,4,5,6,15,16].includes(item) )                                                
-                                                })
+                                                                            return ((index > 1) && [1,2,3,4,5,6,15,16].includes(item) )                                                
+                                                                        })
                                                 if(index>=0) {
-                                                    proxyPort["buff"] = data.splice(index,data.length-index)
+                                                    proxyPort["buff"] = data.splice(index-1,data.length-index+1)
                                                     RTUproxyReguest.push({data:data, query:0})
                                                     if(proxyPort['cancel'])proxyPort['cancel']()
                                                 }
-                                              }
-                                            } else {
-                                                if( proxyPort["buff"]){
+                                              
+                                             else 
+                                                if( proxyPort["buff"] !== undefined){
                                                     RTUproxyReguest.push({data: proxyPort["buff"].push(data), query:0})
                                                     if(proxyPort['cancel'])proxyPort['cancel']()
                                                     delete(proxyPort['buff'])
                                                 }
                                             }
-                                        }
-                                        })
+                                       */   } 
+                                      })
                                         
                                         const port =  new SerialPort("/dev/ttyMT1",{ baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: (settings['0'].param[2]==1?1:2) }
                                         ,err=>console.error(err))
@@ -110,25 +113,26 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 
                                             console.log(data)
                                             
-                                                if([1,2,3,5].includes(data[1]) && (data[2] > data.length-2-1-2)){
+                                                if(port["buf"]===undefined&&[1,2,3,4].includes(data[1]) && (data[2] > (data.length-4-([15,16].includes(data[1])?1:0)))){
                                                     port["buf"] =  Buffer.from( data )
                                                     return 
                                                 }else if(port["buf"]){
                                                   
-                                                    if(port["buf"][2] > port["buf"].length-2-1-2){
+                                                 //   if(port["buf"][2] > port["buf"].length-2-1-2){
                                                         port["buf"]=Buffer.concat([port["buf"],data])    
-                                                        if(port["buf"][2] > port["buf"].length-2-1-2)return
-                                                    }
+                                                        if(port["buf"][2] < port["buf"].length-5 )
+                                                            return
+                                                 //   }
                                                 
-                                                } 
+                                                    } 
                                               
                                                 if(TCPproxyReguest[0]&&TCPproxyReguest[0].query) {
                                                    const MBAPheader:Buffer = TCPproxyReguest[0].data.slice(0,MBAPheaderLenght-1)
                                                    MBAPheader.writeUInt16LE(port["buf"]? port["buf"].length:data.length,4)
                                                     TCPproxyReguest.shift().sock.write(port["buf"]? Buffer.concat([MBAPheader, port["buf"]]) : Buffer.concat([MBAPheader,data]))                                     
-                                                }else if(RTUproxyReguest[0]&& RTUproxyReguest[0].query){
+                                                }else if( RTUproxyReguest[0] && RTUproxyReguest[0].query ){
                                                     RTUproxyReguest.shift() 
-                                                    proxyPort.write(port["buf"]? port["buf"] : data)
+                                                    proxyPort.write((port["buf"]!==undefined)? port["buf"] : data)
                                                 }
                                                 delete port["buf"]
                                                 if(port["cancel"])port["cancel"]()
@@ -136,7 +140,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                         })
                            
                                        
-                                        const tOut = { trig:31,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},20)} 
+                                        const tOut = { trig:31,tout:setInterval(()=>{if(tOut.trig)tOut.trig--},100)} 
                                         
                                         const proxyQuery = async(device)=>{  
                                             try{
@@ -153,6 +157,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                         await new Promise((resolve,reject)=>port.close((err)=>{ resolve() } ))
         
                                                         await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) });
+                                                       
                                                         client.setTimeout(1000);   
                                                     }
                                                       
@@ -167,24 +172,32 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 }else{
                                                     
                                                    
-                                                if(!(port.isOpen)){
-                                                    
-                                                    await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
+                                                    if(!port.isOpen){
+                                                        port.open((err)=>{
+                                                           if(err){ 
+                                                               console.error(err)
+                                                           }
+                                                        })
+                                                        if(!port.isOpen) await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
                                                                                                              if(err)console.error(err)                       
                                                                                                              if(!port.isOpen)port.open((err)=>{
-                                                                                                                    if(port.isOpen)resolve(); else reject(err)
+                                                                                                                    if(port.isOpen)resolve(); else port.open((err)=>{
+                                                                                                                        if(port.isOpen)resolve(); else reject(err)
+                                                                                                                    })
                                                                                                                 })
                                                                                                             })
-                                                                                                        }),sleep(200)])
+                                                                                                        }),sleep(150)])
+                                                         
                                                     
-                                                }
-                                                const query = async (reguest)=>{ 
-                                                        if(reguest.length){
+                                                    
+                                                    }else{
+                                                        const query = async (reguest)=>{ 
+                                                             if(reguest.length){
                                                             debug('proxyQuery4')
                                                             //console.dir(reguest)
-                                                            reguest[0].query++
-                                                            delete(port["buf"])
-                                                            let data = reguest[0].data
+                                                                 reguest[0].query++
+                                                                delete(port["buf"])
+                                                                let data = reguest[0].data
                                                             if(reguest[0].sock){
                                                                 const crc:Buffer = Buffer.allocUnsafe(2)
                                                                 const data_ = reguest[0].data.slice(MBAPheaderLenght-1)
@@ -192,21 +205,21 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                                 data = Buffer.concat([data_,crc])
                                                             }
                                                             port.write(data)   
-                                                            await Promise.race([sleep(200), cancelPromise(port)]) 
-                                                            if(reguest[0])      
-                                                            if( reguest[0].query >= 2){
-                                                                    console.error(data,'!timeout!')
+                                                            await Promise.race([sleep(500), cancelPromise(port)]) 
+                                                            if(reguest[0]&&reguest[0].query)      
+                                                            //if( reguest[0].query >= 2){
+                                                            //        console.error(data,'!timeout!')
                                                                     reguest.shift()  
-                                                                }
+                                                              //  }
                                                             
-                                                        }
-                                                    }
-                                                if(port.isOpen){    
+                                                             }
+                                                            }
+                                                
                                                     await query(RTUproxyReguest)   
                                                     await query(TCPproxyReguest)      
                                                 }
 
-                                              }
+                                             }
                                              }catch(e){
                                                     console.error(e)
                                              }finally{
@@ -425,11 +438,12 @@ export class TestDevicesModbus {
                         }
                     sendSMS({...act.sms,text:txt}, device) 
                 }
-            }
+            }else
                 if(act.DO) act.DO.forEach((val,index,array)=>{
                     switch(val){
                         case 0:
-                        case 1:io.setDO(index, val)
+                        case 1:console.debug('setDO',index, val)
+                                io.setDO(index, val)
                         break
                         case 2:  io.setDO(index, 1)
                                  setTimeout( ()=>io.setDO(index, 0) ,1000)
@@ -450,11 +464,11 @@ export class TestDevicesModbus {
             if(trig.jsCode===undefined){
 
                 trig.jsCode = trig.condition.replace(/not=+/ig,' !== ')
-                                            .replace(/\=+/g,' == ')
+                                            .replace(/\=+/g,' === ')
                                             .replace(/or/ig,'||')
                                             .replace(/and/ig,'&&')
                                             .replace(/not/g,'!')
-                                            .replace(/<>/g,'!=')
+                                            .replace(/<>/g,'!==')
                 
             }
             let jsCode:string = trig.jsCode?trig.jsCode:'';
@@ -467,25 +481,28 @@ export class TestDevicesModbus {
                 //const di:{pattern?:string, index?:number}[] = []  
                const result = (jsCode)=>{   
                    try{
-                        debug('jsCode:'+ jsCode)
-                        return new Function('','return ('+jsCode+')')()    
+                        console.log('jsCode:'+ jsCode)
+                        const ret =(new Function('','return ('+jsCode+')')())    
+                        console.log('jsFn:'+ ret)
+                        return ret
                     }catch(err){
                         console.error(err)
                         return false
-                    }finally{} 
+                    }finally{
+                        
+                    }
                 }
                
-                const regExp:RegExp = new RegExp(/#DI?(\d+)/)
-                if(regExp.test(jsCode)){               
-                    let match = regExp.exec(jsCode)  
-                    if(match) return io.di(parseInt(match[1])).then((value)=>{
+                const regExp:RegExp = new RegExp(/#DI(\d+)/)
+                let match = regExp.exec(jsCode)          
+                    if(match) return io.di(parseInt(match[1])-1).then((value)=>{
                             while (match){
-                                jsCode = jsCode.replace(match[0],'('+ value +')')
+                                jsCode = jsCode.replace(match[0],`(${value?1:0})`)
                                 match = regExp.exec(jsCode) 
                             }
                            return result(jsCode) 
                         }).catch((reason)=>console.error(reason)) 
-                } 
+                 
             return result(jsCode)       
                  
 }
@@ -577,19 +594,25 @@ export class TestDevicesModbus {
                   for(const trig of  rule.trigs){
                         if(trig){
                             if ( !trig.regs && trig.condition )
+                           
                                 trig.regs =  this.parse(trig.condition)
                            
-                               if( true == await this.reguesting(trig.regs, client, device) ){
-                                   if( !device.errno && this.testTrig( trig ) ){ 
-                                    await this.onTrig( device, rule , true)
-                                    console.log('#trig.active:' + trig.active)
+                               if( true === await this.reguesting(trig.regs, client, device) ){
+                                       const tst = await this.testTrig( trig ) 
+                                       console.log('testTrigRes:',tst)
+                                   if( tst === true ){ 
+                                   // console.log('testTrigRes:Ok')
+                                        this.onTrig( device, rule , true)
+                                    console.log('#trig.active:', trig.active)
+                                   if(!device.errno)
                                    if(!trig.active)trig.active=0
                                    if(trig.active < 6) ++trig.active
-                                   if( trig.active == 3 ) 
-                                       await this.onTrig( device, rule )
+                                   if( trig.active === 3 ) 
+                                        this.onTrig( device, rule )
                                 }else  if(trig.active) --trig.active
                               }
-                            }
+            
+                          }
                         }
             }
                     

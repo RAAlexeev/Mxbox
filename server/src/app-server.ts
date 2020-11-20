@@ -39,7 +39,7 @@ app.post('/upload', function(req, res) {
     res.send('File uploaded!');
   });
 }); */
-setSoftap();
+//setSoftap();
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});

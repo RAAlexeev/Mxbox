@@ -7,6 +7,7 @@ import{TestDevicesModbus} from './modbus.test'
 //modem.on('onNewMessage', (messageDetails)=>{console.dir(messageDetails)})
 
 export const  inputSMS = ({data})=>{
+  if(data)
   for(const inSms of data){
     pubsub.publish(ERROR_MESSAGES,{errorMessages:{message:inSms.message+'['+inSms.sender+']'}})
   }
@@ -24,7 +25,7 @@ export const  inputSMS = ({data})=>{
                     if(trig)if(trig.type === 2){
                       if(trig.sms){
                         for(const number of trig.sms.numbers ){
-                            const n = number.replace(/^\+?8/,'+7')
+                            const n = number.replace(/^\+?8/,'7').replace(/^\+/,'')
                           for(const inSms of data){
                             console.log(n,inSms.sender,trig.sms.text === inSms.message)
                           
