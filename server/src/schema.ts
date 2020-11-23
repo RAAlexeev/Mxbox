@@ -655,7 +655,7 @@ export const resolvers = {
       return p.then((v)=>v).catch((v)=>v)   
     },
     setAPNconfig(parent,APN,context,info){
-     _APN.setAPN(APN.APNconf)
+     return _APN.setAPN(APN.APNconf).then().catch()
     },
     setWiFiConfig(parent,{ WiFiConf },context,info){
 
