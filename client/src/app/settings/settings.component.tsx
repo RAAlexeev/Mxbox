@@ -11,6 +11,7 @@ import {Tab, Tabs} from 'react-toolbox/lib/tabs';
 import { EmailDialog } from '../dialogs/email.dialog'
 import { RouterStore } from 'mobx-react-router'
 import Switch from 'react-toolbox/lib/switch';
+import Autocomplete from 'react-toolbox/lib/autocomplete';
 
 
 
@@ -63,22 +64,39 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   render() {
     
 
-    const speedList = [{value:9600,label:9600},{value:19200,label:19200},{value:38400,label:38400},{value:57600,label:57600},{value:115200,label:115200}]
-    
+    const speedList = [{value:9600,label:"9600"},{value:19200,label:"19200"},{value:38400,label:"38400"},{value:57600,label:"57600"},{value:115200,label:"115200"}]
+    //const speedList = {'9600':'9600','19200':'19200','38400':'38400','57600':'57600','115200':'115200'}
+ 
     const { settingsStore, routerStore } = this.props
     
     return (
        <section>
+         
          <EmailDialog  actionLabel1="Отправить..." ref={ instance =>  this.dialogs.emailDialog = instance }/>
 
           <Tabs index={this.state.index} onChange={this.handleTabChange}>
 
           <Tab label='Общие'>
-          <Switch  theme={theme}
-            checked={settingsStore.settings.pingWatchDogEnable}
-            label="ping watcdog(раз в час ya.ru) - reboot при неудаче"
-            onChange={settingsStore.switchPingWatch.bind(settingsStore)}
-          />
+            <div>
+            <div style={{width:'auto', float:"left"}}>
+            <Switch  theme={theme}
+        checked={settingsStore.settings.pingWatchDogEnable}
+        label="ping (раз в час ya.ru) - reboot при неудаче"
+        onChange={settingsStore.switchPingWatch.bind(settingsStore)}
+      /></div>
+          <Input 
+          theme={theme}
+          maxLength={5}
+          type='text'
+          label="раз"
+          name='Ping'
+          hint=''
+          error=''
+          value={settingsStore.settings.maxCntReboot}
+          onChange={settingsStore.setRebootCnt.bind(settingsStore)}
+        > </Input>
+
+</div>
           <Card>
             <CardTitle 
                 avatar=''
@@ -141,8 +159,8 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
              <CardText> 
                 <div style={{width:'30%', float:"left"}}>
                 <Dropdown 
-                    auto
-                    label={'Скорость'}
+                   
+                    label={'Скорость:'}
                     onChange={settingsStore.onPort1Change.bind(null,'speed')}
                     source={speedList}
                     value={settingsStore.portsSettings[0].speed?settingsStore.portsSettings[0].speed:''}

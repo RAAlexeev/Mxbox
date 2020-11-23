@@ -6,8 +6,9 @@ import gql from 'graphql-tag';
 export class SettingsStore {
   
   @observable settings:{
-    pingWatchDogEnable
-  }={pingWatchDogEnable:false}
+    pingWatchDogEnable,
+    maxCntReboot
+  }={pingWatchDogEnable:false, maxCntReboot:0}
   
   @observable  smtpSettings: {
     address:string;
@@ -51,7 +52,7 @@ export class SettingsStore {
   }
    
 
-  onPortChange =async (num:number,name:string,value:string|number)=>{
+  onPortChange = async (num:number,name:string,value:string|number)=>{
         const save =  this.portsSettings[num][name]
         this.portsSettings[num][name]= value
         let portConf
@@ -107,11 +108,11 @@ async onUpload (file){
  } 
  async loadSettings(){
   const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-         query: gql`query getSettings{getSettings{pingWatchDogEnable}}`,
+         query: gql`query getSettings{ getSettings{pingWatchDogEnable maxCntReboot} }`,
      variables:{},
      fetchPolicy: 'no-cache'
      }) 
-     console.log( result.data )
+     console.log( result.data.getSettings )
      if( result.data.getSettings )this.settings = result.data.getSettings
      
  }
@@ -167,18 +168,29 @@ async onUpload (file){
               throw err
             }
           }
-       async switchPingWatch(){
-         this.settings.pingWatchDogEnable = ! this.settings.pingWatchDogEnable
-                 try{
-          const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-      mutation: gql`mutation setSettings($settings:SettingsInput!) { setSettings(settings:$settings){status}}`,
-        variables:{ settings: {['pingWatchdogEnable']: this.settings.pingWatchDogEnable } },
-        fetchPolicy: 'no-cache'  
-      })
-    }catch(err){
-      this.settings.pingWatchDogEnable = ! this.settings.pingWatchDogEnable
-      throw  err
-    }
+          async setRebootCnt(cnt:string){
+            const s = this.settings.maxCntReboot
+            if(cnt)this.settings.maxCntReboot = parseInt(cnt)
+            
+            try{
+              const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+              mutation: gql`mutation setSettings($settings:SettingsInput!) { setSettings(settings:$settings){status}}`,
+              variables:{ settings:  {     
+                            pingWatchDogEnable:this.settings.pingWatchDogEnable,
+                            maxCntReboot:parseInt(this.settings.maxCntReboot )
+                        }
+              },
+              fetchPolicy: 'no-cache'  
+            })
+            }catch(err){
+              if(cnt===undefined){ this.settings.pingWatchDogEnable = ! this.settings.pingWatchDogEnable}
+              else this.settings.maxCntReboot = s
+              throw  err
+            }
+          }
+       switchPingWatch(){
+         this.settings.pingWatchDogEnable = !this.settings.pingWatchDogEnable
+         this.setRebootCnt(undefined)
        }
     async onAPNChange(name:string, value:string){
       let save=value
@@ -237,7 +249,7 @@ async onUpload (file){
     //    address:undefined,     port:undefined,  name:undefined,  password:undefined
     // }
    // this.portsSettings = [{num:0, speed:19200,param:'8e1'}, {num:1, speed:19200, param:'8e1', protocol:0, addr:200}]
-   this.loadSettings()
+    this.loadSettings()
     this.loadPorts()
     this.loadSmtp()
     this.loadAPN()

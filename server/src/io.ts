@@ -2,7 +2,7 @@ import * as fs  from 'fs'
 
 
 
-const _di = [56,128,89,109,24,25,27] 
+const _di = [56,128,89,109,24,25,27,141] 
 const _do = [26,140,144,58,139]
 
 export function setDO(n,value){
@@ -13,11 +13,13 @@ export const di=(n:number)=>new Promise((resolve,reject)=>fs.readFile('/sys/devi
    
    if(err)
    {
-      reject(err)
-      return
+      return reject(err)
+       
    }
+   if(n<0)n=0
    const splitData = data.split('\n')
-   resolve(splitData[_di[n]+1].charAt(6)==='0')
+   console.debug('di',n,'=',splitData[_di[n]+1].charAt(6))
+   return resolve(splitData[_di[n]+1].charAt(6)=="0")
 
   //resolve(data[70+_di[n]*14]==='0')
 
@@ -49,6 +51,6 @@ export  const getStateIO=()=>new Promise((resolve,reject)=>fs.readFile('/sys/dev
      for(let n=0;  n < 3; n++){
       ret.push(splitData[_do[n]+1])
    }
-   resolve(ret)
+   return resolve(ret)
 
 }))

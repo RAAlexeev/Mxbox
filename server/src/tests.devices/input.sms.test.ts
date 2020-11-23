@@ -7,7 +7,6 @@ import{TestDevicesModbus} from './modbus.test'
 //modem.on('onNewMessage', (messageDetails)=>{console.dir(messageDetails)})
 
 export const  inputSMS = ({data})=>{
-  if(data)
   for(const inSms of data){
     pubsub.publish(ERROR_MESSAGES,{errorMessages:{message:inSms.message+'['+inSms.sender+']'}})
   }

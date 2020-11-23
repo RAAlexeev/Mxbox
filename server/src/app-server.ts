@@ -12,9 +12,9 @@ import * as zlib from 'zlib'
 import * as tar from 'tar-fs'
 import * as fs from 'fs'
 import { ioInit } from './io';
-import { init } from './tests.devices/result/send.sms';
+import { init } from './init';
 import { getAPN } from './APN';
-import setSoftap from './set.softap';
+
 import {pingWatchStart} from './ping'
 const fileUpload = require('express-fileupload');
 //const fileUpload = require('express-fileupload');
@@ -39,7 +39,7 @@ app.post('/upload', function(req, res) {
     res.send('File uploaded!');
   });
 }); */
-//setSoftap();
+
 //echo 0 > /proc/sys/kernel/printk
 //stop console
 apollo.applyMiddleware({app});

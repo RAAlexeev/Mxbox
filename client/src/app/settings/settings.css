@@ -1,3 +1,14 @@
 .values{
-    top: -50px !important;
+    top: -80px !important;
+    height: 300%;
+}
+
+
+.input{
+    width: 30%;
+    float: left;
+}
+.field{
+    width: 30%;
+    float: left;
 }

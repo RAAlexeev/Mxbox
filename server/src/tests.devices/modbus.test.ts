@@ -157,7 +157,6 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                         await new Promise((resolve,reject)=>port.close((err)=>{ resolve() } ))
         
                                                         await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) });
-                                                       
                                                         client.setTimeout(1000);   
                                                     }
                                                       
@@ -232,7 +231,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 // set ID of slave
                                                 client.setID( device.mb_addr );
                                                //console.log( device.mb_addr,client.getID() )
-                                                await TestDevicesModbus.testTrigs(device, client)
+                                                await TestDevicesModbus.testTrigs(device, client, [sleep(200), cancelPromise(proxyPort)]   )
                                                 // return the value
                                     
                                             } catch(e){
@@ -256,7 +255,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                     // if error, handle them here (it should not)
                                                     console.error(e)
                                                 }finally{
-                                                    Promise.race([sleep(50), cancelPromise(proxyPort)])
+                                                    Promise.race([sleep(500), cancelPromise(proxyPort)])
                                                 }
                                             
                                             }
@@ -297,7 +296,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 queryDevices(devices);
                                             })
                                         }
-                                    TestDevicesModbus.delay =  [sleep(500), cancelPromise(proxyPort)]      
+                                    
                                     // start get value
                                          queryDevices(devices)               
             })
@@ -574,21 +573,24 @@ export class TestDevicesModbus {
                     break 
                     default: console.error('Неподдержаная функция модбаса или парсер не распарсил!')   
                                                     
-                    
+                    await Promise.race(this.delay)
                 }
                 if(device)if(device.errno){pubsub.publish(LINK_STATE_CHENG, { deviceLinkState:{ _id:device._id, state:'-' }  }); delete device.errno}
             }catch(err){
              if(device)
                 this.modbusError(err,device)
-            }finally{ 
-                await Promise.race(this.delay)
+               
+     
+                 await Promise.race(this.delay)
+               
             }
         }
         return true
     } 
 
     static skip: number = 100;
-    static async testTrigs ( device:Device, client:ModbusRTU  ){
+    static async testTrigs ( device:Device, client:ModbusRTU, delay  ){
+            this.delay = delay
             for( const rule of device.rules) {
                 if(rule && rule.trigs)
                   for(const trig of  rule.trigs){
@@ -597,7 +599,7 @@ export class TestDevicesModbus {
                            
                                 trig.regs =  this.parse(trig.condition)
                            
-                               if( true === await this.reguesting(trig.regs, client, device) ){
+                               if( true === await this.reguesting(trig.regs, client, device )){
                                        const tst = await this.testTrig( trig ) 
                                        console.log('testTrigRes:',tst)
                                    if( tst === true ){ 

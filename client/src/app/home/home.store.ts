@@ -34,28 +34,15 @@ export class HomeStore {
   @observable pingResult = ""
   @observable ip_addr = ""
   @observable ioTest = false
-  getDateTime(){
-    let ts = Date.now();
-    let date_ob = new Date(ts);
-    // current hours
-    let hours = date_ob.getHours();
-    // current minutes
-    let minutes = date_ob.getMinutes();
-    // current seconds
-    let seconds = date_ob.getSeconds();
-    let date = date_ob.getDate();
-    let month = date_ob.getMonth() + 1;
-    let year = date_ob.getFullYear();
-    return year + "-" + month + "-" + date + '@'+hours+':'+minutes+':'+ seconds
-  }
+ 
   @action async loadInfo(){
     try{
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
            query: gql`query getInfo{getInfo{ifaces{ 
                                                 ap0{address netmask family mac internal } 
                                                 ccmni0{address netmask family mac internal } 
-                                                ccmni1{address netmask family mac internal }
-                                                ccmni2{address netmask family mac internal }
+                                                ccmni1{address netmask family mac internal } 
+                                                ccmni2{address netmask family mac internal } 
                                                   } 
                                                    ts io firmware uptime hostname freemem                                          
                                    }}`,
