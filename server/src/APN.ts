@@ -39,7 +39,7 @@ export const setAPN=(APN)=>{
   _APN={..._APN,APN} 
   //clearTimeout(tOut)
 
-
+  return new Promise((resolve,reject)=>{
         const isString = str => ((typeof str === 'string') || (str instanceof String));
           APN={...APN,[Symbol.iterator] : function* () {
             var k;
@@ -56,13 +56,16 @@ export const setAPN=(APN)=>{
       
         cmd.get(sql+'sqlite3 /data/data/com.android.providers.telephony/databases/telephony.db',
           (err, data, stderr)=>{
-            if(err) 
+            if(err||stderr){ 
+              reject(stderr)
               setImmediate(
                 setAPN.bind(null,_APN)
                 )
+               
+              }else resolve(data)
             console.log(err,data)
           })
-    //}//,2000)  
+    })//,2000)  
   //    let db = new sqlite3.Database('/data/data/com.android.providers.telephony/databases/telephony.db');
    //   db.run(sql,data)
   //   db.close()
