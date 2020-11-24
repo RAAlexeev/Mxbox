@@ -45,7 +45,7 @@ export const Trigs = ( trigStore:TrigsStore ) =>
         <MenuItem value='cron' icon='alarm' caption='Расписание'  onClick={trigStore.addTrig.bind(trigStore,{type:1})} />
         <MenuItem value='sms' icon='sms' caption='SMS' onClick={trigStore.addTrig.bind(trigStore,{type:2})} />
         <MenuItem value='onLnkErr' icon='error' caption='Ошибки связи' onClick={trigStore.addTrig.bind(trigStore,{type:3})} />
-      
+        <MenuItem value='onStart' icon='' caption='Запуск' onClick={trigStore.addTrig.bind(trigStore,{type:4})} />
     </IconMenu>
 
 

@@ -715,9 +715,7 @@ export const resolvers = {
           return {status:''}
        }catch(err){
         return err//{status:err.message}
-       }finally{
-         
-       }  
+       } 
      }
      
   }   
