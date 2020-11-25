@@ -57,9 +57,9 @@ toggleSidebar = () => {
             
         { window.location.pathname.search('views')<0?<div>
     
-           <NavLink to='/home' style={{margin:'1rem'}}  activeClassName={style.active}>Главная</NavLink>
+           <NavLink to='/home' style={{margin:'3rem'}}  activeClassName={style.active}>Главная</NavLink>
            
-            <NavLink to='/settings' style={{margin:'1rem'}} activeClassName={style.active}>Настройки</NavLink>  
+            <NavLink to='/settings' style={{margin:'3rem'}} activeClassName={style.active}>Настройки</NavLink>  
            
             <TooltipButton tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>appStore.numberExchengDialog.handleToggle(appStore.onNumberExchenge) }/>
            
