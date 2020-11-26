@@ -231,7 +231,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                 // set ID of slave
                                                 client.setID( device.mb_addr );
                                                //console.log( device.mb_addr,client.getID() )
-                                                await TestDevicesModbus.testTrigs(device, client, [sleep(200), cancelPromise(proxyPort)]   )
+                                                await TestDevicesModbus.testTrigs(device, client, [sleep(500), cancelPromise(proxyPort)]   )
                                                 // return the value
                                     
                                             } catch(e){

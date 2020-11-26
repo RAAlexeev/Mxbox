@@ -86,7 +86,7 @@ export class ActsStore {
   
   @action addAct = async (act:Act)=>{
     try{
-    const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
+    const result = await this.appStore.apolloClient.mutate<any,{}>({
       mutation: gql`mutation addAct($device:ID!,$ruleNum:Int!,$actInput:ActInput!){addAct(device:$device,ruleNum:$ruleNum,actInput:$actInput){status}}`,
       variables:{
         device:this.devicesStore.selected._id,
@@ -135,7 +135,7 @@ export class ActsStore {
     }
   @action  delAct = async (actNum:number)=>{
     try{
-    const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
+    const result = await this.appStore.apolloClient.mutate<any,{}>({
       mutation: gql`mutation delAct($device:ID!,$ruleNum:Int!,$actNum:Int!){delAct(device:$device,ruleNum:$ruleNum,actNum:$actNum){status}}`,
       variables:{
         device:this.devicesStore.selected._id,
@@ -150,7 +150,7 @@ export class ActsStore {
     }
   }    
    updAct = async (act:Act, index:number)=>{
-        const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
+        const result = await this.appStore.apolloClient.mutate<any,{}>({
         mutation: gql`mutation updAct($device:ID!,$ruleNum:Int!,$actNum:Int!,$actInput:ActInput!){updAct(device:$device,ruleNum:$ruleNum,actNum:$actNum,actInput:$actInput){ type email{address subject body} sms{numbers text} DO}}`,
         variables:{
           device:this.devicesStore.selected._id,

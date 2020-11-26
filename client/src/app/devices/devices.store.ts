@@ -41,6 +41,8 @@ export interface Device {
 interface DevicesQueryResult {
   devices?: Array<Device>
   device?:Device
+  data?
+
 }
 
 export class DevicesStore {
@@ -53,7 +55,7 @@ export class DevicesStore {
   @observable selected: Device
    
   @observable isEdit:boolean = false
-  deviceSubscription: ZenObservable.Subscription;
+  deviceSubscription;
   
    constructor() {
     this.initializeDevices()
@@ -112,7 +114,7 @@ export class DevicesStore {
   }
 
   async addDevice() {
-     const result = await this.appStore.apolloClient.mutate<DevicesQueryResult,{}>({
+     const result = await this.appStore.apolloClient.mutate<any,{}>({
       mutation: addDevice,
       variables:{ 
         mb_addr:((this.devices.length&&this.devices[this.devices.length-1].mb_addr)?this.devices[this.devices.length-1].mb_addr+1:1)
@@ -125,7 +127,7 @@ export class DevicesStore {
   }
   async delDevice(device) {
    try{
-    const result = await this.appStore.apolloClient.mutate<DevicesQueryResult,{}>({
+    const result = await this.appStore.apolloClient.mutate<any,{}>({
       mutation: gql`mutation delDevice($_id:ID) { delDevice(_id:$_id){status}}`,
       variables:{ _id:device._id },
       fetchPolicy: 'no-cache'  

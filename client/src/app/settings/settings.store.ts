@@ -25,13 +25,7 @@ export class SettingsStore {
     addr?:number;
   }[]=[{num:0, speed:19200,param:'8e1'}, {num:1, speed:19200, param:'8e1', protocol:0, addr:200}]
 
-  @observable  APN:{
-    apn:string,
-    mcc:string,
-    mnc:string,
-    user:string,
-    password:string
-  }={  apn:'', mcc:'',  mnc:'',    user:'',    password:'' }
+  @observable  APN:any={  apn:'', mcc:'',  mnc:'',    user:'',    password:'' }
   @observable  WiFi:{
     SSID:string,
     PSK:string,
@@ -149,8 +143,10 @@ async onUpload (file){
          }) 
          console.log(result.data.getAPNConfig)
          if(result.data.getAPNConfig)
-         this.APN = result.data.getAPNConfig
-         else throw new Error('Пустое значение АПН')
+          this.APN = result.data.getAPNConfig
+         else{
+          this.APN={  apn:'', mcc:'',  mnc:'',    user:'',    password:'' }
+            throw new Error('Пустое значение АПН')}
         }
 
         async loadWiFi(){
@@ -177,7 +173,7 @@ async onUpload (file){
               mutation: gql`mutation setSettings($settings:SettingsInput!) { setSettings(settings:$settings){status}}`,
               variables:{ settings:  {     
                             pingWatchDogEnable:this.settings.pingWatchDogEnable,
-                            maxCntReboot:parseInt(this.settings.maxCntReboot )
+                            maxCntReboot:this.settings.maxCntReboot
                         }
               },
               fetchPolicy: 'no-cache'  
@@ -193,9 +189,9 @@ async onUpload (file){
          this.setRebootCnt(undefined)
        }
     async onAPNChange(name:string, value:string){
-      let save=value
+    //  let save=value
       this.APN[name]=value
-      try{
+/*       try{
             const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
         mutation: gql`mutation setAPNconfig($APNconf:APNconfInput!) { setAPNconfig(APNconf:$APNconf){status}}`,
           variables:{ APNconf: {[name]:value} },
@@ -204,10 +200,25 @@ async onUpload (file){
       }catch(err){
         this.APN[name]=save
         throw  err
-      }
+      } */
        
   
     }
+   async applyAPNreboot(){
+
+    try{
+          const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+      mutation: gql`mutation setAPNconfig($APNconf:APNconfInput!) { setAPNconfig(APNconf:$APNconf){status}}`,
+        variables:{ APNconf: this.APN },
+        fetchPolicy: 'no-cache'  
+      })
+      alert(result.data.setAPNconfig.status)
+    }catch(err){
+
+      throw  err
+    }
+   }
+
     wiFiChangeTimeout 
     
     async onWiFiChange(name:string,value:string){

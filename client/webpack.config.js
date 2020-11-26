@@ -1,15 +1,18 @@
-var webpack = require('webpack');
-var path = require('path');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
+const WorkboxPlugin = require('workbox-webpack-plugin');
+//var webpack = require('webpack');
+const path = require('path');
 
 // variables
-var isProduction = process.env === 'production';
-var sourcePath = path.join(__dirname, './src');
-var outPath = path.join(__dirname, './dist');
+const isProduction = process.env === 'production';
+const sourcePath = path.join(__dirname, './src');
+const outPath = path.join(__dirname, './dist');
 
 // plugins
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+//const CompressionPlugin = require('compression-webpack-plugin');
 //const reactToolboxVariables = require('./reactToolbox.css');
 // const srv = require( '../server-test/dist/main.js')
  const clientConf = {
@@ -100,7 +103,40 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
     }),
     new CopyWebpackPlugin([
       { from: '../static' }
-    ])
+    ]),
+    new WebpackPwaManifest({
+      name: 'mxBox',
+      short_name: 'mxBox',
+      description: 'Конфигуратор',
+      background_color: '#ffffff',
+      crossorigin: 'use-credentials', //can be null, use-credentials or anonymous
+      icons: [
+        {
+          src: path.resolve('src/assets/mx1.png'),
+          sizes: [96, 128, 192, 256, 384, 512] // multiple sizes
+        },
+        {
+          src: path.resolve('src/assets/mx1.png'),
+          size: '1024x1024' // you can also use the specifications pattern
+        },
+        {
+          src: path.resolve('src/assets/mx1.png'),
+          size: '1024x1024',
+          purpose: 'maskable'
+        }
+      ]
+    }),
+      new WorkboxPlugin.GenerateSW({
+             // these options encourage the ServiceWorkers to get in there fast
+             // and not allow any straggling "old" SWs to hang around
+             maximumFileSizeToCacheInBytes: 5000000,
+             clientsClaim: true,
+             skipWaiting: true,
+           }),
+      //new CompressionPlugin({
+    //        test: /\.js(\?.*)?$/i,
+     //       algorithm: 'brotliCompress',
+      //    }),
   ],
   devServer: {
     //before: (app,server)=> srv(app,server),  
@@ -204,12 +240,12 @@ node: {
       
       chunks: 'async',
       maxInitialRequests: Infinity,
-      minSize: 30000,
+    //  minSize: 0,
    cacheGroups: {
      vendor: {
        test: /[\\/]node_modules[\\/]/,
        name: 'vendor',
-       //enforce: true,
+     //  enforce: true,
        //chunks: 'all'
      },
    },

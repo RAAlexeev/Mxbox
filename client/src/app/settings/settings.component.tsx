@@ -11,7 +11,7 @@ import {Tab, Tabs} from 'react-toolbox/lib/tabs';
 import { EmailDialog } from '../dialogs/email.dialog'
 import { RouterStore } from 'mobx-react-router'
 import Switch from 'react-toolbox/lib/switch';
-import Autocomplete from 'react-toolbox/lib/autocomplete';
+
 
 
 
@@ -317,7 +317,10 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                       onChange={settingsStore.onAPNChange.bind(settingsStore,'password')}
                     />                  
                   </div>
+                  <Button flat icon="" onClick={settingsStore.applyAPNreboot.bind(settingsStore)} >Применить и перезагрузить</Button> 
+
               </CardText> 
+
           </Card>
           </Tab>
           <Tab label="Wifi">

@@ -92,7 +92,7 @@ export class RulesStore {
   }
 
   async initializeRules(device:Device) {
-      try{ const result = await this.appStore.apolloClient.query<RulesQueryResult,{}>({
+      try{ const result = await this.appStore.apolloClient.query<any,{}>({
             query: gql`query rules($device:ID!){rules(device:$device){acts{type sms{numbers text}
                                                                 email{address subject body}
                                                                 DO} 
@@ -112,7 +112,7 @@ export class RulesStore {
 
   }
   @action async addRule(device:Device) {
-      const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
+      const result = await this.appStore.apolloClient.mutate<any,{}>({
       mutation: gql`mutation addRule($device:ID!){addRule(device:$device){status}}`,
       variables:{device:device._id},
       fetchPolicy: 'no-cache'  
@@ -133,7 +133,7 @@ export class RulesStore {
 
 
   @action async addFromTemplate(device:Device,template:Device) {
-    const result = await this.appStore.apolloClient.mutate<RulesQueryResult,{}>({
+    const result = await this.appStore.apolloClient.mutate<any,{}>({
      mutation: gql`mutation addFromTemplate($device:ID!,$template:ID!){addFromTemplate(device:$device,template:$template){
                                                                     acts{
                                                                           type 

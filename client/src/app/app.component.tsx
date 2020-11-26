@@ -52,20 +52,20 @@ toggleSidebar = () => {
     return(  
     <Layout>
         <NavDrawer active={this.state.drawerActive}
-                pinned={this.state.drawerPinned} permanentAt='md'
+                pinned={this.state.drawerPinned} permanentAt='sm'
                 onOverlayClick={ this.toggleDrawerActive }>
             
-        { window.location.pathname.search('views')<0?<div>
-    
-           <NavLink to='/home' style={{margin:'3rem'}}  activeClassName={style.active}>Главная</NavLink>
+        { window.location.pathname.search('views')<0?<div style={{marginTop:'1rem'}}>
+           <NavLink to='/home' style={{margin:'10%'}}  activeClassName={style.active}>Главная</NavLink>
            
-            <NavLink to='/settings' style={{margin:'3rem'}} activeClassName={style.active}>Настройки</NavLink>  
+            <NavLink to='/settings' style={{margin:'10%'}} activeClassName={style.active}>Настройки</NavLink>  
+           <div style={{marginTop:'1rem'}}>
+            <TooltipButton style={{minWidth: '30%'}} tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>appStore.numberExchengDialog.handleToggle(appStore.onNumberExchenge) }/>
            
-            <TooltipButton tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>appStore.numberExchengDialog.handleToggle(appStore.onNumberExchenge) }/>
+            <TooltipButton style={{minWidth: '30%'}} tooltip='Сохранить настройки' icon='save_alt' href={document.location.origin/* .replace(/:3000/,':3001') */+'/download'}/>
            
-            <TooltipButton tooltip='Сохранить настройки' icon='save_alt' href={document.location.origin/* .replace(/:3000/,':3001') */+'/download'}/>
-           
-            <TooltipBrowseButton  tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>{if(appStore.onLoad(file)){routerStore.history.push(`/reload`)}}}/>
+            <TooltipBrowseButton style={{minWidth: '30%'}} tooltip='Загрузить настройки' icon="file_upload" label="" onChange={({ target: { validity, files: [file] } }) =>{if(appStore.onLoad(file)){routerStore.history.push(`/reload`)}}}/>
+            </div>
             </div>:null}
             <Devices  />
       </NavDrawer>

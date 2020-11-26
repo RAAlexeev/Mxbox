@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "C:\\Users\\alekseev\\Desktop\\CurrentTask\\UTVM-1\\ESP\\restful_server"
 		}
 	]
 }

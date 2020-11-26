@@ -62,7 +62,10 @@ export const setAPN=(APN)=>{
                 setAPN.bind(null,_APN)
                 )
                
-              }else resolve(data)
+              }else{ 
+                setTimeout(()=> cmd.run('reboot'),3000)
+                resolve({status:'reboot...'})
+              }
             console.log(err,data)
           })
     })//,2000)  

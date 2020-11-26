@@ -17,7 +17,8 @@
     "outDir": "build",
     "lib": [
       "es6",
-      "dom"
+      "dom",
+      "webworker"
     ]
   },
   "exclude": [
