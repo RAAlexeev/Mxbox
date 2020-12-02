@@ -1,8 +1,11 @@
 
 .iconMenu {
-  float: right;  
+  float: right;
+   margin-left: 2em; 
 }
-
+.icon >.icon{
+  font-size:calc(5*10px); 
+}
 .menuItem
 {
   float: left;

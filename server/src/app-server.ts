@@ -5,7 +5,7 @@ import {apollo} from './index'
 import {  modbusTestRun } from './tests.devices/modbus.test';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
-import  schema  from './schema';
+import  schema, { db_settings }  from './schema';
 import { AddressInfo } from 'net';
 import { loadCronTask } from './tests.devices/cron.test';
 import * as zlib from 'zlib'
@@ -42,29 +42,43 @@ app.post('/upload', function(req, res) {
 
 //echo 0 > /proc/sys/kernel/printk
 //stop console
-apollo.applyMiddleware({app});
-app.use(basicAuth({ users:{'username':'passw0rd'},
-                    challenge: true,
-                    realm: 'Imb4T3st4pp'
-                  }));
+db_settings.loadDatabase();
+db_settings.findOne( {_id:'settings'},(err,conf:any)=>{
+  if(err) console.error(err)
+  else if(conf.users){
+           app.use(basicAuth({ users:conf.users,
+                              challenge: true,
+                              realm: 'Imb4T3st4pp'
+                              }))
+            return
+        }
+        app.use(basicAuth({ users:{username:'passw0rd'},
+                          challenge: true,
+                          realm: 'Imb4T3st4pp'
+                          }))
+})
+apollo.applyMiddleware({app})
+
+
+app.use('/', express.static('./dist/client'))
 app.get('/download', function(req, res){
-  const file = `/data/mxBox/DB/setings.tar.gz`;
+  const file = `/data/mxBox/DB/setings.tar.gz`
   const gzip = zlib.createGzip() 
   const p = new Promise((resolve,reject)=>tar.pack('/data/mxBox/DB').pipe(gzip).pipe(fs.createWriteStream(file))
               .on('error', error => reject({error}))
   .on('finish', () => resolve({file})))
   //console.log(file)
-  p.then(()=>res.download(file)); // Set disposition and send it.
+  p.then(()=>res.download(file))// Set disposition and send it.
 })
 //app.get('/dio_test',(req,res) =>{dioTest()})
-app.use('/', express.static('./dist/client'));
+
 
 /*  app.get(/^\/..*$/, function(req, res) { 
   res.redirect('/');
 });  */
 //app.get('/dio_test',(req,res) =>{dioTest()})
 app.get('*', (req,res) =>{
-  
+
   res.sendFile('index.html',{root:"./dist/client"});
 })
 app.use(fileUpload({

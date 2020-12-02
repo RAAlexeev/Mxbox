@@ -52,7 +52,7 @@ toggleSidebar = () => {
     return(  
     <Layout>
         <NavDrawer active={this.state.drawerActive}
-                pinned={this.state.drawerPinned} permanentAt='sm'
+                pinned={this.state.drawerPinned} permanentAt='xl'
                 onOverlayClick={ this.toggleDrawerActive }>
             
         { window.location.pathname.search('views')<0?<div style={{marginTop:'1rem'}}>

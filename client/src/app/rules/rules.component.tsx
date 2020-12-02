@@ -45,7 +45,7 @@ export class DevRules extends React.Component<any, any> {
   }
 
   render() {  
-    return <Provider rulesStore = { this.rulesStore }>
+    return <Provider templatesStore={new TemplatesStore()} rulesStore = { this.rulesStore }>
       <RulesComponent { ...this.props } />
     </Provider>
   }
@@ -56,10 +56,11 @@ interface RulesComponentProps {
   appStore?: AppStore,
   rulesStore?: RulesStore,
   devicesStore?:DevicesStore,
+  templatesStore?:TemplatesStore,
   match?:any
 }
 
-@inject('appStore','rulesStore','devicesStore')
+@inject('appStore','rulesStore','devicesStore','templatesStore')
 @observer
 export class RulesComponent extends React.Component<RulesComponentProps, any> {
   dialogs:{
@@ -74,7 +75,7 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
 
    render() {
   
-    const { rulesStore, appStore, devicesStore } = this.props 
+    const { rulesStore, appStore, devicesStore,templatesStore } = this.props 
    
     
   
@@ -86,10 +87,11 @@ export class RulesComponent extends React.Component<RulesComponentProps, any> {
         <RealyDialog ref={instance => this.dialogs.realyDialog = instance} />
         <DoDialog ref={instance => this.dialogs.doDialog = instance} />
         <ErrorDialog ref={instance => this.dialogs.errorDialog = instance} />
-        { TemplateMenu(this.dialogs.realyDialog, TemplatesStore.getInstance(), devicesStore, rulesStore ) } 
+        { TemplateMenu(this.dialogs.realyDialog, templatesStore , devicesStore, rulesStore ) } 
         <TooltipButton tooltip='Добавить' icon='add' onClick={rulesStore.addRule.bind( rulesStore, devicesStore.selected )} floating accent mini className={appStyle.floatRight} />
-        <h2>{'Правила для: ' + devicesStore.selected.name}</h2>
-        { rulesStore.rules.map((rule, index) =>rule?
+  
+          <h2>{'Правила для: ' + devicesStore.selected.name}</h2>
+           { rulesStore.rules.map((rule, index) =>rule?
           <Card key={index} className={style.messageCard}>
             <CardText style={{padding:0}}> 
             <table> 

@@ -228,7 +228,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
    <Card>
             <CardTitle
               avatar=''
-              title="Обновление"
+              title="Обновление встроеного ПО"
               subtitle=""
             />
     

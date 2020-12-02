@@ -30,7 +30,7 @@ export function getAPN()
            }
           
         }else  console.error("getAPN():",err)
-        return {}
+        return {status:stderr}
     })
 }
 var tOut;
