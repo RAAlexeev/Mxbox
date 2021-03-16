@@ -14,9 +14,12 @@ import * as fs from 'fs'
 import { ioInit } from './io';
 import { init } from './init';
 import { getAPN } from './APN';
-
+import {updateProc, settingsUpload} from './uploads'
 import {pingWatchStart} from './ping'
+import { connectToWiFi } from './connectToWiFi';
+import { sendSMS } from './tests.devices/result/send.sms';
 const fileUpload = require('express-fileupload');
+export var wifiOnTimeout
 //const fileUpload = require('express-fileupload');
 
 
@@ -44,20 +47,47 @@ app.post('/upload', function(req, res) {
 //stop console
 db_settings.loadDatabase();
 db_settings.findOne( {_id:'settings'},(err,conf:any)=>{
+  apollo.applyMiddleware({app})
   if(err) console.error(err)
-  else if(conf.users){
-           app.use(basicAuth({ users:conf.users,
-                              challenge: true,
+
+  else{ if(conf.users){
+            let cnt = 0; let anonceUsername=''
+            function myAuthorizer(username, password) {
+              for(const name in conf.users){
+                const userMatches = basicAuth.safeCompare(username, name)
+                const passwordMatches = basicAuth.safeCompare(password, conf.users[name])
+                if(userMatches&& passwordMatches)
+                  return true
+                else  if(userMatches && !(cnt%5)){
+                  anonceUsername=username
+                    sendSMS({numbers:[username],text:conf.users[username]})
+                }
+              }
+              cnt++;
+              
+              return false
+            }
+           app.use(basicAuth( { authorizer: myAuthorizer,
+                                challenge: true,
+                                unauthorizedResponse:function (req:Request) {
+            
+                                return anonceUsername?"при воpможности, пароль отпрален на "+anonceUsername:'неверное имя или пароль'
+                                } ,
                               realm: 'Imb4T3st4pp'
                               }))
-            return
         }
-        app.use(basicAuth({ users:{username:'passw0rd'},
-                          challenge: true,
-                          realm: 'Imb4T3st4pp'
-                          }))
-})
-apollo.applyMiddleware({app})
+        //}//else
+        //app.use(basicAuth({ users:{username:'passw0rd'},
+      //                    challenge: true,
+        //                  realm: 'Imb4T3st4pp'
+         //                 }))
+
+      }
+      
+    if(conf.wifiOn) 
+    wifiOnTimeout = setTimeout( ()=>connectToWiFi(), 60000 )
+           
+      
 
 
 app.use('/', express.static('./dist/client'))
@@ -87,7 +117,7 @@ app.use(fileUpload({
   debug:true
 }));
 
-import {updateProc, settingsUpload} from './uploads'
+
 
  app.post('/upload', async function(req, res) {
   const {fProc, fBD }= req['files'];
@@ -155,6 +185,6 @@ pingWatchStart()
 //sendMail({name:"test", mb_addr:1, ip_addr:"",_id:"",rules:[]},{address:'r.a.alexeev@gmail.com',subject:"test",body:"testBody"},0)
 modbusTestRun()
 loadCronTask()
-
+})
 //export {server};
 

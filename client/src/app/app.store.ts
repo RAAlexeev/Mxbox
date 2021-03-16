@@ -132,12 +132,14 @@ export class AppStore {
     }
   }
   
-  async onNumberExchenge(sNumber:string,dNumber:string){
+  async onNumberExchenge(sNumber:string,dNumber:string,sEmail,dEmail){
     console.log(sNumber,dNumber)
     const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation exchangeNum($sNum:String!,$dNum:String!){exchangeNum(sNum:$sNum,dNum:$dNum){status}}`, 
       variables:{ sNum:sNumber,
-                  dNum:dNumber
+                  dNum:dNumber,
+                  sEmail:sEmail,
+                  dEmail:dEmail
                 },
       fetchPolicy: 'no-cache'  
     }) 

@@ -60,7 +60,7 @@ toggleSidebar = () => {
            
             <NavLink to='/settings' style={{margin:'10%'}} activeClassName={style.active}>Настройки</NavLink>  
            <div style={{marginTop:'1rem'}}>
-            <TooltipButton style={{minWidth: '30%'}} tooltip='Заменить номер телефона' icon='find_replace' onClick={()=>appStore.numberExchengDialog.handleToggle(appStore.onNumberExchenge) }/>
+            <TooltipButton style={{minWidth: '30%'}} tooltip='Заменить...' icon='find_replace' onClick={()=>appStore.numberExchengDialog.handleToggle(appStore.onNumberExchenge) }/>
            
             <TooltipButton style={{minWidth: '30%'}} tooltip='Сохранить настройки' icon='save_alt' href={document.location.origin/* .replace(/:3000/,':3001') */+'/download'}/>
            

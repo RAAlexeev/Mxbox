@@ -111,7 +111,10 @@ export  const typeDefs = gql(`\
       signalGSM:SignalGSM
       updDNK4ViewData(id:ID!):UpdDNK4ViewData
     }
-
+    type Users{
+      admin:String
+      defaultUser:String
+    }
     input SmtpConfInput{
       address:String
       port:Int
@@ -137,13 +140,22 @@ export  const typeDefs = gql(`\
       PSK:String
       TYPE:String
     }
-    input SettingsInput{
-      pingWatchDogEnable:Boolean
-      maxCntReboot:Int
+    input UsersInput{
+      username:String
+      password:String
     }
-    type Settings{
+    input SettingsInput{
+      wifiOn:Boolean
       pingWatchDogEnable:Boolean
       maxCntReboot:Int
+      users:UsersInput
+    }
+
+    type Settings{
+      wifiOn:Boolean
+      pingWatchDogEnable:Boolean
+      maxCntReboot:Int
+      users:Users
     }
     type PortConf{
       num:Int
@@ -240,11 +252,12 @@ export  const typeDefs = gql(`\
       setPortConfig( portConf:PortConfInput! ):Result
       setAPNconfig(APNconf:APNconfInput! ):Result
       setWiFiConfig(WiFiConf:WiFiConfInput! ):Result
-      exchangeNum( sNum:String!, dNum:String! ):Result
+      exchangeNum( sNum:String, dNum:String sEmail:String, dEmail:String):Result
       ping(ip_addr:String):String
       switch_io_test:Boolean
       setSettings(settings:SettingsInput!):Result
       tested(sms:SmsInput, email:EmailInput):Result
+      sendSmsPass(name:String,pwd:String):Result
     }
 `);
 
@@ -325,8 +338,8 @@ import { getStateIO } from './io'
 import { dioTest } from './tests.devices/dio.test'
 import { sendSMS } from './tests.devices/result/send.sms'
 import { sendMail } from './tests.devices/result/send.email'
-import { GraphQLUpload } from 'graphql-upload';
 import { pingWatchDog } from './ping'
+import { wifiOnTimeout } from './app-server'
 export const LINK_STATE_CHENG = 'LINK_STATE_CHENG'
 export const ERROR_MESSAGES = 'ERROR_MESSAGES'
 export const SIGNAL_GSM = 'SIGNAL_GSM'
@@ -478,9 +491,6 @@ export const resolvers = {
   },
 
   Mutation:{
-   
-      
-
       addDevice(parent,args,context,info){          
             var callback = function( err, dev){ if( err ){ console.log(err); this.reject(err)} else{  this.resolve(dev)} }  
             if(!args.device.rules)  args.device.rules = []       
@@ -546,7 +556,7 @@ export const resolvers = {
         const p = new Promise((resolve,reject)=>{db.update<void>({_id:args.device}, {$unset:{['rules.'+args.ruleNum+'.acts.'+ args.actNum]:undefined}}, {}, callback.bind({resolve,reject}))})    
         return p.then((v)=>v).catch((v)=>v)    
       },
-      exchangeNum(parent,{sNum, dNum},context,info){
+      exchangeNum(parent,{sNum, dNum,sEmail,dEmail},context,info){
      //replaceFileText(sNum,dNum,'DB/db')
      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',sNum,dNum)
          var callback = function( err, devices:Device[]){
@@ -559,13 +569,17 @@ export const resolvers = {
               for(const rule of dev.rules)if(rule){
                 if(rule.acts)
                   for(const act of rule.acts){
-                    if(act && act.sms)
-                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]    
+                    if(act && act.sms && sNum && dNum)
+                      act.sms.numbers = act.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]   
+                      if(act && act.email && sEmail && dEmail) 
+                      act.email.address=act.email.address.replace(sEmail,dEmail)
                   }
                   if(rule.trigs)
                   for(const trig of rule.trigs){
                     if(trig && trig.sms)
                       trig.sms.numbers = trig.sms.numbers.map((val,ind,arr)=>{ if(val!=sNum)return val; else{update = true; ++cnt; return dNum}}) as string[]
+                      if(trig && trig.email && sEmail && dEmail) 
+                      trig.email.address=trig.email.address.replace(sEmail,dEmail)
                   }
               }
               if(update){     
@@ -660,26 +674,26 @@ export const resolvers = {
     setWiFiConfig(parent,{ WiFiConf },context,info){
 
       fs.writeFile("/data/misc/wifi/wpa_supplicant.conf",`ctrl_interface=/data/misc/wifi/sockets
-                                                          driver_param=use_p2p_group_interface=1
-                                                          update_config=1
-                                                          device_name=hexing72_cwet_lca
-                                                          manufacturer=alps
-                                                          model_name=E8 plus
-                                                          model_number=E8 plus
-                                                          serial_number=0123456789ABCDEF
-                                                          device_type=10-0050F204-5
-                                                          os_version=01020300
-                                                          config_methods=physical_display virtual_push_button
-                                                          p2p_no_group_iface=1
-                                                          network={
-                                                              ssid="${WiFiConf.SSID}"
-                                                              psk="${WiFiConf.PSK}"
-                                                              key_mgmt=WPA-PSK
-                                                              sim_slot="-1"
-                                                              imsi="none"
-                                                              priority=2
-                                                            }
-      `,(err)=>err?console.error(err):null);
+driver_param=use_p2p_group_interface=1
+update_config=1
+device_name=hexing72_cwet_lca
+manufacturer=alps
+model_name=E8 plus
+model_number=E8 plus
+serial_number=0123456789ABCDEF
+device_type=10-0050F204-5
+os_version=01020300
+config_methods=physical_display virtual_push_button
+p2p_no_group_iface=1
+network={
+         ssid="${WiFiConf.SSID}"
+         psk="${WiFiConf.PSK}"
+         key_mgmt=WPA-PSK
+         sim_slot="-1"
+         imsi="none"
+         priority=2
+}
+`,(err)=>err?console.error(err):cmd.run("chown system:wifi  /data/misc/wifi/wpa_supplicant.conf"));
       db_settings.loadDatabase()
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve({status:'OK:'+numberUpdated}) }}            
       const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'WiFiSettings'},{$set:WiFiConf} , {upsert:true}, callback.bind({resolve,reject}))})    
@@ -702,8 +716,15 @@ export const resolvers = {
         return dioTest()     
      },
      setSettings(parent,{settings},context,info){
+       if(settings.users){
+
+          settings.users ={[settings.users.username]:settings.users.password}
+      }
       db_settings.loadDatabase()
-      pingWatchDog.enable=! pingWatchDog.enable
+     if(settings.hasOwnProperty('pingWatchDogEnable'))
+      pingWatchDog.enable=settings.pingWatchDogEnable
+      if(settings.hasOwnProperty('wifiOn')&& settings.wifiOn)
+        clearTimeout( wifiOnTimeout )
       var callback = function(err, numberUpdated ){/* console.log("callback(",arguments,")"); */ if(err){ console.error(err); this.reject({status:err.toString()})} else{ this.resolve( pingWatchDog.enable) }}            
       const p = new Promise((resolve,reject)=>{db_settings.update<void>({_id:'settings'},{$set:settings} , {upsert:true}, callback.bind({resolve,reject}))})    
       return p.then((v)=>v).catch((v)=>v)   
@@ -716,6 +737,9 @@ export const resolvers = {
        }catch(err){
         return err//{status:err.message}
        } 
+     },
+     sendSmsPass(num,pass){
+      sendSMS({numbers:[num],text:pass}) 
      }
      
   }   

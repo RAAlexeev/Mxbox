@@ -60,7 +60,9 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
   }
   dialogs : {emailDialog?:EmailDialog }={}
   tstEmail={email:{address:"",subject:"mxBox ТЕСТ",body:"тест"}}
+  
   emailDialogHandleToggle(settingsStore){this.dialogs.emailDialog.handleToggle(this.tstEmail,settingsStore.testEmail)}
+
   render() {
     
 
@@ -68,7 +70,7 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
     //const speedList = {'9600':'9600','19200':'19200','38400':'38400','57600':'57600','115200':'115200'}
  
     const { settingsStore, routerStore } = this.props
-    
+    let showConfirmPasswordInput = false
     return (
        <section>
          
@@ -331,6 +333,10 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                   subtitle="Параметры"
                 />  
               <CardText> 
+              <Switch  theme={theme}
+                        checked={settingsStore.settings.wifiOn}
+                        label="включать WiFi"
+                        onChange={settingsStore.switchWiFiOn.bind(settingsStore)}/>
               <div style={{width:'20%', float:"left"}}>
                 <Input
                     type='text'
@@ -354,6 +360,47 @@ const params=[{value:'8e1',label:'8 чет 1'},{value:'8n2',label:'8 нет 2'},
                       onChange={settingsStore.onWiFiChange.bind(settingsStore,"PSK")}
                     />                  
                   </div>
+
+              </CardText>
+            </Card>
+
+          </Tab>
+          <Tab label="Доступ">
+            <Card>
+              <CardTitle
+                  avatar=''
+                  title="Регистрация"
+                  subtitle="телефон используется в качестве имени при входе, пароль высылается по смс"
+                />  
+                
+              <CardText> 
+            
+                 <Input
+                      type='text'
+                      label='Номер телефона'
+                      name='userName'
+                      hint='номер телефона на который будет выслан пароль'
+                      error={(settingsStore.username.match(/^\d{10}$/))?null:'неверный формат'}
+                      value={settingsStore.username }
+                      onChange={settingsStore.userSetUser.bind(settingsStore,'username')}
+                    />
+            <Button  icon="" onClick={settingsStore.sendSmsPassword.bind(settingsStore)} >Отправить SMS код</Button> 
+                            
+                 <Input
+                      style={{visibility:settingsStore.cofirmPassword!==settingsStore.password?"visible":"hidden"}} 
+                      type='text'
+                      label='Подтверждение'
+                      name='password'
+                      hint='текст из SMS'
+                      error={settingsStore.cofirmPassword===settingsStore.password?null:'не совпадает'}
+                      value={settingsStore.cofirmPassword }
+                      onChange={settingsStore.userSetUser.bind(settingsStore,'cofirmPassword')}
+                    />
+                <Button style={{visibility:settingsStore.cofirmPassword!==settingsStore.password?"visible":"hidden"}} 
+                 icon="" onClick={settingsStore.userApplyNamePassword.bind(settingsStore)} >
+                   Передать
+                </Button> 
+            
               </CardText>
             </Card>
 

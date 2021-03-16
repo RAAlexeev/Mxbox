@@ -4,11 +4,14 @@ import gql from 'graphql-tag';
 
 
 export class SettingsStore {
-  
+  @observable username=""
+  @observable password=''
+  @observable cofirmPassword=''
   @observable settings:{
     pingWatchDogEnable,
-    maxCntReboot
-  }={pingWatchDogEnable:false, maxCntReboot:0}
+    maxCntReboot,
+    wifiOn
+  }={pingWatchDogEnable:false, maxCntReboot:0, wifiOn:false}
   
   @observable  smtpSettings: {
     address:string;
@@ -188,6 +191,28 @@ async onUpload (file){
          this.settings.pingWatchDogEnable = !this.settings.pingWatchDogEnable
          this.setRebootCnt(undefined)
        }
+
+
+      async _switchWiFiOn(){
+      
+        try{
+          const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation setSettings($settings:SettingsInput!) { setSettings(settings:$settings){status}}`,
+          variables:{ settings:  {     
+                        wifiOn :this.settings.wifiOn
+                    }
+          },
+          fetchPolicy: 'no-cache'  
+        })
+        }catch(err){
+          this.settings.wifiOn = !this.settings.wifiOn
+          throw  err
+        }
+       }
+       switchWiFiOn(){
+        this.settings.wifiOn = !this.settings.wifiOn
+        this._switchWiFiOn();
+       } 
     async onAPNChange(name:string, value:string){
     //  let save=value
       this.APN[name]=value
@@ -255,6 +280,43 @@ async onUpload (file){
         throw  err
       }
     }
+      userSetUser(k,v){
+      this[k]=v;
+    }
+    async  sendSmsPassword(){
+    
+      try{
+       
+        this.password=Math.random().toString(36).substr(2, 5)
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        mutation: gql`mutation sendSmsPass($num:String,$text:String) { sendSmsPass(num:$num,text:$text){status}}`,
+        variables:{   
+              num:this.username, text:this.password 
+                  
+        },        fetchPolicy: 'no-cache'  
+      })
+      }catch(err){
+        throw  err
+      }
+    }
+
+    async  userApplyNamePassword(){
+    
+      try{
+       
+      
+        const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+        mutation: gql`mutation setSettings($settings:SettingsInput!) { setSettings(settings:$settings){status}}`,
+        variables:{ settings:  {     
+                    users:{ username:this.username, password:this.password }
+                  }
+        },        fetchPolicy: 'no-cache'  
+      })
+      }catch(err){
+        throw  err
+      }
+    }
+
   constructor(){  
     // this.smtpSettings={
     //    address:undefined,     port:undefined,  name:undefined,  password:undefined

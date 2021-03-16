@@ -2,8 +2,8 @@ import * as fs  from 'fs'
 
 
 
-const _di = [56,128,89,109,24,25,27,141] 
-const _do = [26,140,144,58,139]
+const _di = [56,128,89,109,24,25,141] 
+const _do = [26,140,144,58,139,27]
 
 export function setDO(n,value){
    fs.writeFile('/sys/devices/virtual/misc/mtgpio/pin',`-w=${_do[n]}:0 0 0 ${value?1:0} 0 1 0`,(err)=>{if (err) console.error('setDO:',err);})
