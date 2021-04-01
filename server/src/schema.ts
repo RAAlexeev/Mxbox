@@ -145,17 +145,17 @@ export  const typeDefs = gql(`\
       password:String
     }
     input SettingsInput{
-      wifiOn:Boolean
       pingWatchDogEnable:Boolean
       maxCntReboot:Int
       users:UsersInput
+      wifiOn:Boolean
     }
 
     type Settings{
-      wifiOn:Boolean
       pingWatchDogEnable:Boolean
       maxCntReboot:Int
       users:Users
+      wifiOn:Boolean
     }
     type PortConf{
       num:Int
@@ -484,7 +484,7 @@ export const resolvers = {
     },
     getSettings:()=>{
       db_settings.loadDatabase()
-      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf) this.resolve(conf); else this.reject('no settings') }         
+      var callback = function(err,conf){ if( err ){ console.log(err); this.reject(err)} else if(conf){console.dir(conf); this.resolve(conf); }else this.reject('no settings') }         
       const p = new Promise((resolve,reject)=>{db_settings.findOne( {_id:'settings'}, callback.bind({resolve, reject} ))})    
       return p.then().catch() 
     },

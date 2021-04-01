@@ -50,9 +50,10 @@ db_settings.findOne( {_id:'settings'},(err,conf:any)=>{
   apollo.applyMiddleware({app})
   if(err) console.error(err)
 
-  else{ if(conf.users){
+  else{ if(conf.users && false){
             let cnt = 0; let anonceUsername=''
-            function myAuthorizer(username, password) {
+
+    function myAuthorizer(username, password) {
               for(const name in conf.users){
                 const userMatches = basicAuth.safeCompare(username, name)
                 const passwordMatches = basicAuth.safeCompare(password, conf.users[name])
@@ -75,12 +76,11 @@ db_settings.findOne( {_id:'settings'},(err,conf:any)=>{
                                 } ,
                               realm: 'Imb4T3st4pp'
                               }))
-        }
-        //}//else
-        //app.use(basicAuth({ users:{username:'passw0rd'},
-      //                    challenge: true,
-        //                  realm: 'Imb4T3st4pp'
-         //                 }))
+        }else
+        app.use(basicAuth({ users:{admin:'passw0rd'},
+                          challenge: true,
+                          realm: 'Imb4T3st4pp'
+                         }))
 
       }
       

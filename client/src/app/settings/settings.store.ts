@@ -8,9 +8,9 @@ export class SettingsStore {
   @observable password=''
   @observable cofirmPassword=''
   @observable settings:{
+    wifiOn,
     pingWatchDogEnable,
     maxCntReboot,
-    wifiOn
   }={pingWatchDogEnable:false, maxCntReboot:0, wifiOn:false}
   
   @observable  smtpSettings: {
@@ -105,7 +105,7 @@ async onUpload (file){
  } 
  async loadSettings(){
   const result = await AppStore.getInstance().apolloClient.query<any,{}>({
-         query: gql`query getSettings{ getSettings{pingWatchDogEnable maxCntReboot} }`,
+         query: gql`query getSettings{ getSettings{pingWatchDogEnable maxCntReboot wifiOn} }`,
      variables:{},
      fetchPolicy: 'no-cache'
      }) 

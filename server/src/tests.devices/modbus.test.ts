@@ -154,7 +154,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                   
                                                     try{
                                                        if(port.isOpen){ 
-                                                        await new Promise((resolve,reject)=>port.close((err)=>{ resolve() } ))
+                                                        await new Promise<void>((resolve,reject)=>port.close((err)=>{ resolve() } ))
         
                                                         await client.connectRTUBuffered("/dev/ttyMT1", { baudRate: settings['0'].speed, parity:parity(settings['0'].param), stopBits: parseInt(settings['0'].param[2]) });
                                                         client.setTimeout(1000);   
@@ -177,7 +177,7 @@ export const modbusTestRun = async()=> db.find({ 'rules.trigs.type':0 }
                                                                console.error(err)
                                                            }
                                                         })
-                                                        if(!port.isOpen) await Promise.race([new Promise((resolve,reject)=>{ client.close((err)=>{ 
+                                                        if(!port.isOpen) await Promise.race([new Promise<void>((resolve,reject)=>{ client.close((err)=>{ 
                                                                                                              if(err)console.error(err)                       
                                                                                                              if(!port.isOpen)port.open((err)=>{
                                                                                                                     if(port.isOpen)resolve(); else port.open((err)=>{
