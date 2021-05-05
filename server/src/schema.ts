@@ -1,9 +1,9 @@
 import gql from 'graphql-tag'
 import * as fs from 'fs'
-import shortid from 'short-id'
-import * as zlib from 'zlib'
-import * as tar from 'tar-fs'
-import * as crypto from 'crypto'
+//import shortid from 'short-id'
+//import * as zlib from 'zlib'
+//import * as tar from 'tar-fs'
+//import * as crypto from 'crypto'
 import * as _APN from './APN'
 import cmd  from 'node-cmd'
 

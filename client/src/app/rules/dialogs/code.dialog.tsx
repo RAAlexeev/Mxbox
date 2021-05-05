@@ -86,7 +86,7 @@ export class CodeDialog extends React.Component<any> {
           title='Условие'
         >
       
-         <Input style={{marginTop:'10rem'}} type='text' multiline  error={this.state.error} label={ 'Здесь, вы можете вводить условия состоящие из: >, <, =, >=, <= , OR, AND, NOT, \
+         <Input style={{marginTop:'10rem', fontSize:"50%"}} type='text' multiline  error={this.state.error} label={ 'Здесь, вы можете вводить условия состоящие из: >, <, =, >=, <= , OR, AND, NOT, \
             () и содержащие числовые константы и арифметические операции +, -, *, / , а также адреса регистров modbus в квадратных скобках:\
             например: ([12] + 4 > 10) AND [12.1] \
             По умолчанию для запросов modbus используется функция 3 — чтение значений из нескольких регистров хранения (Read Holding Registers). \

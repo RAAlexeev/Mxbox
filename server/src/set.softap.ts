@@ -1,4 +1,6 @@
 import  * as fs  from 'fs'
+import cmd from 'node-cmd'
+
 const  param=`interface=ap0
 driver=nl80211
 ctrl_interface=/data/misc/wifi/hostapd
@@ -21,8 +23,11 @@ wpa=2
 rsn_pairwise=CCMP
 wpa_psk=b283e10696a32fd90f9b04d03a6f48a1a20d87c580d44101762d21e1f8291366
 `//" mxBox    qaqzwswxedec       "wpa_psk=5e7305e3d278cd3a543fd4f139369442f9981597aa195a5339e5a48d2e850108
-
-export default ()=>fs.readFile('/data/misc/wifi/softap.conf','utf8',(err,data:string)=>{
+//☺ ♣mxBox   ♦ qaqzwswxedec
+export default ()=>{
+    cmd.run("chown wifi:wifi /data/misc/wifi/softap.conf")   
+    cmd.run("chown wifi:wifi /data/misc/wifi/hostapd.conf")  
+    return fs.readFile('/data/misc/wifi/softap.conf','utf8',(err,data:string)=>{
     const softAP =" mxBox    qaqzwswxedec       " 
     if(!err){
         if(data !== softAP){
@@ -30,4 +35,4 @@ export default ()=>fs.readFile('/data/misc/wifi/softap.conf','utf8',(err,data:st
             fs.writeFile('/data/misc/wifi/softap.conf', softAP,(err)=>{if (err) console.error('set.ap.js:',err)})
         }
     }else console.error(err)
-})
+})}
