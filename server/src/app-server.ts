@@ -48,9 +48,12 @@ app.post('/upload', function(req, res) {
 db_settings.loadDatabase();
 db_settings.findOne( {_id:'settings'},(err,conf:any)=>{
   apollo.applyMiddleware({app})
-  if(err) console.error(err)
+  if(err) 
+  
+  console.error(err)
 
-  else{ if(conf.users && false){
+  else if(conf){
+    if(conf.users && false){
             let cnt = 0; let anonceUsername=''
 
     function myAuthorizer(username, password) {
@@ -81,11 +84,11 @@ db_settings.findOne( {_id:'settings'},(err,conf:any)=>{
                           challenge: true,
                           realm: 'Imb4T3st4pp'
                          }))
-
       }
-      
-    if(conf.wifiOn) 
-    wifiOnTimeout = setTimeout( ()=>connectToWiFi(), 60000 )
+    
+    
+
+
            
       
 

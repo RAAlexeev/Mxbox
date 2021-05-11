@@ -10,6 +10,7 @@ import { Input } from 'react-toolbox/lib/input';
 import { SmsDialog } from '../dialogs/sms.dialog';
 import * as theme from './home.css'
 
+
 @observer
 export class Home extends React.Component<any, any> {
 
@@ -42,9 +43,13 @@ interface HomeComponentProps {
   obj={sms:{numbers:[""],text:"ТЕСТ"}}
   smsDialogHandleToggle=()=>{this.dialogs.smsDialog.handleToggle(this.obj,this.props.homeStore.testSMS)}
   
+  HomeComponent(){
+    const { homeStore } = this.props
+    homeStore.setTZ()
+  }
   render() {
    
-    const { homeStore, appStore } = this.props
+const { homeStore, appStore } = this.props
     return <div> 
       <SmsDialog actionLabel1="Отправить..." ref={instance => this.dialogs.smsDialog = instance}/>
         <h2>Конфигуратор системы оповещения и мониторинга MxBox©</h2>
@@ -64,13 +69,10 @@ interface HomeComponentProps {
                     value={homeStore.ip_addr}
                     onChange={homeStore.set_ip_addr.bind(homeStore)}
                   />
+
   <Button flat icon="compare_arrows" onClick={homeStore.ping.bind(homeStore)} >ping</Button>
   <Button flat icon="sms" onClick={this.smsDialogHandleToggle.bind(this)} >Тестовая SMS...</Button>          
-  <Switch  theme={theme}
-            checked={homeStore.ioTest}
-            label="тестирование DIO"
-            onChange={homeStore.switch_ioTest.bind(homeStore)}
-          />
+ 
         <p>{homeStore.pingResult}</p>  
        <h2>Информация о системе  <Button flat= {true} icon="replay" onClick={homeStore.loadInfo.bind(homeStore)} /></h2>        
        <p>Регистрация в сети:<b>{homeStore.CREG} </b></p>

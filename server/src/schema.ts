@@ -149,6 +149,7 @@ export  const typeDefs = gql(`\
       maxCntReboot:Int
       users:UsersInput
       wifiOn:Boolean
+      tz:Int
     }
 
     type Settings{
@@ -231,6 +232,7 @@ export  const typeDefs = gql(`\
       encoding: String!
     }
     type Mutation{
+      setTZ(tz:Int!):Boolean
       singleUpload(file: Upload!): File
       settingsUpload(file:Upload!):File!
       addAsTemplate(_id:ID!):Result
@@ -450,8 +452,8 @@ export const resolvers = {
     },
     getInfo:async ()=>{
       const getDateTime=()=>{
-        let ts = Date.now();
-        let date_ob = new Date(ts);
+      // let ts = Date.now();
+        let date_ob = new Date();
         // current hours
         let hours = date_ob.getHours();
         // current minutes
@@ -715,6 +717,10 @@ network={
      switch_io_test(){
         return dioTest()     
      },
+     setTZ({tz}){
+      cmd.run('setprop persist.sys.timezone "Etc/GMT'+tz+'"')
+      return true
+   },
      setSettings(parent,{settings},context,info){
        if(settings.users){
 

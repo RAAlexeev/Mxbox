@@ -55,8 +55,6 @@ export class HomeStore {
       // else throw new Error('Пустое значение Info')
     }catch(err){
       console.error(err)
-    }finally{
-
     }
 }
 
@@ -110,8 +108,6 @@ export class HomeStore {
       }catch(err){
        // this.APN[name]=save
         throw  err
-      }finally{
-
       }
     } 
    @action  async switch_ioTest(){
@@ -126,9 +122,7 @@ export class HomeStore {
       }catch(err){
         this.ioTest=!this.ioTest
         throw  err
-      }finally{
-
-      } 
+      }
     }
     async testSMS({sms}){
       try{
@@ -142,10 +136,22 @@ export class HomeStore {
       }catch(err){
        // alert(err.message)
         throw  err
-      }finally{
-        
       }
     }
+   async  setTZ(tz?){
+    if(!tz) tz = new Date().getTimezoneOffset()/60;
+    try{
+
+      const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation setTZ($tz:Int){ setTZ(tz:$tz){setTZ} }`, 
+          variables:{ tz: tz },
+          fetchPolicy: 'no-cache'  
+        })
+      }catch(err){
+       throw  err
+     }
+    }
+
     destructor(){
         if(this.subscription)this.subscription.unsubscribe()
     }
