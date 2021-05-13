@@ -4,6 +4,7 @@ import { AppStore } from '../app.store'
 import { arrayRemove } from '../utils';
 import { Rule, RulesStore } from '../rules/rules.store';
 import { isUndefined } from 'util';
+import { ObservableArray } from 'mobx/lib/types/observablearray';
 
 const DevicesQuery = gql`
   query DevicesQuery {
@@ -51,7 +52,7 @@ export class DevicesStore {
   rulesStore:RulesStore
  // deviceSubscription
 
- @observable devices: Device[] = observable.array(); 
+  @observable devices = observable.array([], "devices") 
   @observable selected: Device
    
   @observable isEdit:boolean = false
@@ -101,16 +102,12 @@ export class DevicesStore {
       fetchPolicy: 'network-only'
     })    
 
-    this.devices = observable.array( result.data.devices )
+    this.devices = observable.array( result.data.devices, "devices" )
   
   }catch(err){
-    this.devices=observable.array(  )
+    this.devices=observable.array([] , "devices")
         console.log(err.message)
-  }finally{
-
-  }
-
-    
+      } 
   }
 
   async addDevice() {
@@ -124,6 +121,8 @@ export class DevicesStore {
     
   
     this.devices.push(result.data.addDevice)
+
+  
   }
   async delDevice(device) {
    try{
@@ -135,12 +134,11 @@ export class DevicesStore {
    
    // arrayRemove.call(this.devices, this.devices.indexOf(device))
 
-      this.devices.splice( this.devices.indexOf(device))
+      this.devices.remove( device )
       if(this.devices.length==0) this.selected = null
+
     }catch(e){
       console.error(e)
-    }finally{
-
     }
   }
 

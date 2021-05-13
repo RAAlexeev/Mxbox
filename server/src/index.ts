@@ -23,7 +23,7 @@ mkdir('/data/mxBox/DB',{recursive:true,mode:0x777},()=>{})
       // add the user to the context
       return { user };
     }, */
-    playground:false,
+    playground:true,
 
     subscriptions: {
       

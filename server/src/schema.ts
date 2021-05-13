@@ -717,8 +717,9 @@ network={
      switch_io_test(){
         return dioTest()     
      },
-     setTZ({tz}){
-      cmd.run('setprop persist.sys.timezone "Etc/GMT'+tz+'"')
+     setTZ(parent,{tz}){
+      console.log('tz:',tz)
+      cmd.run('settings put global auto_time_zone 0 && setprop persist.sys.timezone "Etc/GMT'+tz+'"')
       return true
    },
      setSettings(parent,{settings},context,info){

@@ -34,7 +34,7 @@ export class HomeStore {
   @observable pingResult = ""
   @observable ip_addr = ""
   @observable ioTest = false
- 
+
   @action async loadInfo(){
     try{
     const result = await AppStore.getInstance().apolloClient.query<any,{}>({
@@ -60,7 +60,7 @@ export class HomeStore {
 
       subscription
       constructor(){
- 
+       
           this.subscription =  AppStore.getInstance().apolloClient.subscribe({
             query: gql`subscription signalGSM{ signalGSM{value CREG{n stat}} }`,
             variables: { }
@@ -92,6 +92,7 @@ export class HomeStore {
       
         
         this.loadInfo()
+        this.setTZ()
       }
       set_ip_addr(ip_addr){
         this.ip_addr = ip_addr
@@ -140,16 +141,12 @@ export class HomeStore {
     }
    async  setTZ(tz?){
     if(!tz) tz = new Date().getTimezoneOffset()/60;
-    try{
-
-      const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
-          mutation: gql`mutation setTZ($tz:Int){ setTZ(tz:$tz){setTZ} }`, 
+         const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
+          mutation: gql`mutation setTZ($tz:Int!){ setTZ(tz:$tz) }`, 
           variables:{ tz: tz },
           fetchPolicy: 'no-cache'  
         })
-      }catch(err){
-       throw  err
-     }
+
     }
 
     destructor(){

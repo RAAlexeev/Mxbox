@@ -43,10 +43,7 @@ interface HomeComponentProps {
   obj={sms:{numbers:[""],text:"ТЕСТ"}}
   smsDialogHandleToggle=()=>{this.dialogs.smsDialog.handleToggle(this.obj,this.props.homeStore.testSMS)}
   
-  HomeComponent(){
-    const { homeStore } = this.props
-    homeStore.setTZ()
-  }
+
   render() {
    
 const { homeStore, appStore } = this.props
