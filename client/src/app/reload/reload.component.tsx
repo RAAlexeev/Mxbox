@@ -40,11 +40,11 @@ interface ReloadComponentProps {
   render() {
    
    const { routerStore, appStore } = this.props
-    //setTimeout(()=>routerStore.history.push(`/home`), 60000)
+    setTimeout(()=>routerStore.history.push(`/home`), 60000)
     return <div> 
       Перезагрузка....
     <ProgressBar type="circular" mode="indeterminate" />
-    
+
           
         </div>
   }

@@ -1,1 +1,2 @@
-/home/alekseev/workspace/mxBox/server/db_settings
+{"0":{"num":0,"speed":115200,"param":"8s1","protocol":null,"addr":null},"1":{"num":1,"speed":115200,"param":"8s1","protocol":2,"addr":200},"_id":"portsSettings"}
+{"_id":"smtp","address":"smtp.yandex.com","port":465,"name":"alekseev@mx-omsk.ru","password":"9723692!"}

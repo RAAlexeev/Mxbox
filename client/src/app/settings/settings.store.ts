@@ -82,6 +82,7 @@ async onUpload (file){
       body: file
     });
     console.dir(response)
+    
     /*const result = await AppStore.getInstance().apolloClient.mutate<any,{}>({
       mutation: gql`mutation singleUpload($file: Upload!) {
         singleUpload(file: $file){
