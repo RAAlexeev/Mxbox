@@ -24,7 +24,7 @@
     "graphql": "^14.0.0",
     "graphql-upload": "^11.0.0",
     "https-proxy-agent": "^3.0.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "modbus-serial": "^7.5.1",
     "nedb": "^1.8.0",
     "nmp": "^1.0.3",
